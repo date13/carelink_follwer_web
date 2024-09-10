@@ -266,10 +266,9 @@ function sgColor(sg) {
 }
 
 const timeInRange = computed(() => {
-  const validSgs = state.data.sgs.filter(item => item.sensorState === 'NO_ERROR_MESSAGE')
-  const lt = validSgs.filter(item => item.sg <= CONST_VAR.minWarnSg * CONST_VAR.exchangeUnit).length
-  const gt = validSgs.filter(item => item.sg >= CONST_VAR.maxWarnSg * CONST_VAR.exchangeUnit).length
-  return [(((validSgs.length - (lt + gt)) / validSgs.length) * 100).toFixed(1), ((lt / validSgs.length) * 100).toFixed(1), ((gt / validSgs.length) * 100).toFixed(1)]
+  const lt = ((validSgs.filter(item => item.sg <= CONST_VAR.minWarnSg * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
+  const gt = ((validSgs.filter(item => item.sg >= CONST_VAR.maxWarnSg * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
+  return [100 - (Number(lt) + Number(gt)), lt, gt]
 })
 
 const lastOffset = computed(() => {
