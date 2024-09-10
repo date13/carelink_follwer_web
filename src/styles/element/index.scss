@@ -1,0 +1,34 @@
+// styles/element/index.scss
+/* 只需要重写你需要的即可 */
+$base: #0085d7;
+$bg-grey: #f8f8f8;
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    'primary': (
+      'base': $base,
+    ),
+  ),
+  $font-size:(
+    'base':12px,
+  ),
+  $menu:(
+    'item-font-size':14px,
+  ),
+  $common-component-size:(
+    'default':30px
+  ),
+  $input-font-size:(
+    'default': 12px!important,
+  ),
+  $table:(
+    'header-text-color':rgb(0,0,0,.6),
+    'header-bg-color':$bg-grey
+  ),
+  $dialog:(
+    'padding-primary':6px
+  )
+);
+
+// 如果只是按需导入，则可以忽略以下内容。
+// 如果你想导入所有样式:
+// @use "element-plus/theme-chalk/src/index.scss" as *;

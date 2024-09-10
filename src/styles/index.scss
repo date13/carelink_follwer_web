@@ -1,0 +1,451 @@
+@import 'variables.module';
+@import './mixin.scss';
+@import './element/element-plus';
+
+html, body {
+  font-family: "Roboto", sans-serif !important; /* 1 */
+  -ms-text-size-adjust: 100%; /* 2 */
+  -webkit-text-size-adjust: 100%; /* 2 */
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  margin: 0 !important;
+  padding: 0;
+  height: 100%;
+  background-color: $bgGrey !important;
+  overflow: hidden;
+  //filter: grayscale(100%); //网站灰色调
+}
+
+label {
+  font-size: 12px !important;
+}
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#app {
+  height: 100%;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+div:focus {
+  outline: none;
+}
+
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
+
+// main-container global css
+.app-container {
+  padding: 20px;
+}
+
+
+/* HTML5 display definitions
+   ========================================================================== */
+
+/**
+ * Correct `block` display not defined for any HTML5 element in IE 8/9.
+ * Correct `block` display not defined for `details` or `summary` in IE 10/11
+ * and Firefox.
+ * Correct `block` display not defined for `main` in IE 11.
+ */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+menu,
+nav,
+section,
+summary {
+  display: block;
+}
+
+/**
+ * 1. Correct `inline-block` display not defined in IE 8/9.
+ * 2. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.
+ */
+
+audio,
+canvas,
+progress,
+video {
+  display: inline-block; /* 1 */
+  vertical-align: baseline; /* 2 */
+}
+
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
+ */
+
+audio:not([controls]) {
+  display: none;
+  height: 0;
+}
+
+/**
+ * Address `[hidden]` styling not present in IE 8/9/10.
+ * Hide the `template` element in IE 8/9/11, Safari, and Firefox < 22.
+ */
+
+[hidden],
+template {
+  display: none;
+}
+
+
+/**
+ * Improve readability when hovered and also mouse hovered in all browsers.
+ */
+
+a:active,
+a:hover {
+  outline: 0;
+}
+
+/* Text-level semantics
+   ========================================================================== */
+
+/**
+ * Address styling not present in IE 8/9/10/11, Safari, and Chrome.
+ */
+
+abbr[title] {
+  border-bottom: 1px dotted;
+}
+
+/**
+ * Address style set to `bolder` in Firefox 4+, Safari, and Chrome.
+ */
+
+b,
+strong {
+  font-weight: bold;
+}
+
+/**
+ * Address styling not present in Safari and Chrome.
+ */
+
+dfn {
+  font-style: italic;
+}
+
+.hand {
+  cursor: pointer;
+}
+
+
+.bg-white {
+  background-color: white !important;
+}
+
+::-moz-selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+::selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+::-ms-clear,
+::-ms-reveal {
+  display: none;
+}
+
+/*ul, ol {
+  padding-left: 24px;
+}*/
+
+
+.title {
+  font-size: 1.25rem !important;
+  font-weight: 500;
+  line-height: 2rem;
+  letter-spacing: 0.0125em !important;
+  font-family: "Roboto", sans-serif !important;
+}
+
+.body-2 {
+  font-size: 0.875rem !important;
+  font-weight: 400;
+  letter-spacing: 0.0178571429em !important;
+  line-height: 1.25rem;
+  font-family: "Roboto", sans-serif !important;
+}
+
+.body-1 {
+  font-size: 1rem !important;
+  font-weight: 400;
+  letter-spacing: 0.03125em !important;
+  line-height: 1.5rem;
+  font-family: "Roboto", sans-serif !important;
+}
+
+.caption {
+  font-size: 0.825rem !important;
+  font-weight: 400;
+  letter-spacing: 0.0333333333em !important;
+  line-height: 1.25rem;
+  font-family: "Roboto", sans-serif !important;
+}
+
+// Classes
+.pull-left {
+  float: left !important;
+}
+
+.pull-right {
+  float: right !important;
+}
+
+.clearfix {
+  &:before,
+  &:after {
+    content: " ";
+    display: table;
+  }
+
+  &:after {
+    clear: both;
+  }
+}
+
+.hide {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.rotate180 {
+  transform: rotate(180deg);
+}
+
+.rotate225 {
+  transform: rotate(225deg);
+}
+
+
+/*
+* Remove the gap between audio, canvas, iframes,
+* images, videos and the bottom of their containers:
+* https://github.com/h5bp/html5-boilerplate/issues/440
+*/
+
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
+  vertical-align: middle;
+}
+
+/*
+* Remove default fieldset styles.
+*/
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+* Allow only vertical resizing of textareas.
+*/
+
+textarea {
+  resize: vertical;
+}
+
+/*
+* Hide only visually, but have it available for screen readers:
+* http://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+*/
+
+.visuallyhidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+
+  &.focusable:focus,
+  &.focusable:active {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+  }
+}
+
+.multi-line {
+  height: 40px;
+  line-height: 20px;
+  overflow: hidden;
+  white-space: normal !important;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+input::-moz-placeholder, textarea::-moz-placeholder {
+  color: #ccc;
+  font-weight: normal;
+}
+
+input:-ms-input-placeholder, textarea:-ms-input-placeholder {
+  color: #ccc;
+  font-weight: normal;
+}
+
+input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
+  color: #ccc;
+  font-weight: normal;
+}
+
+.two-line-wrap {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  width: 100%;
+}
+
+.upload-file-input {
+  display: inline-block !important;
+  width: 88px;
+  height: 28px;
+  opacity: 0;
+  position: absolute;
+  cursor: pointer;
+  top: 6px;
+  z-index: 99;
+}
+
+
+.flex-height {
+  overflow-y: auto;
+  height: 100%
+}
+
+.tooltip {
+  z-index: 250;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  background: #0085d7;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  background: #ededed;
+}
+
+.fill-datepicker {
+  width: 100% !important;
+
+  .el-input__wrapper {
+    width: 100% !important;
+  }
+}
+
+
+.header-select-collapse {
+  z-index: 2000;
+
+  .el-input.el-input--suffix {
+    height: 30px;
+  }
+}
+
+.caption-light {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.expand-column {
+  > div {
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+.tab-panel {
+  .el-tabs__item.is-active {
+    border-bottom: 1px solid $baseColor !important;
+  }
+}
+
+.img-bg {
+  background-color: #f5f5f5;
+  // margin-top: 8px;
+  border-radius: 4px;
+  width: 50px;
+  height: 50px;
+}
+
+.header-box {
+  padding: 10px;
+  background-color: white;
+}
+
+.detail-box {
+  padding: 20px 0;
+  background-color: white;
+}
