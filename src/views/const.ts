@@ -8,7 +8,7 @@ export const COLORS = [
   '#ffe166'//警告颜色
 ]
 export const REFRESH_INTERVAL = {
-  loadData: 2
+  loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
 }
 export const CONST_VAR = {
   maxWarnSg: 9.5,

@@ -1,9 +1,7 @@
 import {each, keys} from 'lodash-es'
 import {DATE_FORMAT, LastStatus, LocalStorageKey,} from '@/model/model-type'
-import User from "@/model/classes/User"
 import dayjs, {Dayjs} from 'dayjs'
 import {ElLoading, ElMessage, ElMessageBox, ElNotification} from "element-plus";
-import {localStorage} from './storage'
 import {RemovableRef, useStorage} from "@vueuse/core";
 
 let loadingInstance: any | null
@@ -29,7 +27,7 @@ export function hideLoading() {
       loadingCount--
       if (loadingCount === 0) {
         loadingInstance.close()
-        //loadingcount为0了.强制close掉,去掉loading框,去掉body的class和loadNumer
+        //loadingcount为0了.强制close掉,去掉loading框,去掉body的class和loadNumber
         const el = document.querySelector("div.el-loading-mask.is-fullscreen")
         if (el) {
           el.remove()
@@ -360,25 +358,6 @@ export class Tools {
       }
     }
     return resArr
-  }
-
-  static getDomainContext() {
-    let user = Tools.getUser();
-    if (user && user.tenant && user.tenant.site) {
-      let site = user.tenant.site;
-      return `${site.url}`;
-    } else {
-      // Msg.warn('当前站点未配置URL');
-      return '';
-    }
-  }
-
-  static setUser(user: User | null) {
-    localStorage.set(LocalStorageKey.user, user)
-  }
-
-  static getUser() {
-    return localStorage.get(LocalStorageKey.user)
   }
 
   static getLastStatus(defaultKey: string = '', defaultValue: any = null): RemovableRef<LastStatus> {
