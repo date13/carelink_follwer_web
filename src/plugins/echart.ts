@@ -15,6 +15,7 @@ import {
   ToolboxComponent,
   TooltipComponent,
   TransformComponent,
+  VisualMapComponent
 } from "echarts/components";
 // 标签自动布局，全局过渡动画等特性
 import {LabelLayout, UniversalTransition} from "echarts/features";
@@ -38,6 +39,7 @@ echarts.use([
   DataZoomComponent,
   DataZoomInsideComponent,
   DataZoomSliderComponent,
+  VisualMapComponent,
   BarChart,
   LineChart,
   PieChart,

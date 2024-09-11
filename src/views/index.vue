@@ -4,7 +4,7 @@
       <div class="flex flex-row h-50 pt-2">
         <div class="w-1/2 flex items-center justify-center flex-col">
           <div class="flex items-center justify-between">
-            <div :style="{color:sgColor(calcSG(data.lastSG.sg))}" class="text-7xl font-bold ">{{
+            <div :style="{color:sugarCalc.sgColor(calcSG(data.lastSG.sg))}" class="text-7xl font-bold ">{{
                 calcSG(data.lastSG.sg)
               }}
             </div>
@@ -88,10 +88,11 @@
       <div class="flex-1">
         <div ref="myChart" class="border-grey border-grey mb-4 h-full"></div>
       </div>
+      <div class="h-10"></div>
     </div>
   </MainPanel>
 </template>
-<script lang="ts" name="myinfo" setup>
+<script lang="ts" name="mySugar" setup>
 import MainPanel from '@/layout/components/MainPanel.vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -103,6 +104,7 @@ import {DATE_FORMAT} from "@/model/model-type";
 import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {COLORS, CONST_VAR, DIRECTIONS, INSULIN_TYPE, REFRESH_INTERVAL} from "@/views/const";
+import useSugarCalc from "@/composition/useSugarCalc";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -115,6 +117,7 @@ let resizeObj: any = null
 const lastStatus: any = Tools.getLastStatus('sugar-setting', {
   startPercent: 13
 })
+const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
 const state: any = reactive({
   tokenData: {},
@@ -229,6 +232,16 @@ async function loadCarelinkData(mask = true) {
         state.status = result.status
         state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = cleanTime(state.data.lastSG.datetime)
+        /*state.data.markers.push({
+          "type": "CALIBRATION",
+          "index": 148,
+          "value": 130,
+          "kind": "Marker",
+          "version": 1,
+          "dateTime": "2024-09-11T14:18:00.000-00:00",
+          "relativeOffset": -41836,
+          "calibrationSuccess": true
+        },)*/
       }
     }
   } catch (e) {
@@ -243,10 +256,6 @@ function changeTimeRange() {
 
 function refreshChart() {
   chart.setOption(charOption.value, true);
-}
-
-function sgColor(sg) {
-  return sg < CONST_VAR.maxWarnSg && sg > CONST_VAR.minWarnSg ? COLORS[0] : COLORS[6]
 }
 
 //计算入框率
@@ -303,15 +312,15 @@ const charOption = computed(() => {
           const isInsulin = type.key === INSULIN_TYPE.INSULIN.key
           dataStr += `
             <div class="flex items-center justify-between my-1">
-              <span style="width:10px;height:10px;background-color:${type.color};"></span>
+              <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
               <span>${isInsulin ? type.text[0] : ''}</span>
-              <span>${isInsulin ? item.data[3] : item.data[1]}</span>
+              <span>${item.data[1]}</span>
             </div>`
           if (isInsulin) {
             dataStr += `<div class="flex items-center justify-between mb-1">
               <span style="width:10px;height:10px;background-color:${type.color2};"></span>
               <span>${type.text[1]}</span>
-              <span>${item.data[1]}</span>
+              <span>${item.data[3]}</span>
             </div>`
           }
         })
@@ -338,12 +347,15 @@ const charOption = computed(() => {
       {
         name: 'mmol',
         type: 'value',
-        min: 2,
-        max: (value) => {//取最大值向上取整为最大刻度
-          return value.max < 10 ? 10 : Math.ceil(value.max)
-        },
+        ...sugarCalc.calcSgYValueLimit(),
         connectNulls: false,
         splitLine: {show: true}
+      },
+      {
+        name: '校准',
+        type: 'value',
+        ...sugarCalc.calcSgYValueLimit(),
+        show: false
       },
       {
         name: '基础率',
@@ -373,6 +385,38 @@ const charOption = computed(() => {
         },
       }
     ],
+    visualMap: {
+      show: false,
+      dimension: 1,
+      type: 'piecewise',
+      precision: 1,
+      seriesIndex: 0,
+      pieces: [
+        {
+          lte: CONST_VAR.minSeriousSg,
+          color: COLORS[5]
+        },
+        {
+          lte: CONST_VAR.minWarnSg,
+          gt: CONST_VAR.minSeriousSg,
+          color: COLORS[6]
+        },
+        {
+          gt: CONST_VAR.minWarnSg,
+          lt: CONST_VAR.maxWarnSg,
+          color: COLORS[0]
+        },
+        {
+          gte: CONST_VAR.maxWarnSg,
+          lt: CONST_VAR.maxSeriousSg,
+          color: COLORS[6]
+        },
+        {
+          gt: CONST_VAR.maxSeriousSg,
+          color: COLORS[5]
+        }
+      ]
+    },
     series: [
       {
         name: '血糖',
@@ -385,16 +429,7 @@ const charOption = computed(() => {
               INSULIN_TYPE.SG
             ]
           }
-        }).concat(state.data.markers.map(item => {
-          //获取校准数据
-          if (item.type === 'CALIBRATION') {
-            return [
-              cleanTime(item.dateTime),
-              calcSG(item.value),
-              INSULIN_TYPE.CALIBRATION
-            ]
-          }//排序
-        })).sort((a, b) => dayjs(a[0]).diff(b[0])),
+        }),
         type: 'line',
         smooth: true,
         yAxisIndex: 0,
@@ -403,16 +438,6 @@ const charOption = computed(() => {
         label: {
           show: false,
           position: 'bottom'
-        },
-        itemStyle: {
-          color: item => {
-            if (item.data) {
-              return item.data[2].key === INSULIN_TYPE.SG.key ? sgColor(item.data[1]) : item.data[2].color
-            }
-          }
-        },
-        lineStyle: {
-          color: INSULIN_TYPE.SG.color
         },
         markLine: {
           symbol: ['none', 'none'],
@@ -440,11 +465,37 @@ const charOption = computed(() => {
           }
         }
       },
+
+      {
+        name: '校准',
+        data: state.data.markers.map(item => {
+          //获取校准数据
+          if (item.type === 'CALIBRATION') {
+            return [
+              cleanTime(item.dateTime),
+              calcSG(item.value),
+              INSULIN_TYPE.CALIBRATION
+            ]
+          }//排序
+        }),
+        type: 'line',
+        yAxisIndex: 1,
+        symbol: 'circle',
+        symbolSize: 8,
+        lineStyle: 'none',
+        label: {
+          show: false,
+          position: 'bottom'
+        },
+        itemStyle: {
+          color: INSULIN_TYPE.CALIBRATION.color
+        }
+      },
       {
         name: '基础率',
         type: "bar",
         step: 'middle',
-        yAxisIndex: 1,
+        yAxisIndex: 2,
         connectNulls: true,
         areaStyle: {},
         itemStyle: {
@@ -474,10 +525,25 @@ const charOption = computed(() => {
       {
         name: '大剂量',
         type: "scatter",
-        yAxisIndex: 2,
+        yAxisIndex: 3,
         symbolSize: 15,
         itemStyle: {
-          color: INSULIN_TYPE.INSULIN.color
+          borderColor: COLORS[2],
+          color: (item) => {
+            if (item.data) {
+              let percent = Number((item.data[3] / item.data[1]).toFixed(1))
+              return percent === 1 ? COLORS[2] : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: percent,
+                  color: 'white'
+                },
+                {
+                  offset: 1 - percent,
+                  color: COLORS[2]
+                }
+              ])
+            }
+          }
         },
         data: state.data.markers.map(item => {
           if (item.type === 'INSULIN' && item.activationType === 'RECOMMENDED') {
@@ -485,13 +551,13 @@ const charOption = computed(() => {
             const delivered = item.deliveredFastAmount.toFixed(2)
             return [
               cleanTime(item.dateTime),
-              delivered,
+              plan,
               INSULIN_TYPE.INSULIN,
-              plan
+              delivered
             ]
           }
         })
-      }
+      },
     ]
   }
 })

@@ -1,18 +1,20 @@
 export const COLORS = [
   '#09d254',//血糖
   '#8A2BE2',//基础率
-  '#FFA41C',//大剂量
-  '#7ED3F4',//自动修正
+  '#0fb1ec',//大剂量
+  '#0df5db',//自动修正
   '#e333c6',//已输注
   '#f00',//警告线,
-  '#ffe166'//警告颜色
+  '#ffe166',//警告颜色
 ]
 export const REFRESH_INTERVAL = {
   loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
 }
 export const CONST_VAR = {
+  maxSeriousSg: 13.5,
   maxWarnSg: 9.5,
   minWarnSg: 3.9,
+  minSeriousSg: 3.2,
   exchangeUnit: 18,
   isDemo: import.meta.env.VITE_APP_IS_DEMO === 'true'
 }
@@ -34,8 +36,8 @@ export const INSULIN_TYPE = {
   },
   INSULIN: {
     name: '大剂量',
-    color: COLORS[2],
-    color2: COLORS[4],
+    color: COLORS[4],
+    color2: COLORS[2],
     key: 'INSULIN',
     text: ['手动输注', '已输注']
   },
