@@ -14,13 +14,19 @@ export class SugarService extends BaseService {
       const result = await dictService.getDict("carelinkData", mask)
       if (result) {
         const data = JSON.parse(result.val)
-        resultData = JSON.parse(data.data)
+        resultData = {
+          data: JSON.parse(data.data),
+          status: data.status
+        }
         console.log(resultData);
       }
     } else {
       const result = await dictService.getDemo()
       if (result) {
-        resultData = result
+        resultData = {
+          data: result,
+          status: 200
+        }
       }
     }
     return resultData

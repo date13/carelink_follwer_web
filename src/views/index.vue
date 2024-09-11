@@ -225,9 +225,9 @@ async function loadCarelinkData(mask = true) {
     if (state.tokenData) {
       const result = await sugarService.loadData(CONST_VAR.isDemo, mask)
       if (result) {
-        state.data = result
+        state.data = result.data
+        state.status = result.status
         state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
-        state.status = data.status
         state.data.lastSG.datetime = cleanTime(state.data.lastSG.datetime)
       }
     }
