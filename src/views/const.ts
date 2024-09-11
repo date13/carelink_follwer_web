@@ -13,7 +13,8 @@ export const REFRESH_INTERVAL = {
 export const CONST_VAR = {
   maxWarnSg: 9.5,
   minWarnSg: 3.9,
-  exchangeUnit: 18
+  exchangeUnit: 18,
+  isDemo: import.meta.env.VITE_APP_IS_DEMO === 'true'
 }
 export const INSULIN_TYPE = {
   SG: {

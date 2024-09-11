@@ -98,7 +98,6 @@ import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
-import {DictService} from "@/service/dict-service";
 import useChartResize from "@/composition/useChartResize";
 import {DATE_FORMAT} from "@/model/model-type";
 import {Msg, Tools} from '@/utils/tools'
@@ -108,7 +107,6 @@ import {COLORS, CONST_VAR, DIRECTIONS, INSULIN_TYPE, REFRESH_INTERVAL} from "@/v
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
-const dictService = new DictService()
 const sugarService = new SugarService()
 
 const myChart = ref<HTMLElement>();
@@ -122,13 +120,14 @@ const state: any = reactive({
   tokenData: {},
   status: 200,
   startPercent: setting.startPercent,
-  updateDatetime: '--',
+  updateDatetime: '--',//数据更新时间
   interval: {
     time: null,
     data: null
   },
   data: {
     lastSG: {
+      //最后获取的数据时间
       datetime: dayjs().format(DATE_FORMAT.datetime),
       sg: 0
     },
@@ -140,7 +139,7 @@ const state: any = reactive({
     gstBatteryLevel: 0,
     sensorDurationMinutes: 0,
   },
-  time: dayjs()
+  time: dayjs()//当前系统时间
 })
 
 const {data, time, startPercent, updateDatetime, status} = toRefs(state)
@@ -176,6 +175,7 @@ function login() {
 }
 
 async function reloadCarelinkData() {
+  //后端去 carelink 刷新数据
   const result = await sugarService.refreshCarelinkData()
   if (result) {
     Msg.successMsg('远程数据刷新成功')
@@ -219,37 +219,21 @@ function startDataLoadInterval() {
   }, REFRESH_INTERVAL.loadData * 60 * 1000)
 }
 
-
+//获取数据库数据,不是去 carelink 刷新数据
 async function loadCarelinkData(mask = true) {
   try {
     if (state.tokenData) {
-      /*const result = await dictService.getDict("carelinkData", mask)
-      if (result) {
-        const data = JSON.parse(result.val)
-        // console.log(JSON.parse(result.val));
-        state.data = JSON.parse(data.data)
-        console.log(state.data)
-        state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
-        state.status = data.status
-        // state.data.lastSGTrend = 'DoubleUp'
-        initData()
-      }*/
-      const result = await dictService.getDemo()
+      const result = await sugarService.loadData(CONST_VAR.isDemo, mask)
       if (result) {
         state.data = result
-        console.log(state.data)
         state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
         state.status = data.status
-        initData()
+        state.data.lastSG.datetime = cleanTime(state.data.lastSG.datetime)
       }
     }
   } catch (e) {
     console.log(e);
   }
-}
-
-function initData() {
-  state.data.lastSG.updateDatetime = cleanTime(state.data.lastSG.datetime)
 }
 
 function changeTimeRange() {
@@ -265,6 +249,7 @@ function sgColor(sg) {
   return sg < CONST_VAR.maxWarnSg && sg > CONST_VAR.minWarnSg ? COLORS[0] : COLORS[6]
 }
 
+//计算入框率
 const timeInRange = computed(() => {
   const validSgs = state.data.sgs.filter(item => item.sensorState === 'NO_ERROR_MESSAGE')
   const lt = ((validSgs.filter(item => item.sg <= CONST_VAR.minWarnSg * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
@@ -272,16 +257,22 @@ const timeInRange = computed(() => {
   return [100 - (Number(lt) + Number(gt)), lt, gt]
 })
 
+//计算最后的数据升降幅度
 const lastOffset = computed(() => {
   const len = state.data.sgs.length
   return len > 2 ? (calcSG(state.data.sgs[len - 1].sg - state.data.sgs[len - 2].sg, 2)) : 0
 })
+
 const lastUpdateTime = computed(() => {
-  return fromNow(state.data.lastSG.updateDatetime)
+  return fromNow(state.data.lastSG.datetime)
 })
+
+//获取升降趋势
 const trendObj = computed(() => {
   return state.data?.lastSGTrend && DIRECTIONS[state.data.lastSGTrend]
 })
+
+//画图的参数
 const charOption = computed(() => {
   return {
     toolbox: {
@@ -336,9 +327,8 @@ const charOption = computed(() => {
     xAxis: {
       type: 'time',
       splitLine: {show: true},
-      // data: state.data.sgs.map(item => cleanTime(item.datetime)),
       axisLabel: {
-        interval: 5 * 60,
+        // interval: 5 * 60,
         formatter: function (value, index) {
           return dayjs(value).format('HH:mm');
         }
@@ -348,7 +338,6 @@ const charOption = computed(() => {
       {
         name: 'mmol',
         type: 'value',
-        // scale: true,
         min: 2,
         max: (value) => {//取最大值向上取整为最大刻度
           return value.max < 10 ? 10 : Math.ceil(value.max)
@@ -359,7 +348,6 @@ const charOption = computed(() => {
       {
         name: '基础率',
         nameLocation: 'start',
-        // alignTicks: true,
         type: 'value',
         inverse: true,
         axisTick: {
@@ -370,7 +358,6 @@ const charOption = computed(() => {
       },
       {
         name: '大剂量',
-        // alignTicks: true,
         type: 'value',
         max: 20,
         show: false
