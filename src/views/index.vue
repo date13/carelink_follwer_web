@@ -4,8 +4,8 @@
       <div class="flex flex-row h-50 pt-2">
         <div class="w-1/2 flex items-center justify-center flex-col">
           <div class="flex items-center justify-between">
-            <div :style="{color:sugarCalc.sgColor(calcSG(data.lastSG.sg))}" class="text-7xl font-bold ">{{
-                calcSG(data.lastSG.sg)
+            <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(data.lastSG.sg))}" class="text-7xl font-bold ">{{
+                sugarCalc.calcSG(data.lastSG.sg)
               }}
             </div>
             <div class="text-3xl flex font-thin arrow">
@@ -62,7 +62,7 @@
                 {{ data.activeInsulin.amount }}
               </el-tag>
               <el-tag class="mb-1 mr-2" type="primary">平均:
-                {{ calcSG(data.averageSG) }},
+                {{ sugarCalc.calcSG(data.averageSG) }},
                 {{ timeInRange[0] }}%
               </el-tag>
               <el-tag class="mb-1 mr-2" type="primary">
@@ -147,19 +147,9 @@ const state: any = reactive({
 
 const {data, time, startPercent, updateDatetime, status} = toRefs(state)
 
-function calcSG(sg: number, defaultDecision = 1) {
-  return (sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision)
-}
-
 function fromNow(time: any) {
   if (!time) return
   return dayjs().from(time)
-}
-
-function cleanTime(time: string) {
-  if (!time) return
-  if (typeof time !== 'string') return time
-  return dayjs(time.replaceAll('T', ' ').replaceAll('.000Z', '').replaceAll(".000-00:00", "")).valueOf()
 }
 
 onMounted(async () => {
@@ -231,7 +221,7 @@ async function loadCarelinkData(mask = true) {
         state.data = result.data
         state.status = result.status
         state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
-        state.data.lastSG.datetime = cleanTime(state.data.lastSG.datetime)
+        state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         /*state.data.markers.push({
           "type": "CALIBRATION",
           "index": 148,
@@ -260,16 +250,12 @@ function refreshChart() {
 
 //计算入框率
 const timeInRange = computed(() => {
-  const validSgs = state.data.sgs.filter(item => item.sensorState === 'NO_ERROR_MESSAGE')
-  const lt = ((validSgs.filter(item => item.sg <= CONST_VAR.minWarnSg * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
-  const gt = ((validSgs.filter(item => item.sg >= CONST_VAR.maxWarnSg * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
-  return [100 - (Number(lt) + Number(gt)), lt, gt]
+  return sugarCalc.calcTimeInRange(state.data.sgs)
 })
 
 //计算最后的数据升降幅度
 const lastOffset = computed(() => {
-  const len = state.data.sgs.length
-  return len > 2 ? (calcSG(state.data.sgs[len - 1].sg - state.data.sgs[len - 2].sg, 2)) : 0
+  return sugarCalc.calcLastOffset(state.data.sgs)
 })
 
 const lastUpdateTime = computed(() => {
@@ -313,14 +299,19 @@ const charOption = computed(() => {
           dataStr += `
             <div class="flex items-center justify-between my-1">
               <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
-              <span>${isInsulin ? type.text[0] : ''}</span>
+              <span class="flex-1 ml-1">${isInsulin ? type.text[0] : ''}</span>
               <span>${item.data[1]}</span>
             </div>`
           if (isInsulin) {
             dataStr += `<div class="flex items-center justify-between mb-1">
               <span style="width:10px;height:10px;background-color:${type.color2};"></span>
-              <span>${type.text[1]}</span>
+              <span class="flex-1 ml-1">${type.text[1]}</span>
               <span>${item.data[3]}</span>
+            </div>`
+            dataStr += `<div class="flex items-center justify-between mb-1">
+              <span style="width:10px;height:10px;background-color:${type.color3};"></span>
+              <span class="flex-1 ml-1">${type.text[2]}</span>
+              <span>${item.data[4]}</span>
             </div>`
           }
         })
@@ -366,7 +357,7 @@ const charOption = computed(() => {
           alignWithLabel: true
         },
         min: 0,
-        max: 1,
+        max: 2,
       },
       {
         name: '大剂量',
@@ -424,8 +415,8 @@ const charOption = computed(() => {
           //获取有效数据
           if (item.sensorState === 'NO_ERROR_MESSAGE') {
             return [
-              cleanTime(item.datetime),
-              calcSG(item.sg),
+              sugarCalc.cleanTime(item.datetime),
+              sugarCalc.calcSG(item.sg),
               INSULIN_TYPE.SG
             ]
           }
@@ -472,8 +463,8 @@ const charOption = computed(() => {
           //获取校准数据
           if (item.type === 'CALIBRATION') {
             return [
-              cleanTime(item.dateTime),
-              calcSG(item.value),
+              sugarCalc.cleanTime(item.dateTime),
+              sugarCalc.calcSG(item.value),
               INSULIN_TYPE.CALIBRATION
             ]
           }//排序
@@ -515,7 +506,7 @@ const charOption = computed(() => {
           if (item.type === 'AUTO_BASAL_DELIVERY' || (item.type === 'INSULIN' && item.activationType === 'AUTOCORRECTION')) {
             const isBasal = item.type === 'AUTO_BASAL_DELIVERY'
             return [
-              cleanTime(item.dateTime),
+              sugarCalc.cleanTime(item.dateTime),
               isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3),
               isBasal ? INSULIN_TYPE.AUTO_BASAL_DELIVERY : INSULIN_TYPE.AUTOCORRECTION
             ]
@@ -532,7 +523,7 @@ const charOption = computed(() => {
           color: (item) => {
             if (item.data) {
               let percent = Number((item.data[3] / item.data[1]).toFixed(1))
-              return percent === 1 ? COLORS[2] : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              return percent === 1 ? COLORS[2] : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 {
                   offset: percent,
                   color: 'white'
@@ -549,11 +540,13 @@ const charOption = computed(() => {
           if (item.type === 'INSULIN' && item.activationType === 'RECOMMENDED') {
             const plan = item.programmedFastAmount.toFixed(2)
             const delivered = item.deliveredFastAmount.toFixed(2)
+            const meal = state.data.markers.find(mark => mark.type === 'MEAL' && item.index === mark.index)
             return [
-              cleanTime(item.dateTime),
+              sugarCalc.cleanTime(item.dateTime),
               plan,
               INSULIN_TYPE.INSULIN,
-              delivered
+              delivered,
+              meal ? meal.amount : 0
             ]
           }
         })
