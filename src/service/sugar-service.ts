@@ -4,7 +4,7 @@ import {DictService} from "@/service/dict-service";
 
 export class SugarService extends BaseService {
   constructor() {
-    super('https://stock.baoflag.com/api/public/', '');
+    super('/public/', '');
   }
 
   async loadData(isDemo = false, mask) {
@@ -34,7 +34,6 @@ export class SugarService extends BaseService {
 
   refreshCarelinkData() {
     return HttpClient.put(`${this.apiContext}refreshCarelinkData`, {
-      external: true,
       mask: true
     })
   }

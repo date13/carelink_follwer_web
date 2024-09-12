@@ -11,7 +11,7 @@ interface DefaultSettings {
 }
 
 const defaultSettings: DefaultSettings = {
-  title: "Stock Manage Platform",
+  title: "Carelink follower web",
   showSettings: false,
   tagsView: true,
   fixedHeader: false,

@@ -16,6 +16,8 @@ export const CONST_VAR = {
   minWarnSg: 3.9,
   minSeriousSg: 3.2,
   exchangeUnit: 18,
+  minSgYValueLimit: 2,
+  maxSgYValueOffset: 5,
   isDemo: import.meta.env.VITE_APP_IS_DEMO === 'true'
 }
 export const INSULIN_TYPE = {
@@ -38,8 +40,9 @@ export const INSULIN_TYPE = {
     name: '大剂量',
     color: COLORS[4],
     color2: COLORS[2],
+    color3: COLORS[0],
     key: 'INSULIN',
-    text: ['手动输注', '已输注']
+    text: ['手动输注', '已输注', '碳水']
   },
   AUTOCORRECTION: {
     name: '自动修正',
