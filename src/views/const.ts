@@ -1,17 +1,20 @@
 export const COLORS = [
-  '#09d254',//血糖
-  '#8A2BE2',//基础率
-  '#0fb1ec',//大剂量
-  '#0df5db',//自动修正
-  '#e333c6',//已输注
-  '#f00',//警告线,
-  '#ffe166',//警告颜色
+  '#09d254',//0血糖
+  '#8A2BE2',//1基础率
+  '#0fb1ec',//2大剂量
+  '#0df5db',//3自动修正
+  '#e333c6',//4已输注
+  '#f00',//5警告线,
+  '#ffe166',//6警告颜色
+  '#e6f3fb',//7正常区域背景
+  '#f1eacf',//8警告区域背景
+  '#eeb1c9'//9严重警告区域背景
 ]
 export const REFRESH_INTERVAL = {
   loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
 }
 export const CONST_VAR = {
-  maxSeriousSg: 13.5,
+  maxSeriousSg: 12.5,
   maxWarnSg: 9.5,
   minWarnSg: 3.9,
   minSeriousSg: 3.2,

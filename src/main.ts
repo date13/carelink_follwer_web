@@ -6,7 +6,7 @@ import {createPinia} from "pinia";
 import App from './App.vue'
 // 自定义样式
 import 'uno.css'
-import 'element-plus/theme-chalk/src/index.scss'
+// import 'element-plus/theme-chalk/src/index.scss'
 import '@/styles/index.scss'
 
 const app = createApp(App)

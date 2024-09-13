@@ -336,10 +336,9 @@ const charOption = computed(() => {
     },
     yAxis: [
       {
-        name: 'mmol',
+        name: 'mmol/L',
         type: 'value',
         ...sugarCalc.calcSgYValueLimit(),
-        connectNulls: false,
         splitLine: {show: true}
       },
       {
@@ -368,7 +367,6 @@ const charOption = computed(() => {
     ],
     dataZoom: [
       {
-        type: 'slider',
         start: 100 - state.startPercent,
         end: 100,
         labelFormatter: (value) => {
@@ -411,17 +409,8 @@ const charOption = computed(() => {
     series: [
       {
         name: '血糖',
-        data: state.data.sgs.map(item => {
-          //获取有效数据
-          if (item.sensorState === 'NO_ERROR_MESSAGE') {
-            return [
-              sugarCalc.cleanTime(item.datetime),
-              sugarCalc.calcSG(item.sg),
-              INSULIN_TYPE.SG
-            ]
-          }
-        }),
         type: 'line',
+        data: sugarCalc.loadSgData(state.data.sgs),
         smooth: true,
         yAxisIndex: 0,
         symbol: 'circle',
@@ -430,8 +419,52 @@ const charOption = computed(() => {
           show: false,
           position: 'bottom'
         },
+        labelLine: {
+          smooth: true,
+        },
+        markArea: {
+          emphasis: {disabled: true},
+          data: [
+            [
+              {
+                yAxis: CONST_VAR.maxSeriousSg,
+                itemStyle: {
+                  color: COLORS[8],
+                  opacity: 0.3
+                }
+              },
+              {
+                yAxis: CONST_VAR.maxWarnSg
+              }
+            ],
+            [
+              {
+                yAxis: CONST_VAR.maxWarnSg,
+                itemStyle: {
+                  color: COLORS[7],
+                  opacity: 0.3
+                }
+              },
+              {
+                yAxis: CONST_VAR.minWarnSg
+              }
+            ],
+            [{
+              yAxis: CONST_VAR.minWarnSg,
+              itemStyle: {
+                color: COLORS[8],
+                opacity: 0.3
+              }
+            },
+              {
+                yAxis: CONST_VAR.minSeriousSg
+              }
+            ]
+          ]
+        },
         markLine: {
           symbol: ['none', 'none'],
+          animation: false,
           label: {
             show: true,
             position: 'end',
@@ -443,32 +476,40 @@ const charOption = computed(() => {
           },
           data: [
             {
-              name: '高值',
-              yAxis: CONST_VAR.maxWarnSg
+              name: '高值警告',
+              yAxis: CONST_VAR.maxWarnSg,
+              lineStyle: {
+                color: COLORS[0],
+              }
             },
             {
-              name: '低值',
-              yAxis: CONST_VAR.minWarnSg
+              name: '高值严重警告',
+              yAxis: CONST_VAR.maxSeriousSg,
+              lineStyle: {
+                color: COLORS[6],
+              }
+            },
+            {
+              name: '低值警告',
+              yAxis: CONST_VAR.minWarnSg,
+              lineStyle: {
+                color: COLORS[0],
+              }
+            },
+            {
+              name: '低值严重警告',
+              yAxis: CONST_VAR.minSeriousSg,
+              lineStyle: {
+                color: COLORS[6],
+              }
             }
           ],
-          lineStyle: {
-            color: COLORS[5]
-          }
+
         }
       },
-
       {
         name: '校准',
-        data: state.data.markers.map(item => {
-          //获取校准数据
-          if (item.type === 'CALIBRATION') {
-            return [
-              sugarCalc.cleanTime(item.dateTime),
-              sugarCalc.calcSG(item.value),
-              INSULIN_TYPE.CALIBRATION
-            ]
-          }//排序
-        }),
+        data: sugarCalc.loadCalibrationData(state.data.markers),
         type: 'line',
         yAxisIndex: 1,
         symbol: 'circle',
@@ -485,9 +526,15 @@ const charOption = computed(() => {
       {
         name: '基础率',
         type: "bar",
-        step: 'middle',
         yAxisIndex: 2,
-        connectNulls: true,
+        step: 'middle',
+        connectNull: false,
+        markArea: {
+          silent: true,
+          itemStyle: {
+            opacity: 0.3
+          },
+        },
         areaStyle: {},
         itemStyle: {
           color: item => {
@@ -502,16 +549,7 @@ const charOption = computed(() => {
         emphasis: {
           focus: 'series'
         },
-        data: state.data.markers.map(item => {
-          if (item.type === 'AUTO_BASAL_DELIVERY' || (item.type === 'INSULIN' && item.activationType === 'AUTOCORRECTION')) {
-            const isBasal = item.type === 'AUTO_BASAL_DELIVERY'
-            return [
-              sugarCalc.cleanTime(item.dateTime),
-              isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3),
-              isBasal ? INSULIN_TYPE.AUTO_BASAL_DELIVERY : INSULIN_TYPE.AUTOCORRECTION
-            ]
-          }
-        })
+        data: sugarCalc.loadBaselData(state.data.markers)
       },
       {
         name: '大剂量',
@@ -536,20 +574,7 @@ const charOption = computed(() => {
             }
           }
         },
-        data: state.data.markers.map(item => {
-          if (item.type === 'INSULIN' && item.activationType === 'RECOMMENDED') {
-            const plan = item.programmedFastAmount.toFixed(2)
-            const delivered = item.deliveredFastAmount.toFixed(2)
-            const meal = state.data.markers.find(mark => mark.type === 'MEAL' && item.index === mark.index)
-            return [
-              sugarCalc.cleanTime(item.dateTime),
-              plan,
-              INSULIN_TYPE.INSULIN,
-              delivered,
-              meal ? meal.amount : 0
-            ]
-          }
-        })
+        data: sugarCalc.loadInsulinData(state.data.markers)
       },
     ]
   }

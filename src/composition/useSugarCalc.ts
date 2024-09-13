@@ -1,4 +1,4 @@
-import {COLORS, CONST_VAR} from "@/views/const";
+import {COLORS, CONST_VAR, INSULIN_TYPE} from "@/views/const";
 import dayjs from "dayjs";
 
 export default function () {
@@ -42,12 +42,72 @@ export default function () {
     if (!time) return
     return dayjs(time.replaceAll('T', ' ').replaceAll('.000Z', '').replaceAll(".000-00:00", "")).valueOf()
   }
+
+  const loadSgData = (list) => {
+    return list.map(item => {
+      //获取有效数据
+      if (item.sensorState === 'NO_ERROR_MESSAGE') {
+        return [
+          cleanTime(item.datetime),
+          calcSG(item.sg),
+          INSULIN_TYPE.SG
+        ]
+      }
+    })
+  }
+
+  const loadCalibrationData = (list) => {
+    return list.map(item => {
+      //获取校准数据
+      if (item.type === 'CALIBRATION') {
+        return [
+          cleanTime(item.dateTime),
+          calcSG(item.value),
+          INSULIN_TYPE.CALIBRATION
+        ]
+      }//排序
+    })
+  }
+
+  const loadBaselData = (list) => {
+    return list.map(item => {
+      if (item.type === 'AUTO_BASAL_DELIVERY' || (item.type === 'INSULIN' && item.activationType === 'AUTOCORRECTION')) {
+        const isBasal = item.type === 'AUTO_BASAL_DELIVERY'
+        return [
+          cleanTime(item.dateTime),
+          isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3),
+          isBasal ? INSULIN_TYPE.AUTO_BASAL_DELIVERY : INSULIN_TYPE.AUTOCORRECTION
+        ]
+      }
+    })
+  }
+
+  const loadInsulinData = (list) => {
+    return list.map(item => {
+      if (item.type === 'INSULIN' && item.activationType === 'RECOMMENDED') {
+        const plan = item.programmedFastAmount.toFixed(2)
+        const delivered = item.deliveredFastAmount.toFixed(2)
+        const meal = list.find(mark => mark.type === 'MEAL' && item.index === mark.index)
+        return [
+          cleanTime(item.dateTime),
+          plan,
+          INSULIN_TYPE.INSULIN,
+          delivered,
+          meal ? meal.amount : 0
+        ]
+      }
+    })
+  }
   return {
     calcSgYValueLimit,
     calcTimeInRange,
     calcLastOffset,
     calcSG,
     sgColor,
-    cleanTime
+    cleanTime,
+    loadSgData,
+    loadCalibrationData,
+    loadBaselData,
+    loadInsulinData
   }
 }
