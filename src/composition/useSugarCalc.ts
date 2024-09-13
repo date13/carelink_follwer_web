@@ -100,7 +100,7 @@ export default function () {
   }
 
   const sportMode = (pumpBannerState) => {
-    if (!pumpBannerState) return false
+    if (!pumpBannerState || pumpBannerState.length === 0) return false
     const data = pumpBannerState[0]
     return {
       isSport: true,

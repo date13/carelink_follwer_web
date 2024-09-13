@@ -2637,7 +2637,7 @@
         "value": 130,
         "kind": "Marker",
         "version": 1,
-        "dateTime": "2024-09-09T01:18:00.000-00:00",
+        "dateTime": "2024-09-09T10:35:00.000-00:00",
         "relativeOffset": -41836,
         "calibrationSuccess": true
       },
@@ -3076,7 +3076,7 @@
         "deliveredExtendedAmount": 0,
         "programmedFastAmount": 0.625,
         "programmedDuration": 0,
-        "deliveredFastAmount": 0.625,
+        "deliveredFastAmount": 0.325,
         "id": 119,
         "effectiveDuration": 0,
         "completed": true,
@@ -4555,6 +4555,12 @@
         "dateTime": "2024-09-08T12:55:16.000-00:00",
         "relativeOffset": -86400,
         "deliverySuspended": false
+      }
+    ],
+    "pumpBannerState": [
+      {
+        "type": "TEMP_TARGET",
+        "timeRemaining": 10
       }
     ],
     "averageSG": 121,

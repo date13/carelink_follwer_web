@@ -314,13 +314,13 @@ const charOption = computed(() => {
           <span>${param.data[2].name}</span>
           <span>${dayjs(param.data[0]).format("HH:mm")}</span>
         </div>`
-        params.forEach(item => {
+        params.forEach((item, i) => {
           const type = item.data[2]
           const isInsulin = type.key === INSULIN_TYPE.INSULIN.key
           dataStr += `
             <div class="flex items-center justify-between my-1">
               <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
-              <span class="flex-1 ml-1">${isInsulin ? type.text[0] : ''}</span>
+              <span class="flex-1 ml-1 text-sm">${isInsulin ? type.text[0] : (params.length > 1 ? type.name : '')}</span>
               <span>${item.data[1]}</span>
             </div>`
           if (isInsulin) {
@@ -331,7 +331,7 @@ const charOption = computed(() => {
             </div>`
             dataStr += `<div class="flex items-center justify-between mb-1">
               <span style="width:10px;height:10px;background-color:${type.color3};"></span>
-              <span class="flex-1 ml-1">${type.text[2]}</span>
+              <span class="flex-1 ml-1 text-sm">${type.text[2]}</span>
               <span>${item.data[4]}</span>
             </div>`
           }
