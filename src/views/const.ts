@@ -10,6 +10,29 @@ export const COLORS = [
   '#f1eacf',//8警告区域背景
   '#eeb1c9'//9严重警告区域背景
 ]
+
+export const TIME_RANGE_CONFIG = [
+  {
+    label: '2',
+    value: 8
+  },
+  {
+    label: '3',
+    value: 13
+  },
+  {
+    label: '4',
+    value: 17
+  },
+  {
+    label: '6',
+    value: 25
+  },
+  {
+    label: '12',
+    value: 50
+  }
+]
 export const REFRESH_INTERVAL = {
   loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
 }

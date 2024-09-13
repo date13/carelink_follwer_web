@@ -98,6 +98,15 @@ export default function () {
       }
     })
   }
+
+  const sportMode = (pumpBannerState) => {
+    if (!pumpBannerState) return false
+    const data = pumpBannerState[0]
+    return {
+      isSport: true,
+      timeRemaining: dayjs.duration(data.timeRemaining, 'minutes').humanize(true)
+    }
+  }
   return {
     calcSgYValueLimit,
     calcTimeInRange,
@@ -108,6 +117,7 @@ export default function () {
     loadSgData,
     loadCalibrationData,
     loadBaselData,
-    loadInsulinData
+    loadInsulinData,
+    sportMode
   }
 }

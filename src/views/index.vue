@@ -1,6 +1,15 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
+      <el-dropdown class="menu-panel" placement="bottom-start" trigger="click" @command="handleMenu">
+        <ep-Menu></ep-Menu>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="info">Info</el-dropdown-item>
+            <el-dropdown-item command="dict">Dict</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <div class="flex flex-row h-50 pt-2">
         <div class="w-1/2 flex items-center justify-center flex-col">
           <div class="flex items-center justify-between">
@@ -35,15 +44,17 @@
               <ep-Refresh class="hand" @click="reload"></ep-Refresh>
             </span>
           </div>
-          <div class="flex items-center justify-center">
-            <el-radio-group v-model="startPercent" size="small" @change="changeTimeRange">
-              <el-radio-button :value="8" label="2"/>
-              <el-radio-button :value="13" label="3"/>
-              <el-radio-button :value="17" label="4"/>
-              <el-radio-button :value="25" label="6"/>
-              <el-radio-button :value="50" label="12"/>
-            </el-radio-group>
+          <div class="flex items-center justify-center time-range">
+            <el-segmented v-model="startPercent" :options="TIME_RANGE_CONFIG" size="default" @change="changeTimeRange">
+              <template #default="{ item }">
+                <div>{{ item.label }}</div>
+              </template>
+            </el-segmented>
           </div>
+          <el-tag v-if="sportMode" class="mt-1" type="success">
+            运动模式,
+            剩余:{{ sportMode.timeRemaining }}
+          </el-tag>
           <div class="flex text-xs items-center justify-between align-center my-1">
             <span class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
             <el-tag class="mb-1" type="info" @click="login">登录</el-tag>
@@ -103,8 +114,9 @@ import useChartResize from "@/composition/useChartResize";
 import {DATE_FORMAT} from "@/model/model-type";
 import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {COLORS, CONST_VAR, DIRECTIONS, INSULIN_TYPE, REFRESH_INTERVAL} from "@/views/const";
+import {COLORS, CONST_VAR, DIRECTIONS, INSULIN_TYPE, REFRESH_INTERVAL, TIME_RANGE_CONFIG} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
+import defaultSettings from "@/settings";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -222,6 +234,7 @@ async function loadCarelinkData(mask = true) {
         state.status = result.status
         state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+        document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
         /*state.data.markers.push({
           "type": "CALIBRATION",
           "index": 148,
@@ -239,7 +252,12 @@ async function loadCarelinkData(mask = true) {
   }
 }
 
+function handleMenu(command) {
+  location.href = `/${command}`
+}
+
 function changeTimeRange() {
+  console.log(state.startPercent);
   setting.startPercent = state.startPercent
   refreshChart()
 }
@@ -262,6 +280,9 @@ const lastUpdateTime = computed(() => {
   return fromNow(state.data.lastSG.datetime)
 })
 
+const sportMode = computed(() => {
+  return sugarCalc.sportMode(state.data.pumpBannerState)
+})
 //获取升降趋势
 const trendObj = computed(() => {
   return state.data?.lastSGTrend && DIRECTIONS[state.data.lastSGTrend]
@@ -327,8 +348,8 @@ const charOption = computed(() => {
     xAxis: {
       type: 'time',
       splitLine: {show: true},
+      interval: 3600,
       axisLabel: {
-        // interval: 5 * 60,
         formatter: function (value, index) {
           return dayjs(value).format('HH:mm');
         }
@@ -563,11 +584,11 @@ const charOption = computed(() => {
               let percent = Number((item.data[3] / item.data[1]).toFixed(1))
               return percent === 1 ? COLORS[2] : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 {
-                  offset: percent,
+                  offset: 1 - percent,
                   color: 'white'
                 },
                 {
-                  offset: 1 - percent,
+                  offset: percent,
                   color: COLORS[2]
                 }
               ])
@@ -593,6 +614,15 @@ function drawLine() {
 }
 </script>
 <style lang="scss" scoped>
+.menu-panel {
+  position: absolute;
+
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
 .info-panel {
   :deep(.el-card__header) {
     padding: 8px;
@@ -606,6 +636,14 @@ function drawLine() {
 .arrow {
   svg {
     width: 25px;
+  }
+}
+
+.time-range {
+  .el-segmented {
+    --el-segmented-item-selected-color: white;
+    --el-segmented-item-selected-bg-color: var(--el-color-primary-light-3);
+    --el-border-radius-base: 16px;
   }
 }
 </style>
