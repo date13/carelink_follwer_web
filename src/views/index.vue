@@ -577,6 +577,16 @@ const charOption = computed(() => {
         type: "scatter",
         yAxisIndex: 3,
         symbolSize: 15,
+        label: {
+          formatter: (item) => {
+            return item.data[3]
+          },
+          position: 'bottom',
+          show: true,
+        },
+        emphasis: {
+          scale: true
+        },
         itemStyle: {
           borderColor: COLORS[2],
           color: (item) => {
