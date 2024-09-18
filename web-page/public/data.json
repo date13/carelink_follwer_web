@@ -4563,6 +4563,17 @@
         "timeRemaining": 10
       }
     ],
+    "therapyAlgorithmState": {
+      "autoModeShieldState": "AUTO_BASAL",
+      "autoModeReadinessState": "NO_ACTION_REQUIRED",
+      "plgmLgsState": "FEATURE_OFF",
+      "safeBasalDuration": 0,
+      "waitToCalibrateDuration": 0
+    },
+    "basal": {
+      "activeBasalPattern": "DAY_OFF",
+      "basalRate": 0
+    },
     "averageSG": 121,
     "belowHypoLimit": 0,
     "aboveHyperLimit": 0,

@@ -1,17 +1,17 @@
 import {BaseService} from './base-service'
 import {HttpClient} from "@/utils/http-client";
 import {DictService} from "@/service/dict-service";
-import {CARELINK_DICT_KEY} from "@/views/const";
+import {CARELINK_DICT_KEY, CONST_VAR} from "@/views/const";
 
 export class SugarService extends BaseService {
   constructor() {
     super('/public/', '');
   }
 
-  async loadData(isDemo = false, mask) {
+  async loadData(mask) {
     let resultData: any = null
     const dictService = new DictService()
-    if (!isDemo) {
+    if (!CONST_VAR.isDemo) {
       const result = await dictService.getDict(CARELINK_DICT_KEY.carelinkData, mask)
       if (result) {
         const data = JSON.parse(result)

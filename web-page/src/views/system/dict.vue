@@ -11,8 +11,8 @@
             <el-button :icon="Refresh" type="primary" @click="loadDict">刷新</el-button>
           </div>
         </template>
-        <el-form ref="formRef" :model="params" :rules="rules" label-position="left"
-                 class="dict-form" label-width="80px">
+        <el-form ref="formRef" :model="params" :rules="rules" class="dict-form"
+                 label-position="left" label-width="80px">
           <el-form-item label="KEY" prop="key">
             <el-select v-model="params.key" size="small" @change="loadDict">
               <el-option v-for="(item,i) in keys" :key="i"

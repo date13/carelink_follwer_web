@@ -313,7 +313,7 @@ async function loadCarelinkMyData() {
 async function loadCarelinkData(mask = true) {
   try {
     if (state.tokenData) {
-      const result = await sugarService.loadData(CONST_VAR.isDemo, mask)
+      const result = await sugarService.loadData(mask)
       if (result) {
         state.data = result.data
         state.status = result.status

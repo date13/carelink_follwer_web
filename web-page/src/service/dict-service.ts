@@ -1,5 +1,6 @@
 import {BaseService} from './base-service'
 import {HttpClient} from "@/utils/http-client";
+import {CARELINK_DICT_KEY, CONST_VAR} from "@/views/const";
 
 export class DictService extends BaseService {
   constructor() {
@@ -7,9 +8,13 @@ export class DictService extends BaseService {
   }
 
   getDict(key: string, mask = true) {
-    return HttpClient.get(`${this.apiContext}dict/${key}`, {
-      mask
-    })
+    if (!CONST_VAR.isDemo && key !== CARELINK_DICT_KEY.carelinkMyData) {
+      return HttpClient.get(`${this.apiContext}dict/${key}`, {
+        mask
+      })
+    } else {
+      return "{\"lastConduitTime\":\"2024-09-16 20:35:08\"}"
+    }
   }
 
   updateDict(params: any) {
