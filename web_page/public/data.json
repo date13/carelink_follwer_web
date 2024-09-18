@@ -1,0 +1,4586 @@
+{
+  "code": 0,
+  "data": {
+    "conduitBatteryLevel": 75,
+    "conduitBatteryStatus": "HIGH",
+    "conduitInRange": true,
+    "conduitMedicalDeviceInRange": true,
+    "conduitSensorInRange": true,
+    "sensorState": "NO_ERROR_MESSAGE",
+    "reservoirLevelPercent": 39,
+    "reservoirAmount": 300,
+    "reservoirRemainingUnits": 118.8,
+    "medicalDeviceBatteryLevelPercent": 75,
+    "sensorDurationHours": 155,
+    "timeToNextCalibHours": 65535,
+    "calibStatus": "LESS_THAN_TWELVE_HRS",
+    "bgUnits": "MMOL_L",
+    "timeFormat": "HR_24",
+    "lastSensorTime": 0,
+    "medicalDeviceSuspended": false,
+    "lastSGTrend": "NONE",
+    "lastSG": {
+      "sg": 162,
+      "datetime": "2024-09-09T12:55:00.000Z",
+      "timeChange": false,
+      "sensorState": "NO_ERROR_MESSAGE",
+      "kind": "SG",
+      "version": 1,
+      "relativeOffset": -16,
+      "updateDatetime": "2024-09-09T04:55:00.000Z"
+    },
+    "activeInsulin": {
+      "amount": 6.05,
+      "datetime": "2024-09-09T12:55:15.915Z",
+      "precision": "THOUSANDS",
+      "kind": "Insulin",
+      "version": 1
+    },
+    "sgs": [
+      {
+        "sg": 107,
+        "datetime": "2024-09-08T12:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -86356
+      },
+      {
+        "sg": 102,
+        "datetime": "2024-09-08T13:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -86056
+      },
+      {
+        "sg": 97,
+        "datetime": "2024-09-08T13:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -85756
+      },
+      {
+        "sg": 96,
+        "datetime": "2024-09-08T13:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -85456
+      },
+      {
+        "sg": 98,
+        "datetime": "2024-09-08T13:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -85156
+      },
+      {
+        "sg": 102,
+        "datetime": "2024-09-08T13:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -84856
+      },
+      {
+        "sg": 107,
+        "datetime": "2024-09-08T13:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -84556
+      },
+      {
+        "sg": 110,
+        "datetime": "2024-09-08T13:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -84256
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-08T13:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -83956
+      },
+      {
+        "sg": 116,
+        "datetime": "2024-09-08T13:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -83656
+      },
+      {
+        "sg": 117,
+        "datetime": "2024-09-08T13:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -83356
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-08T13:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -83056
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-08T13:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -82756
+      },
+      {
+        "sg": 123,
+        "datetime": "2024-09-08T14:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -82456
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-08T14:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -82156
+      },
+      {
+        "sg": 123,
+        "datetime": "2024-09-08T14:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -81856
+      },
+      {
+        "sg": 124,
+        "datetime": "2024-09-08T14:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -81556
+      },
+      {
+        "sg": 125,
+        "datetime": "2024-09-08T14:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -81256
+      },
+      {
+        "sg": 125,
+        "datetime": "2024-09-08T14:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -80956
+      },
+      {
+        "sg": 125,
+        "datetime": "2024-09-08T14:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -80656
+      },
+      {
+        "sg": 126,
+        "datetime": "2024-09-08T14:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -80356
+      },
+      {
+        "sg": 126,
+        "datetime": "2024-09-08T14:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -80056
+      },
+      {
+        "sg": 127,
+        "datetime": "2024-09-08T14:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -79756
+      },
+      {
+        "sg": 127,
+        "datetime": "2024-09-08T14:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -79456
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-08T14:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -79156
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-08T15:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -78856
+      },
+      {
+        "sg": 129,
+        "datetime": "2024-09-08T15:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -78556
+      },
+      {
+        "sg": 130,
+        "datetime": "2024-09-08T15:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -78256
+      },
+      {
+        "sg": 132,
+        "datetime": "2024-09-08T15:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -77956
+      },
+      {
+        "sg": 138,
+        "datetime": "2024-09-08T15:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -77656
+      },
+      {
+        "sg": 143,
+        "datetime": "2024-09-08T15:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -77356
+      },
+      {
+        "sg": 146,
+        "datetime": "2024-09-08T15:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -77056
+      },
+      {
+        "sg": 147,
+        "datetime": "2024-09-08T15:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -76756
+      },
+      {
+        "sg": 145,
+        "datetime": "2024-09-08T15:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -76456
+      },
+      {
+        "sg": 149,
+        "datetime": "2024-09-08T15:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -76156
+      },
+      {
+        "sg": 149,
+        "datetime": "2024-09-08T15:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -75856
+      },
+      {
+        "sg": 149,
+        "datetime": "2024-09-08T15:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -75556
+      },
+      {
+        "sg": 150,
+        "datetime": "2024-09-08T16:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -75256
+      },
+      {
+        "sg": 153,
+        "datetime": "2024-09-08T16:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -74956
+      },
+      {
+        "sg": 153,
+        "datetime": "2024-09-08T16:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -74656
+      },
+      {
+        "sg": 150,
+        "datetime": "2024-09-08T16:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -74356
+      },
+      {
+        "sg": 147,
+        "datetime": "2024-09-08T16:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -74056
+      },
+      {
+        "sg": 143,
+        "datetime": "2024-09-08T16:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -73756
+      },
+      {
+        "sg": 137,
+        "datetime": "2024-09-08T16:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -73456
+      },
+      {
+        "sg": 136,
+        "datetime": "2024-09-08T16:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -73156
+      },
+      {
+        "sg": 138,
+        "datetime": "2024-09-08T16:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -72856
+      },
+      {
+        "sg": 133,
+        "datetime": "2024-09-08T16:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -72556
+      },
+      {
+        "sg": 125,
+        "datetime": "2024-09-08T16:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -72256
+      },
+      {
+        "sg": 117,
+        "datetime": "2024-09-08T16:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -71956
+      },
+      {
+        "sg": 105,
+        "datetime": "2024-09-08T17:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -71656
+      },
+      {
+        "sg": 92,
+        "datetime": "2024-09-08T17:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -71356
+      },
+      {
+        "sg": 84,
+        "datetime": "2024-09-08T17:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -71056
+      },
+      {
+        "sg": 86,
+        "datetime": "2024-09-08T17:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -70756
+      },
+      {
+        "sg": 95,
+        "datetime": "2024-09-08T17:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -70456
+      },
+      {
+        "sg": 102,
+        "datetime": "2024-09-08T17:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -70156
+      },
+      {
+        "sg": 111,
+        "datetime": "2024-09-08T17:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -69856
+      },
+      {
+        "sg": 126,
+        "datetime": "2024-09-08T17:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -69556
+      },
+      {
+        "sg": 132,
+        "datetime": "2024-09-08T17:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -69256
+      },
+      {
+        "sg": 135,
+        "datetime": "2024-09-08T17:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -68956
+      },
+      {
+        "sg": 136,
+        "datetime": "2024-09-08T17:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -68656
+      },
+      {
+        "sg": 135,
+        "datetime": "2024-09-08T17:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -68356
+      },
+      {
+        "sg": 133,
+        "datetime": "2024-09-08T18:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -68056
+      },
+      {
+        "sg": 135,
+        "datetime": "2024-09-08T18:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -67756
+      },
+      {
+        "sg": 137,
+        "datetime": "2024-09-08T18:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -67456
+      },
+      {
+        "sg": 138,
+        "datetime": "2024-09-08T18:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -67156
+      },
+      {
+        "sg": 137,
+        "datetime": "2024-09-08T18:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -66856
+      },
+      {
+        "sg": 133,
+        "datetime": "2024-09-08T18:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -66556
+      },
+      {
+        "sg": 124,
+        "datetime": "2024-09-08T18:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -66256
+      },
+      {
+        "sg": 120,
+        "datetime": "2024-09-08T18:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -65956
+      },
+      {
+        "sg": 123,
+        "datetime": "2024-09-08T18:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -65656
+      },
+      {
+        "sg": 129,
+        "datetime": "2024-09-08T18:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -65356
+      },
+      {
+        "sg": 139,
+        "datetime": "2024-09-08T18:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -65056
+      },
+      {
+        "sg": 142,
+        "datetime": "2024-09-08T18:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -64756
+      },
+      {
+        "sg": 141,
+        "datetime": "2024-09-08T19:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -64456
+      },
+      {
+        "sg": 138,
+        "datetime": "2024-09-08T19:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -64156
+      },
+      {
+        "sg": 137,
+        "datetime": "2024-09-08T19:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -63856
+      },
+      {
+        "sg": 136,
+        "datetime": "2024-09-08T19:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -63556
+      },
+      {
+        "sg": 135,
+        "datetime": "2024-09-08T19:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -63256
+      },
+      {
+        "sg": 130,
+        "datetime": "2024-09-08T19:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -62956
+      },
+      {
+        "sg": 122,
+        "datetime": "2024-09-08T19:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -62656
+      },
+      {
+        "sg": 124,
+        "datetime": "2024-09-08T19:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -62356
+      },
+      {
+        "sg": 129,
+        "datetime": "2024-09-08T19:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -62056
+      },
+      {
+        "sg": 135,
+        "datetime": "2024-09-08T19:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -61756
+      },
+      {
+        "sg": 137,
+        "datetime": "2024-09-08T19:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -61456
+      },
+      {
+        "sg": 135,
+        "datetime": "2024-09-08T19:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -61156
+      },
+      {
+        "sg": 132,
+        "datetime": "2024-09-08T20:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -60856
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-08T20:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -60556
+      },
+      {
+        "sg": 127,
+        "datetime": "2024-09-08T20:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -60256
+      },
+      {
+        "sg": 131,
+        "datetime": "2024-09-08T20:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -59956
+      },
+      {
+        "sg": 129,
+        "datetime": "2024-09-08T20:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -59656
+      },
+      {
+        "sg": 129,
+        "datetime": "2024-09-08T20:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -59356
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-08T20:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -59056
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-08T20:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -58756
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-08T20:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -58456
+      },
+      {
+        "sg": 130,
+        "datetime": "2024-09-08T20:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -58156
+      },
+      {
+        "sg": 134,
+        "datetime": "2024-09-08T20:51:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -57856
+      },
+      {
+        "sg": 143,
+        "datetime": "2024-09-08T20:56:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -57556
+      },
+      {
+        "sg": 150,
+        "datetime": "2024-09-08T21:01:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -57256
+      },
+      {
+        "sg": 155,
+        "datetime": "2024-09-08T21:06:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -56956
+      },
+      {
+        "sg": 151,
+        "datetime": "2024-09-08T21:11:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -56656
+      },
+      {
+        "sg": 151,
+        "datetime": "2024-09-08T21:16:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -56356
+      },
+      {
+        "sg": 150,
+        "datetime": "2024-09-08T21:21:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -56056
+      },
+      {
+        "sg": 151,
+        "datetime": "2024-09-08T21:26:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -55756
+      },
+      {
+        "sg": 153,
+        "datetime": "2024-09-08T21:31:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -55456
+      },
+      {
+        "sg": 153,
+        "datetime": "2024-09-08T21:36:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -55156
+      },
+      {
+        "sg": 150,
+        "datetime": "2024-09-08T21:41:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -54856
+      },
+      {
+        "sg": 149,
+        "datetime": "2024-09-08T21:46:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -54556
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T21:52:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -54150
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T21:57:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -53850
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:02:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -53550
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:07:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -53250
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:12:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -52950
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:17:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -52650
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:22:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -52350
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:27:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -52050
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:32:46.000Z",
+        "timeChange": false,
+        "sensorState": "NO_DATA_FROM_PUMP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -51750
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -51316
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -51016
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -50716
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T22:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -50416
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -50116
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -49816
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -49516
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -49216
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -48916
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -48616
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -48316
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -48016
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -47716
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -47416
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -47116
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-08T23:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -46816
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-09T00:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -46516
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-09T00:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -46216
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-09T00:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -45916
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-09T00:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -45616
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-09T00:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -45316
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-09T00:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -45016
+      },
+      {
+        "sg": 0,
+        "datetime": "2024-09-09T00:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "WARM_UP",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -44716
+      },
+      {
+        "sg": 149,
+        "datetime": "2024-09-09T00:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -44416
+      },
+      {
+        "sg": 148,
+        "datetime": "2024-09-09T00:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -44116
+      },
+      {
+        "sg": 146,
+        "datetime": "2024-09-09T00:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -43816
+      },
+      {
+        "sg": 143,
+        "datetime": "2024-09-09T00:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -43516
+      },
+      {
+        "sg": 136,
+        "datetime": "2024-09-09T00:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -43216
+      },
+      {
+        "sg": 131,
+        "datetime": "2024-09-09T01:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -42916
+      },
+      {
+        "sg": 127,
+        "datetime": "2024-09-09T01:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -42616
+      },
+      {
+        "sg": 124,
+        "datetime": "2024-09-09T01:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -42316
+      },
+      {
+        "sg": 125,
+        "datetime": "2024-09-09T01:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -42016
+      },
+      {
+        "sg": 142,
+        "datetime": "2024-09-09T01:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -41716
+      },
+      {
+        "sg": 136,
+        "datetime": "2024-09-09T01:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -41416
+      },
+      {
+        "sg": 138,
+        "datetime": "2024-09-09T01:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -41116
+      },
+      {
+        "sg": 139,
+        "datetime": "2024-09-09T01:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -40816
+      },
+      {
+        "sg": 136,
+        "datetime": "2024-09-09T01:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -40516
+      },
+      {
+        "sg": 133,
+        "datetime": "2024-09-09T01:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -40216
+      },
+      {
+        "sg": 130,
+        "datetime": "2024-09-09T01:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -39916
+      },
+      {
+        "sg": 127,
+        "datetime": "2024-09-09T01:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -39616
+      },
+      {
+        "sg": 125,
+        "datetime": "2024-09-09T02:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -39316
+      },
+      {
+        "sg": 122,
+        "datetime": "2024-09-09T02:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -39016
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T02:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -38716
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T02:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -38416
+      },
+      {
+        "sg": 116,
+        "datetime": "2024-09-09T02:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -38116
+      },
+      {
+        "sg": 117,
+        "datetime": "2024-09-09T02:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -37816
+      },
+      {
+        "sg": 120,
+        "datetime": "2024-09-09T02:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -37516
+      },
+      {
+        "sg": 117,
+        "datetime": "2024-09-09T02:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -37216
+      },
+      {
+        "sg": 118,
+        "datetime": "2024-09-09T02:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -36916
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T02:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -36616
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T02:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -36316
+      },
+      {
+        "sg": 115,
+        "datetime": "2024-09-09T02:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -36016
+      },
+      {
+        "sg": 118,
+        "datetime": "2024-09-09T03:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -35716
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T03:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -35416
+      },
+      {
+        "sg": 118,
+        "datetime": "2024-09-09T03:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -35116
+      },
+      {
+        "sg": 113,
+        "datetime": "2024-09-09T03:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -34816
+      },
+      {
+        "sg": 105,
+        "datetime": "2024-09-09T03:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -34516
+      },
+      {
+        "sg": 104,
+        "datetime": "2024-09-09T03:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -34216
+      },
+      {
+        "sg": 103,
+        "datetime": "2024-09-09T03:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -33916
+      },
+      {
+        "sg": 109,
+        "datetime": "2024-09-09T03:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -33616
+      },
+      {
+        "sg": 113,
+        "datetime": "2024-09-09T03:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -33316
+      },
+      {
+        "sg": 115,
+        "datetime": "2024-09-09T03:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -33016
+      },
+      {
+        "sg": 118,
+        "datetime": "2024-09-09T03:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -32716
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T03:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -32416
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T04:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -32116
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T04:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -31816
+      },
+      {
+        "sg": 122,
+        "datetime": "2024-09-09T04:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -31516
+      },
+      {
+        "sg": 125,
+        "datetime": "2024-09-09T04:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -31216
+      },
+      {
+        "sg": 124,
+        "datetime": "2024-09-09T04:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -30916
+      },
+      {
+        "sg": 117,
+        "datetime": "2024-09-09T04:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -30616
+      },
+      {
+        "sg": 113,
+        "datetime": "2024-09-09T04:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -30316
+      },
+      {
+        "sg": 110,
+        "datetime": "2024-09-09T04:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -30016
+      },
+      {
+        "sg": 110,
+        "datetime": "2024-09-09T04:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -29716
+      },
+      {
+        "sg": 113,
+        "datetime": "2024-09-09T04:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -29416
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-09T04:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -29116
+      },
+      {
+        "sg": 113,
+        "datetime": "2024-09-09T04:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -28816
+      },
+      {
+        "sg": 113,
+        "datetime": "2024-09-09T05:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -28516
+      },
+      {
+        "sg": 111,
+        "datetime": "2024-09-09T05:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -28216
+      },
+      {
+        "sg": 107,
+        "datetime": "2024-09-09T05:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -27916
+      },
+      {
+        "sg": 98,
+        "datetime": "2024-09-09T05:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -27616
+      },
+      {
+        "sg": 88,
+        "datetime": "2024-09-09T05:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -27316
+      },
+      {
+        "sg": 83,
+        "datetime": "2024-09-09T05:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -27016
+      },
+      {
+        "sg": 81,
+        "datetime": "2024-09-09T05:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -26716
+      },
+      {
+        "sg": 86,
+        "datetime": "2024-09-09T05:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -26416
+      },
+      {
+        "sg": 91,
+        "datetime": "2024-09-09T05:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -26116
+      },
+      {
+        "sg": 97,
+        "datetime": "2024-09-09T05:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -25816
+      },
+      {
+        "sg": 106,
+        "datetime": "2024-09-09T05:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -25516
+      },
+      {
+        "sg": 105,
+        "datetime": "2024-09-09T05:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -25216
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-09T06:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -24916
+      },
+      {
+        "sg": 115,
+        "datetime": "2024-09-09T06:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -24616
+      },
+      {
+        "sg": 115,
+        "datetime": "2024-09-09T06:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -24316
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-09T06:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -24016
+      },
+      {
+        "sg": 108,
+        "datetime": "2024-09-09T06:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -23716
+      },
+      {
+        "sg": 104,
+        "datetime": "2024-09-09T06:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -23416
+      },
+      {
+        "sg": 105,
+        "datetime": "2024-09-09T06:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -23116
+      },
+      {
+        "sg": 109,
+        "datetime": "2024-09-09T06:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -22816
+      },
+      {
+        "sg": 106,
+        "datetime": "2024-09-09T06:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -22516
+      },
+      {
+        "sg": 103,
+        "datetime": "2024-09-09T06:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -22216
+      },
+      {
+        "sg": 101,
+        "datetime": "2024-09-09T06:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -21916
+      },
+      {
+        "sg": 98,
+        "datetime": "2024-09-09T06:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -21616
+      },
+      {
+        "sg": 102,
+        "datetime": "2024-09-09T07:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -21316
+      },
+      {
+        "sg": 107,
+        "datetime": "2024-09-09T07:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -21016
+      },
+      {
+        "sg": 117,
+        "datetime": "2024-09-09T07:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -20716
+      },
+      {
+        "sg": 127,
+        "datetime": "2024-09-09T07:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -20416
+      },
+      {
+        "sg": 130,
+        "datetime": "2024-09-09T07:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -20116
+      },
+      {
+        "sg": 131,
+        "datetime": "2024-09-09T07:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -19816
+      },
+      {
+        "sg": 134,
+        "datetime": "2024-09-09T07:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -19516
+      },
+      {
+        "sg": 134,
+        "datetime": "2024-09-09T07:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -19216
+      },
+      {
+        "sg": 128,
+        "datetime": "2024-09-09T07:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -18916
+      },
+      {
+        "sg": 123,
+        "datetime": "2024-09-09T07:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -18616
+      },
+      {
+        "sg": 118,
+        "datetime": "2024-09-09T07:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -18316
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-09T07:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -18016
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-09T08:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -17716
+      },
+      {
+        "sg": 109,
+        "datetime": "2024-09-09T08:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -17416
+      },
+      {
+        "sg": 103,
+        "datetime": "2024-09-09T08:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -17116
+      },
+      {
+        "sg": 104,
+        "datetime": "2024-09-09T08:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -16816
+      },
+      {
+        "sg": 105,
+        "datetime": "2024-09-09T08:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -16516
+      },
+      {
+        "sg": 107,
+        "datetime": "2024-09-09T08:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -16216
+      },
+      {
+        "sg": 109,
+        "datetime": "2024-09-09T08:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -15916
+      },
+      {
+        "sg": 110,
+        "datetime": "2024-09-09T08:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -15616
+      },
+      {
+        "sg": 109,
+        "datetime": "2024-09-09T08:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -15316
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-09T08:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -15016
+      },
+      {
+        "sg": 110,
+        "datetime": "2024-09-09T08:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -14716
+      },
+      {
+        "sg": 106,
+        "datetime": "2024-09-09T08:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -14416
+      },
+      {
+        "sg": 103,
+        "datetime": "2024-09-09T09:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -14116
+      },
+      {
+        "sg": 99,
+        "datetime": "2024-09-09T09:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -13816
+      },
+      {
+        "sg": 97,
+        "datetime": "2024-09-09T09:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -13516
+      },
+      {
+        "sg": 93,
+        "datetime": "2024-09-09T09:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -13216
+      },
+      {
+        "sg": 92,
+        "datetime": "2024-09-09T09:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -12916
+      },
+      {
+        "sg": 92,
+        "datetime": "2024-09-09T09:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -12616
+      },
+      {
+        "sg": 94,
+        "datetime": "2024-09-09T09:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -12316
+      },
+      {
+        "sg": 94,
+        "datetime": "2024-09-09T09:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -12016
+      },
+      {
+        "sg": 95,
+        "datetime": "2024-09-09T09:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -11716
+      },
+      {
+        "sg": 97,
+        "datetime": "2024-09-09T09:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -11416
+      },
+      {
+        "sg": 96,
+        "datetime": "2024-09-09T09:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -11116
+      },
+      {
+        "sg": 97,
+        "datetime": "2024-09-09T09:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -10816
+      },
+      {
+        "sg": 104,
+        "datetime": "2024-09-09T10:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -10516
+      },
+      {
+        "sg": 112,
+        "datetime": "2024-09-09T10:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -10216
+      },
+      {
+        "sg": 116,
+        "datetime": "2024-09-09T10:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -9916
+      },
+      {
+        "sg": 115,
+        "datetime": "2024-09-09T10:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -9616
+      },
+      {
+        "sg": 106,
+        "datetime": "2024-09-09T10:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -9316
+      },
+      {
+        "sg": 105,
+        "datetime": "2024-09-09T10:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -9016
+      },
+      {
+        "sg": 103,
+        "datetime": "2024-09-09T10:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -8716
+      },
+      {
+        "sg": 101,
+        "datetime": "2024-09-09T10:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -8416
+      },
+      {
+        "sg": 102,
+        "datetime": "2024-09-09T10:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -8116
+      },
+      {
+        "sg": 100,
+        "datetime": "2024-09-09T10:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -7816
+      },
+      {
+        "sg": 101,
+        "datetime": "2024-09-09T10:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -7516
+      },
+      {
+        "sg": 105,
+        "datetime": "2024-09-09T10:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -7216
+      },
+      {
+        "sg": 106,
+        "datetime": "2024-09-09T11:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -6916
+      },
+      {
+        "sg": 103,
+        "datetime": "2024-09-09T11:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -6616
+      },
+      {
+        "sg": 98,
+        "datetime": "2024-09-09T11:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -6316
+      },
+      {
+        "sg": 89,
+        "datetime": "2024-09-09T11:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -6016
+      },
+      {
+        "sg": 85,
+        "datetime": "2024-09-09T11:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -5716
+      },
+      {
+        "sg": 84,
+        "datetime": "2024-09-09T11:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -5416
+      },
+      {
+        "sg": 88,
+        "datetime": "2024-09-09T11:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -5116
+      },
+      {
+        "sg": 92,
+        "datetime": "2024-09-09T11:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -4816
+      },
+      {
+        "sg": 92,
+        "datetime": "2024-09-09T11:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -4516
+      },
+      {
+        "sg": 94,
+        "datetime": "2024-09-09T11:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -4216
+      },
+      {
+        "sg": 95,
+        "datetime": "2024-09-09T11:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -3916
+      },
+      {
+        "sg": 98,
+        "datetime": "2024-09-09T11:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -3616
+      },
+      {
+        "sg": 104,
+        "datetime": "2024-09-09T12:00:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -3316
+      },
+      {
+        "sg": 121,
+        "datetime": "2024-09-09T12:05:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -3016
+      },
+      {
+        "sg": 144,
+        "datetime": "2024-09-09T12:10:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -2716
+      },
+      {
+        "sg": 151,
+        "datetime": "2024-09-09T12:15:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -2416
+      },
+      {
+        "sg": 158,
+        "datetime": "2024-09-09T12:20:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -2116
+      },
+      {
+        "sg": 158,
+        "datetime": "2024-09-09T12:25:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -1816
+      },
+      {
+        "sg": 158,
+        "datetime": "2024-09-09T12:30:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -1516
+      },
+      {
+        "sg": 161,
+        "datetime": "2024-09-09T12:35:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -1216
+      },
+      {
+        "sg": 166,
+        "datetime": "2024-09-09T12:40:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -916
+      },
+      {
+        "sg": 165,
+        "datetime": "2024-09-09T12:45:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -616
+      },
+      {
+        "sg": 163,
+        "datetime": "2024-09-09T12:50:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -316
+      },
+      {
+        "sg": 162,
+        "datetime": "2024-09-09T12:55:00.000Z",
+        "timeChange": false,
+        "sensorState": "NO_ERROR_MESSAGE",
+        "kind": "SG",
+        "version": 1,
+        "relativeOffset": -16
+      }
+    ],
+    "markers": [
+      {
+        "type": "CALIBRATION",
+        "index": 148,
+        "value": 130,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:35:00.000-00:00",
+        "relativeOffset": -41836,
+        "calibrationSuccess": true
+      },
+      {
+        "type": "MEAL",
+        "index": 4,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T13:18:25.000-00:00",
+        "relativeOffset": -85011,
+        "amount": 14
+      },
+      {
+        "type": "MEAL",
+        "index": 29,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:22:47.000-00:00",
+        "relativeOffset": -77549,
+        "amount": 6
+      },
+      {
+        "type": "MEAL",
+        "index": 33,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:44:56.000-00:00",
+        "relativeOffset": -76220,
+        "amount": 7
+      },
+      {
+        "type": "MEAL",
+        "index": 64,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:18:55.000-00:00",
+        "relativeOffset": -66981,
+        "amount": 24
+      },
+      {
+        "type": "MEAL",
+        "index": 67,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:31:47.000-00:00",
+        "relativeOffset": -66209,
+        "amount": 23
+      },
+      {
+        "type": "MEAL",
+        "index": 68,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:38:17.000-00:00",
+        "relativeOffset": -65819,
+        "amount": 25
+      },
+      {
+        "type": "MEAL",
+        "index": 72,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:57:38.000-00:00",
+        "relativeOffset": -64658,
+        "amount": 18
+      },
+      {
+        "type": "MEAL",
+        "index": 81,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T19:42:23.000-00:00",
+        "relativeOffset": -61973,
+        "amount": 12
+      },
+      {
+        "type": "MEAL",
+        "index": 210,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:25:57.000-00:00",
+        "relativeOffset": -23359,
+        "amount": 17
+      },
+      {
+        "type": "MEAL",
+        "index": 212,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:35:51.000-00:00",
+        "relativeOffset": -22765,
+        "amount": 30
+      },
+      {
+        "type": "MEAL",
+        "index": 271,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T11:31:49.000-00:00",
+        "relativeOffset": -5007,
+        "amount": 38
+      },
+      {
+        "type": "MEAL",
+        "index": 273,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T11:41:34.000-00:00",
+        "relativeOffset": -4422,
+        "amount": 20
+      },
+      {
+        "type": "MEAL",
+        "index": 278,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:06:57.000-00:00",
+        "relativeOffset": -2899,
+        "amount": 6
+      },
+      {
+        "type": "MEAL",
+        "index": 279,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:10:37.000-00:00",
+        "relativeOffset": -2679,
+        "amount": 6
+      },
+      {
+        "type": "MEAL",
+        "index": 282,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:26:16.000-00:00",
+        "relativeOffset": -1740,
+        "amount": 10
+      },
+      {
+        "type": "MEAL",
+        "index": 284,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:37:06.000-00:00",
+        "relativeOffset": -1090,
+        "amount": 5
+      },
+      {
+        "type": "MEAL",
+        "index": 286,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:49:01.000-00:00",
+        "relativeOffset": -375,
+        "amount": 9
+      },
+      {
+        "type": "INSULIN",
+        "index": 4,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T13:18:25.000-00:00",
+        "relativeOffset": -85011,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 1.025,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 1.025,
+        "id": 220,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 29,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:22:47.000-00:00",
+        "relativeOffset": -77549,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.65,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.65,
+        "id": 231,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 33,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:44:56.000-00:00",
+        "relativeOffset": -76220,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.775,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.775,
+        "id": 236,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 64,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:18:55.000-00:00",
+        "relativeOffset": -66981,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 2,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 2,
+        "id": 255,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 67,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:31:47.000-00:00",
+        "relativeOffset": -66209,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 1.9,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 1.9,
+        "id": 0,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 68,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:38:17.000-00:00",
+        "relativeOffset": -65819,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 2.075,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 2.075,
+        "id": 1,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 72,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:57:38.000-00:00",
+        "relativeOffset": -64658,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 1.5,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 1.5,
+        "id": 2,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 81,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T19:42:23.000-00:00",
+        "relativeOffset": -61973,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 1,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 1,
+        "id": 3,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 139,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:35:08.000-00:00",
+        "relativeOffset": -44408,
+        "programmedExtendedAmount": 0,
+        "activationType": "AUTOCORRECTION",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.475,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.475,
+        "id": 37,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 210,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:25:57.000-00:00",
+        "relativeOffset": -23359,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 1.975,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 1.975,
+        "id": 82,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 212,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:35:51.000-00:00",
+        "relativeOffset": -22765,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 2.525,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 2.525,
+        "id": 84,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 271,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T11:31:49.000-00:00",
+        "relativeOffset": -5007,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 4,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 4,
+        "id": 112,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 273,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T11:41:34.000-00:00",
+        "relativeOffset": -4422,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 1.925,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 1.925,
+        "id": 113,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 278,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:06:57.000-00:00",
+        "relativeOffset": -2899,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.65,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.65,
+        "id": 115,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 279,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:10:37.000-00:00",
+        "relativeOffset": -2679,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.65,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.65,
+        "id": 117,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 282,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:26:16.000-00:00",
+        "relativeOffset": -1740,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.625,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.325,
+        "id": 119,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 284,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:37:06.000-00:00",
+        "relativeOffset": -1090,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.55,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.55,
+        "id": 120,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "INSULIN",
+        "index": 286,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:49:01.000-00:00",
+        "relativeOffset": -375,
+        "programmedExtendedAmount": 0,
+        "activationType": "RECOMMENDED",
+        "deliveredExtendedAmount": 0,
+        "programmedFastAmount": 0.65,
+        "programmedDuration": 0,
+        "deliveredFastAmount": 0.65,
+        "id": 122,
+        "effectiveDuration": 0,
+        "completed": true,
+        "bolusType": "FAST"
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 4,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T13:16:29.000-00:00",
+        "relativeOffset": -85127,
+        "id": 219,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 17,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T14:21:27.000-00:00",
+        "relativeOffset": -81229,
+        "id": 221,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 20,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T14:36:29.000-00:00",
+        "relativeOffset": -80327,
+        "id": 222,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 22,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T14:46:29.000-00:00",
+        "relativeOffset": -79727,
+        "id": 223,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 23,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T14:51:27.000-00:00",
+        "relativeOffset": -79429,
+        "id": 224,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 24,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T14:56:29.000-00:00",
+        "relativeOffset": -79127,
+        "id": 225,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 25,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:01:29.000-00:00",
+        "relativeOffset": -78827,
+        "id": 226,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 26,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:06:29.000-00:00",
+        "relativeOffset": -78527,
+        "id": 227,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 27,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:11:29.000-00:00",
+        "relativeOffset": -78227,
+        "id": 228,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 28,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:16:31.000-00:00",
+        "relativeOffset": -77925,
+        "id": 229,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 29,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:21:29.000-00:00",
+        "relativeOffset": -77627,
+        "id": 230,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 30,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:26:29.000-00:00",
+        "relativeOffset": -77327,
+        "id": 232,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 31,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:31:29.000-00:00",
+        "relativeOffset": -77027,
+        "id": 233,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 32,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:36:33.000-00:00",
+        "relativeOffset": -76723,
+        "id": 234,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 33,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:41:31.000-00:00",
+        "relativeOffset": -76425,
+        "id": 235,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 34,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:46:29.000-00:00",
+        "relativeOffset": -76127,
+        "id": 237,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 35,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:51:29.000-00:00",
+        "relativeOffset": -75827,
+        "id": 238,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 36,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T15:56:31.000-00:00",
+        "relativeOffset": -75525,
+        "id": 239,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 37,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T16:01:31.000-00:00",
+        "relativeOffset": -75225,
+        "id": 240,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 38,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T16:06:29.000-00:00",
+        "relativeOffset": -74927,
+        "id": 241,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 39,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T16:11:29.000-00:00",
+        "relativeOffset": -74627,
+        "id": 242,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 40,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T16:16:27.000-00:00",
+        "relativeOffset": -74329,
+        "id": 243,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 54,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T17:26:31.000-00:00",
+        "relativeOffset": -70125,
+        "id": 244,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 55,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T17:31:31.000-00:00",
+        "relativeOffset": -69825,
+        "id": 245,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 56,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T17:36:31.000-00:00",
+        "relativeOffset": -69525,
+        "id": 246,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 57,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T17:41:31.000-00:00",
+        "relativeOffset": -69225,
+        "id": 247,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 58,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T17:46:31.000-00:00",
+        "relativeOffset": -68925,
+        "id": 248,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 59,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T17:51:29.000-00:00",
+        "relativeOffset": -68627,
+        "id": 249,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 60,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T17:56:31.000-00:00",
+        "relativeOffset": -68325,
+        "id": 250,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 61,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:01:31.000-00:00",
+        "relativeOffset": -68025,
+        "id": 251,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 62,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:06:29.000-00:00",
+        "relativeOffset": -67727,
+        "id": 252,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 63,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:11:31.000-00:00",
+        "relativeOffset": -67425,
+        "id": 253,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 64,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T18:16:29.000-00:00",
+        "relativeOffset": -67127,
+        "id": 254,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 94,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T20:46:29.000-00:00",
+        "relativeOffset": -58127,
+        "id": 4,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 95,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T20:51:31.000-00:00",
+        "relativeOffset": -57825,
+        "id": 5,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 96,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T20:56:31.000-00:00",
+        "relativeOffset": -57525,
+        "id": 6,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 97,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:01:29.000-00:00",
+        "relativeOffset": -57227,
+        "id": 7,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 98,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:06:38.000-00:00",
+        "relativeOffset": -56918,
+        "id": 8,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 99,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:11:27.000-00:00",
+        "relativeOffset": -56629,
+        "id": 9,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 100,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:16:29.000-00:00",
+        "relativeOffset": -56327,
+        "id": 10,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 101,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:21:31.000-00:00",
+        "relativeOffset": -56025,
+        "id": 11,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 102,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:26:31.000-00:00",
+        "relativeOffset": -55725,
+        "id": 12,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 103,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:31:29.000-00:00",
+        "relativeOffset": -55427,
+        "id": 13,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 104,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:36:29.000-00:00",
+        "relativeOffset": -55127,
+        "id": 14,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 105,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:41:29.000-00:00",
+        "relativeOffset": -54827,
+        "id": 15,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 106,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:46:31.000-00:00",
+        "relativeOffset": -54525,
+        "id": 16,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 108,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T21:58:01.000-00:00",
+        "relativeOffset": -53835,
+        "id": 17,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 110,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T22:08:01.000-00:00",
+        "relativeOffset": -53235,
+        "id": 18,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 111,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T22:13:01.000-00:00",
+        "relativeOffset": -52935,
+        "id": 19,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 113,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T22:23:01.000-00:00",
+        "relativeOffset": -52335,
+        "id": 20,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 115,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T22:33:01.000-00:00",
+        "relativeOffset": -51735,
+        "id": 21,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 116,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T22:38:02.000-00:00",
+        "relativeOffset": -51434,
+        "id": 22,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 117,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T22:45:14.000-00:00",
+        "relativeOffset": -51002,
+        "id": 23,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 119,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T22:55:15.000-00:00",
+        "relativeOffset": -50401,
+        "id": 24,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 120,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T23:00:15.000-00:00",
+        "relativeOffset": -50101,
+        "id": 25,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 122,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T23:10:15.000-00:00",
+        "relativeOffset": -49501,
+        "id": 26,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 124,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T23:20:13.000-00:00",
+        "relativeOffset": -48903,
+        "id": 27,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 125,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T23:25:13.000-00:00",
+        "relativeOffset": -48603,
+        "id": 28,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 127,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T23:35:11.000-00:00",
+        "relativeOffset": -48005,
+        "id": 29,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 129,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T23:45:13.000-00:00",
+        "relativeOffset": -47403,
+        "id": 30,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 130,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T23:50:13.000-00:00",
+        "relativeOffset": -47103,
+        "id": 31,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 132,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:00:13.000-00:00",
+        "relativeOffset": -46503,
+        "id": 32,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 133,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:05:11.000-00:00",
+        "relativeOffset": -46205,
+        "id": 33,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 135,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:15:13.000-00:00",
+        "relativeOffset": -45603,
+        "id": 34,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 137,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:25:13.000-00:00",
+        "relativeOffset": -45003,
+        "id": 35,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 138,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:30:13.000-00:00",
+        "relativeOffset": -44703,
+        "id": 36,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 140,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:40:15.000-00:00",
+        "relativeOffset": -44101,
+        "id": 38,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 142,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:50:13.000-00:00",
+        "relativeOffset": -43503,
+        "id": 39,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 143,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T00:55:13.000-00:00",
+        "relativeOffset": -43203,
+        "id": 40,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 144,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:00:14.000-00:00",
+        "relativeOffset": -42902,
+        "id": 41,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 145,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:05:14.000-00:00",
+        "relativeOffset": -42602,
+        "id": 42,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 146,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:10:11.000-00:00",
+        "relativeOffset": -42305,
+        "id": 43,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 147,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:15:12.000-00:00",
+        "relativeOffset": -42004,
+        "id": 44,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 148,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:20:15.000-00:00",
+        "relativeOffset": -41701,
+        "id": 45,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 149,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:25:15.000-00:00",
+        "relativeOffset": -41401,
+        "id": 46,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 150,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:30:15.000-00:00",
+        "relativeOffset": -41101,
+        "id": 47,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 151,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:35:13.000-00:00",
+        "relativeOffset": -40803,
+        "id": 48,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 152,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T01:40:13.000-00:00",
+        "relativeOffset": -40503,
+        "id": 49,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 162,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T02:30:15.000-00:00",
+        "relativeOffset": -37501,
+        "id": 50,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 163,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T02:35:13.000-00:00",
+        "relativeOffset": -37203,
+        "id": 51,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 165,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T02:45:13.000-00:00",
+        "relativeOffset": -36603,
+        "id": 52,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 166,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T02:50:15.000-00:00",
+        "relativeOffset": -36301,
+        "id": 53,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 168,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:00:15.000-00:00",
+        "relativeOffset": -35701,
+        "id": 54,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 169,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:05:13.000-00:00",
+        "relativeOffset": -35403,
+        "id": 55,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 170,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:10:13.000-00:00",
+        "relativeOffset": -35103,
+        "id": 56,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 175,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:35:13.000-00:00",
+        "relativeOffset": -33603,
+        "id": 57,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 176,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:40:15.000-00:00",
+        "relativeOffset": -33301,
+        "id": 58,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 177,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:45:15.000-00:00",
+        "relativeOffset": -33001,
+        "id": 59,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 178,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:50:13.000-00:00",
+        "relativeOffset": -32703,
+        "id": 60,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 179,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T03:55:15.000-00:00",
+        "relativeOffset": -32401,
+        "id": 61,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 180,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:00:15.000-00:00",
+        "relativeOffset": -32101,
+        "id": 62,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 181,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:05:15.000-00:00",
+        "relativeOffset": -31801,
+        "id": 63,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 182,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:10:13.000-00:00",
+        "relativeOffset": -31503,
+        "id": 64,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 183,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:15:15.000-00:00",
+        "relativeOffset": -31201,
+        "id": 65,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 184,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:20:15.000-00:00",
+        "relativeOffset": -30901,
+        "id": 66,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 185,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:25:12.000-00:00",
+        "relativeOffset": -30604,
+        "id": 67,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 189,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:45:13.000-00:00",
+        "relativeOffset": -29403,
+        "id": 68,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 190,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:50:13.000-00:00",
+        "relativeOffset": -29103,
+        "id": 69,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 191,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T04:55:13.000-00:00",
+        "relativeOffset": -28803,
+        "id": 70,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 192,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T05:00:13.000-00:00",
+        "relativeOffset": -28503,
+        "id": 71,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 193,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T05:05:13.000-00:00",
+        "relativeOffset": -28203,
+        "id": 72,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 199,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T05:35:11.000-00:00",
+        "relativeOffset": -26405,
+        "id": 73,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 200,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T05:40:13.000-00:00",
+        "relativeOffset": -26103,
+        "id": 74,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 201,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T05:45:13.000-00:00",
+        "relativeOffset": -25803,
+        "id": 75,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 202,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T05:50:13.000-00:00",
+        "relativeOffset": -25503,
+        "id": 76,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 203,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T05:55:13.000-00:00",
+        "relativeOffset": -25203,
+        "id": 77,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 204,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:00:13.000-00:00",
+        "relativeOffset": -24903,
+        "id": 78,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 205,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:05:15.000-00:00",
+        "relativeOffset": -24601,
+        "id": 79,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 206,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:10:13.000-00:00",
+        "relativeOffset": -24303,
+        "id": 80,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 207,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:15:13.000-00:00",
+        "relativeOffset": -24003,
+        "id": 81,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 211,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T06:35:11.000-00:00",
+        "relativeOffset": -22805,
+        "id": 83,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 218,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T07:10:13.000-00:00",
+        "relativeOffset": -20703,
+        "id": 85,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 219,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T07:15:15.000-00:00",
+        "relativeOffset": -20401,
+        "id": 86,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 220,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T07:20:13.000-00:00",
+        "relativeOffset": -20103,
+        "id": 87,
+        "bolusAmount": 0.10000000149011612
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 221,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T07:25:13.000-00:00",
+        "relativeOffset": -19803,
+        "id": 88,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 222,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T07:30:15.000-00:00",
+        "relativeOffset": -19501,
+        "id": 89,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 223,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T07:35:13.000-00:00",
+        "relativeOffset": -19203,
+        "id": 90,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 233,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T08:25:15.000-00:00",
+        "relativeOffset": -16201,
+        "id": 91,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 234,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T08:30:13.000-00:00",
+        "relativeOffset": -15903,
+        "id": 92,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 235,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T08:35:11.000-00:00",
+        "relativeOffset": -15605,
+        "id": 93,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 236,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T08:40:13.000-00:00",
+        "relativeOffset": -15303,
+        "id": 94,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 237,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T08:45:15.000-00:00",
+        "relativeOffset": -15001,
+        "id": 95,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 238,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T08:50:15.000-00:00",
+        "relativeOffset": -14701,
+        "id": 96,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 247,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T09:35:11.000-00:00",
+        "relativeOffset": -12005,
+        "id": 97,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 248,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T09:40:13.000-00:00",
+        "relativeOffset": -11703,
+        "id": 98,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 249,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T09:45:15.000-00:00",
+        "relativeOffset": -11401,
+        "id": 99,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 250,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T09:50:13.000-00:00",
+        "relativeOffset": -11103,
+        "id": 100,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 251,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T09:55:13.000-00:00",
+        "relativeOffset": -10803,
+        "id": 101,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 252,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:00:15.000-00:00",
+        "relativeOffset": -10501,
+        "id": 102,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 253,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:05:15.000-00:00",
+        "relativeOffset": -10201,
+        "id": 103,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 255,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:10:17.000-00:00",
+        "relativeOffset": -9899,
+        "id": 104,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 255,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:15:15.000-00:00",
+        "relativeOffset": -9601,
+        "id": 105,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 256,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:20:13.000-00:00",
+        "relativeOffset": -9303,
+        "id": 106,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 257,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:25:13.000-00:00",
+        "relativeOffset": -9003,
+        "id": 107,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 258,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:30:13.000-00:00",
+        "relativeOffset": -8703,
+        "id": 108,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 263,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T10:55:15.000-00:00",
+        "relativeOffset": -7201,
+        "id": 109,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 264,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T11:00:15.000-00:00",
+        "relativeOffset": -6901,
+        "id": 110,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 270,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T11:30:11.000-00:00",
+        "relativeOffset": -5105,
+        "id": 111,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 277,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:05:13.000-00:00",
+        "relativeOffset": -3003,
+        "id": 114,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 279,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:10:22.000-00:00",
+        "relativeOffset": -2694,
+        "id": 116,
+        "bolusAmount": 0.07500000298023224
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 279,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:15:13.000-00:00",
+        "relativeOffset": -2403,
+        "id": 118,
+        "bolusAmount": 0.02500000037252903
+      },
+      {
+        "type": "AUTO_BASAL_DELIVERY",
+        "index": 284,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-09T12:40:13.000-00:00",
+        "relativeOffset": -903,
+        "id": 121,
+        "bolusAmount": 0.05000000074505806
+      },
+      {
+        "type": "AUTO_MODE_STATUS",
+        "index": -1,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T12:55:16.000-00:00",
+        "relativeOffset": -86400,
+        "autoModeOn": false
+      },
+      {
+        "type": "LOW_GLUCOSE_SUSPENDED",
+        "index": -1,
+        "kind": "Marker",
+        "version": 1,
+        "dateTime": "2024-09-08T12:55:16.000-00:00",
+        "relativeOffset": -86400,
+        "deliverySuspended": false
+      }
+    ],
+    "pumpBannerState": [
+      {
+        "type": "TEMP_TARGET",
+        "timeRemaining": 10
+      }
+    ],
+    "therapyAlgorithmState": {
+      "autoModeShieldState": "AUTO_BASAL",
+      "autoModeReadinessState": "NO_ACTION_REQUIRED",
+      "plgmLgsState": "FEATURE_OFF",
+      "safeBasalDuration": 0,
+      "waitToCalibrateDuration": 0
+    },
+    "basal": {
+      "activeBasalPattern": "DAY_OFF",
+      "basalRate": 0
+    },
+    "averageSG": 121,
+    "belowHypoLimit": 0,
+    "aboveHyperLimit": 0,
+    "timeInRange": 100,
+    "pumpCommunicationState": true,
+    "gstCommunicationState": true,
+    "gstBatteryLevel": 99,
+    "clientTimeZoneName": "China Standard Time"
+  }
+}
