@@ -1,7 +1,13 @@
-import {COLORS, CONST_VAR, INSULIN_TYPE} from "@/views/const";
+import {COLORS, CONST_VAR, INSULIN_TYPE, PUMP_STATUS} from "@/views/const";
 import dayjs from "dayjs";
+import {std} from "mathjs";
 
 export default function () {
+
+  const getLastSg = (lastSG) => {
+    return lastSG.sensorState === "NO_ERROR_MESSAGE" ? calcSG(lastSG.sg) : "--"
+  }
+
   const calcSgYValueLimit = () => {
     return {
       min: 2,
@@ -37,6 +43,11 @@ export default function () {
     return (sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision)
   }
 
+  const calcCV = (list, avgSg) => {
+    if (list.length === 0) return 0
+    const stdNumber = std(list.map(item => item.sg))
+    return ((stdNumber / avgSg) * 100).toFixed(1)
+  }
 
   const cleanTime = (time: string) => {
     if (!time) return
@@ -98,16 +109,47 @@ export default function () {
       }
     })
   }
+
+  const getModeObj = (data) => {
+    let result = {
+      mode: {},
+      basalRate: '',
+      isTemp: false,
+      timeRemaining: '--'
+    }
+    if (data.therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
+      result.mode = PUMP_STATUS.auto
+      if (!data.pumpBannerState || data.pumpBannerState.length > 0) {
+        result.mode = PUMP_STATUS.sport
+        result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+      }
+    } else if (data.therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
+      result.mode = PUMP_STATUS.safe
+    } else if (data.therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
+      result.mode = PUMP_STATUS.manuel
+      if (data.basal.tempBasalRate) {
+        result.isTemp = true
+        result.basalRate = data.basal.tempBasalRate
+        result.timeRemaining = dayjs.duration(data.basal.tempBasalDurationRemaining, 'minutes').humanize(true)
+      } else {
+        result.basalRate = data.basal.basalRate
+      }
+    }
+    return result
+  }
   return {
+    getLastSg,
     calcSgYValueLimit,
     calcTimeInRange,
     calcLastOffset,
     calcSG,
+    calcCV,
     sgColor,
     cleanTime,
     loadSgData,
     loadCalibrationData,
     loadBaselData,
-    loadInsulinData
+    loadInsulinData,
+    getModeObj
   }
 }

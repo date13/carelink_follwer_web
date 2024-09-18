@@ -14,6 +14,14 @@ import {visualizer} from "rollup-plugin-visualizer";
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 
+
+/*// @ts-ignore
+import dns from 'dns'
+
+dns.setDefaultResultOrder('verbatim')*/
+
+// https://vitejs.dev/config/
+// @ts-ignore
 export default defineConfig(({mode}) => {
   // Load env file based on `mode` in the current working directory
   const env = loadEnv(mode, process.cwd())

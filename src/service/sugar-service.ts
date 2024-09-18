@@ -1,6 +1,7 @@
 import {BaseService} from './base-service'
 import {HttpClient} from "@/utils/http-client";
 import {DictService} from "@/service/dict-service";
+import {CARELINK_DICT_KEY} from "@/views/const";
 
 export class SugarService extends BaseService {
   constructor() {
@@ -8,12 +9,12 @@ export class SugarService extends BaseService {
   }
 
   async loadData(isDemo = false, mask) {
-    let resultData = null
+    let resultData: any = null
     const dictService = new DictService()
     if (!isDemo) {
-      const result = await dictService.getDict("carelinkData", mask)
+      const result = await dictService.getDict(CARELINK_DICT_KEY.carelinkData, mask)
       if (result) {
-        const data = JSON.parse(result.val)
+        const data = JSON.parse(result)
         resultData = {
           data: JSON.parse(data.data),
           status: data.status
@@ -30,6 +31,12 @@ export class SugarService extends BaseService {
       }
     }
     return resultData
+  }
+
+  refreshCarelinkToken() {
+    return HttpClient.put(`${this.apiContext}refreshCarelinkToken`, {
+      mask: true
+    })
   }
 
   refreshCarelinkData() {
