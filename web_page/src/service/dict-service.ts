@@ -24,7 +24,7 @@ export class DictService extends BaseService {
   }
 
   getDemo() {
-    return HttpClient.get(`https://localhost:8006/data.json`, {
+    return HttpClient.get(`${location.href}/data.json`, {
       headers: {
         skip: true
       }
