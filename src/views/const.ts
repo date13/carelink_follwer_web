@@ -10,8 +10,80 @@ export const COLORS = [
   '#f1eacf',//8警告区域背景
   '#eeb1c9'//9严重警告区域背景
 ]
+
+export const CARELINK_DICT_KEY = {
+  carelinkAuth: "carelinkAuth",
+  carelinkData: "carelinkData",
+  carelinkMyData: "carelinkMyData"
+}
+
+export const PUMP_STATUS = {
+  sport: {
+    key: "sport",
+    name: '运动模式',
+    type: 'warning'
+  },
+  manuel: {
+    key: "manuel",
+    name: '手动模式',
+    type: 'info'
+  },
+  auto: {
+    key: "auto",
+    name: '闭环模式',
+    type: 'success'
+  },
+  safe: {
+    key: "safe",
+    name: '安全模式',
+    type: 'success'
+  }
+}
+
+export const TIME_RANGE_CONFIG = [
+  {
+    label: '2',
+    value: 8
+  },
+  {
+    label: '3',
+    value: 13
+  },
+  {
+    label: '4',
+    value: 17
+  },
+  {
+    label: '6',
+    value: 25
+  },
+  {
+    label: '12',
+    value: 50
+  }
+]
+
+export const SYSTEM_STATUS_MAP = {
+  NO_ERROR_MESSAGE: {
+    name: '正常',
+    color: COLORS[0]
+  },
+  WARNING: {
+    name: '警告',
+    color: COLORS[6]
+  },
+  ERROR: {
+    name: '错误',
+    color: COLORS[5]
+  },
+  WARM_UP: {
+    name: '预热',
+    color: COLORS[4]
+  }
+}
 export const REFRESH_INTERVAL = {
   loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
+  loadMyData: 60
 }
 export const CONST_VAR = {
   maxSeriousSg: 12.5,

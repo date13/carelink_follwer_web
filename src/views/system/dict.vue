@@ -4,7 +4,7 @@
       <Title title="字典"></Title>
     </template>
     <div class="flex">
-      <el-card class="w-full ma-6">
+      <el-card class="w-full ma-6 dict-panel">
         <template #header>
           <div class="flex justify-between">
             <span>字典</span>
@@ -12,13 +12,16 @@
           </div>
         </template>
         <el-form ref="formRef" :model="params" :rules="rules" label-position="left"
-                 label-width="80px">
+                 class="dict-form" label-width="80px">
           <el-form-item label="KEY" prop="key">
             <el-select v-model="params.key" size="small" @change="loadDict">
               <el-option v-for="(item,i) in keys" :key="i"
                          :value="item">
               </el-option>
             </el-select>
+          </el-form-item>
+          <el-form-item label="更新时间" prop="update_time">
+            {{ params.value.update_time }}
           </el-form-item>
           <el-form-item label="value" prop="value">
             <vue-jsoneditor v-if="load"
@@ -48,7 +51,7 @@ import VueJsoneditor from 'vue3-ts-jsoneditor';
 import {Refresh} from "@element-plus/icons-vue";
 
 const service = new DictService()
-const keys = ['carelinkAuth', 'carelinkData']
+const keys = ['carelinkAuth', 'carelinkData', "luck"]
 const state = reactive({
   params: {
     key: keys[0],
@@ -74,7 +77,7 @@ async function loadDict() {
   state.load = true
   if (result) {
     try {
-      state.params.value = JSON.parse(result.val)
+      state.params.value = JSON.parse(result)
     } catch (e) {
       console.log(e);
     }
@@ -98,4 +101,19 @@ function update() {
 }
 </script>
 <style lang="scss" scoped>
+.dict-form {
+  :deep(.el-form-item) {
+    margin-bottom: 8px;
+  }
+}
+
+.dict-panel {
+  :deep(.el-card__header) {
+    padding: 8px;
+  }
+
+  :deep(.el-card__body) {
+    padding: 8px;
+  }
+}
 </style>

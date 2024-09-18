@@ -1,11 +1,21 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
-      <div class="flex flex-row h-50 pt-2">
+      <el-dropdown class="menu-panel" placement="bottom-start" trigger="click" @command="handleMenu">
+        <ep-Menu></ep-Menu>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="info">Info</el-dropdown-item>
+            <el-dropdown-item command="dict">Dict</el-dropdown-item>
+            <el-dropdown-item command="login">Login</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <div class="flex flex-row h-50">
         <div class="w-1/2 flex items-center justify-center flex-col">
           <div class="flex items-center justify-between">
-            <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(data.lastSG.sg))}" class="text-7xl font-bold ">{{
-                sugarCalc.calcSG(data.lastSG.sg)
+            <div :style="{color:sugarCalc.sgColor(sugarCalc.getLastSg(data.lastSG))}" class="text-7xl font-bold ">{{
+                sugarCalc.getLastSg(data.lastSG)
               }}
             </div>
             <div class="text-3xl flex font-thin arrow">
@@ -29,51 +39,59 @@
             </div>
           </div>
           <div class="flex text-xs items-center justify-between align-center mb-1">
-            <span class="mx-2">{{ lastUpdateTime }}</span>
+            <span class="mx-2">{{ lastUpdateTime.sg }}</span>
             <span class="mx-2">{{ lastOffset }}</span>
             <span class="ml-2 text-xs">
               <ep-Refresh class="hand" @click="reload"></ep-Refresh>
             </span>
           </div>
-          <div class="flex items-center justify-center">
+          <div class="flex items-center justify-center time-range">
             <el-radio-group v-model="startPercent" size="small" @change="changeTimeRange">
-              <el-radio-button :value="8" label="2"/>
-              <el-radio-button :value="13" label="3"/>
-              <el-radio-button :value="17" label="4"/>
-              <el-radio-button :value="25" label="6"/>
-              <el-radio-button :value="50" label="12"/>
+              <el-radio-button v-for="item in TIME_RANGE_CONFIG" :label="item.label" :value="item.value"/>
             </el-radio-group>
+            <!--
+                        <el-segmented v-model="startPercent" :options="TIME_RANGE_CONFIG" size="default" @change="changeTimeRange">
+                          <template #default="{ item }">
+                            <div>{{ item.label }}</div>
+                          </template>
+                        </el-segmented>-->
           </div>
+
           <div class="flex text-xs items-center justify-between align-center my-1">
             <span class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
-            <el-tag class="mb-1" type="info" @click="login">登录</el-tag>
+            <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}">
+              {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
+            </div>
           </div>
         </div>
         <div class="w-1/2 flex items-center justify-center ">
-          <el-card class="w-max info-panel ma-1 max-w-100">
+          <el-card class="w-max info-panel ma-1 max-w-110">
             <template #header>
               <div class="card-header text-center flex items-center justify-between">
-                <span class="text-2xl font-bold">{{ time.format('HH:mm') }}</span>
+                <span class="text-2xl font-bold hand" @click="refreshCarelinkToken">{{ time.format('HH:mm') }}</span>
                 <span class="text-xs hand" @click="reloadCarelinkData">状态:{{ status }}</span>
               </div>
             </template>
             <div class="flex justify-between flex-wrap">
-              <el-tag class="mb-1 mr-2" type="primary">活性:
+              <el-tag class="mb-1 mr-1" type="primary">活性:
                 {{ data.activeInsulin.amount }}
               </el-tag>
-              <el-tag class="mb-1 mr-2" type="primary">平均:
+              <el-tag class="mb-1 mr-1" type="primary">
+                平均:
                 {{ sugarCalc.calcSG(data.averageSG) }},
+                CV:
+                {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%,
                 {{ timeInRange[0] }}%
               </el-tag>
-              <el-tag class="mb-1 mr-2" type="primary">
+              <el-tag class="mb-1 mr-1" type="primary">
                 <span class="text-rose">Low:{{ timeInRange[1] }}%,</span>&nbsp;
                 <span class="text-rose">Hight:{{ timeInRange[2] }}%</span>
               </el-tag>
-              <el-tag class="mb-1 mr-2" type="warning">泵:
+              <el-tag class="mb-1 mr-1" type="warning">泵:
                 {{ data.reservoirRemainingUnits }}U,
                 {{ data.medicalDeviceBatteryLevelPercent }}%
               </el-tag>
-              <el-tag class="mb-1 mr-2" type="warning">探头:
+              <el-tag class="mb-1 mr-1" type="warning">探头:
                 {{
                   dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true)
                 }},
@@ -81,6 +99,7 @@
                   data.gstBatteryLevel || '--'
                 }}%
               </el-tag>
+
             </div>
           </el-card>
         </div>
@@ -88,7 +107,23 @@
       <div class="flex-1">
         <div ref="myChart" class="border-grey border-grey mb-4 h-full"></div>
       </div>
-      <div class="h-10"></div>
+      <div class="h-20 px-2 flex items-center justify-around">
+        <el-tag :type="modeObj.mode.type" class="">
+          {{ modeObj.mode.name }}
+          <span v-if="modeObj.mode.key===PUMP_STATUS.sport.key">
+            剩余:{{ modeObj.timeRemaining }}
+            </span>
+          <span v-if="modeObj.mode.key===PUMP_STATUS.manuel.key">
+              ,基础:{{ modeObj.basalRate }}
+              <span v-if="modeObj.isTemp">
+                ,剩余:{{ modeObj.timeRemaining }}
+                </span>
+            </span>
+        </el-tag>
+        <el-tag class="hand" type="warning" @click="updateConduitTime">管路:
+          {{ lastUpdateTime.conduit || '--' }}
+        </el-tag>
+      </div>
     </div>
   </MainPanel>
 </template>
@@ -103,13 +138,27 @@ import useChartResize from "@/composition/useChartResize";
 import {DATE_FORMAT} from "@/model/model-type";
 import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {COLORS, CONST_VAR, DIRECTIONS, INSULIN_TYPE, REFRESH_INTERVAL} from "@/views/const";
+import {
+  CARELINK_DICT_KEY,
+  COLORS,
+  CONST_VAR,
+  DIRECTIONS,
+  INSULIN_TYPE,
+  PUMP_STATUS,
+  REFRESH_INTERVAL,
+  SYSTEM_STATUS_MAP,
+  TIME_RANGE_CONFIG
+} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
+import defaultSettings from "@/settings";
+import {DictService} from "@/service/dict-service";
+import {forEach} from "lodash-es";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
 const sugarService = new SugarService()
+const dictService = new DictService()
 
 const myChart = ref<HTMLElement>();
 let chart: any
@@ -126,8 +175,10 @@ const state: any = reactive({
   updateDatetime: '--',//数据更新时间
   interval: {
     time: null,
-    data: null
+    data: null,
+    myData: null,
   },
+  myData: {},
   data: {
     lastSG: {
       //最后获取的数据时间
@@ -138,6 +189,8 @@ const state: any = reactive({
     activeInsulin: {
       amount: 0
     },
+    basal: {},
+    therapyAlgorithmState: {},
     markers: [],
     gstBatteryLevel: 0,
     sensorDurationMinutes: 0,
@@ -152,9 +205,15 @@ function fromNow(time: any) {
   return dayjs().from(time)
 }
 
+function toNow(time: any) {
+  if (!time) return
+  return dayjs().to(time)
+}
+
 onMounted(async () => {
   await loadCarelinkData()
   drawLine()
+  await loadCarelinkMyData()
   startInterval()
 })
 onBeforeUnmount(() => {
@@ -163,8 +222,38 @@ onBeforeUnmount(() => {
   }
 })
 
-function login() {
-  window.open("https://carelink.minimed.eu/patient/sso/login?country=hk&lang=zh")
+function updateConduitTime() {
+  updateMyData(
+      "是否确认更新管路更换时间?",
+      () => {
+        state.myData.lastConduitTime = dayjs().format(DATE_FORMAT.datetime)
+      },
+      () => Msg.successMsg('更新管路更换时间成功'))
+}
+
+function updateMyData(confirmStr: string, sureFunc = () => {
+}, afterFunc = () => {
+}) {
+  Msg.confirm(confirmStr, async () => {
+    sureFunc()
+    const result = await dictService.updateDict({
+      key: CARELINK_DICT_KEY.carelinkMyData,
+      val: JSON.stringify(state.myData)
+    })
+    if (result) {
+      afterFunc()
+    }
+  })
+}
+
+async function refreshCarelinkToken() {
+  //后端去 carelink 刷新token
+  const result = await sugarService.refreshCarelinkToken()
+  if (result) {
+    Msg.successMsg('远程Token刷新成功')
+    // await loadCarelinkData()
+    // refreshChart()
+  }
 }
 
 async function reloadCarelinkData() {
@@ -178,8 +267,9 @@ async function reloadCarelinkData() {
 }
 
 async function reload() {
-  clearInterval(state.interval.time)
-  clearInterval(state.interval.data)
+  forEach(state.interval, (v, k) => {
+    clearInterval(v)
+  })
   try {
     await loadCarelinkData()
     refreshChart()
@@ -212,6 +302,13 @@ function startDataLoadInterval() {
   }, REFRESH_INTERVAL.loadData * 60 * 1000)
 }
 
+async function loadCarelinkMyData() {
+  const result = await dictService.getDict(CARELINK_DICT_KEY.carelinkMyData)
+  if (result) {
+    state.myData = JSON.parse(result);
+  }
+}
+
 //获取数据库数据,不是去 carelink 刷新数据
 async function loadCarelinkData(mask = true) {
   try {
@@ -222,6 +319,7 @@ async function loadCarelinkData(mask = true) {
         state.status = result.status
         state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+        document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
         /*state.data.markers.push({
           "type": "CALIBRATION",
           "index": 148,
@@ -232,10 +330,39 @@ async function loadCarelinkData(mask = true) {
           "relativeOffset": -41836,
           "calibrationSuccess": true
         },)*/
+        /* Object.assign(state.data, {
+           "therapyAlgorithmState": {
+             "autoModeShieldState": "FEATURE_OFF",
+             "autoModeReadinessState": "NO_ACTION_REQUIRED",
+             "plgmLgsState": "MONITORING",
+             "safeBasalDuration": 0,
+             "waitToCalibrateDuration": 0
+           },
+           "pumpBannerState": [
+             {
+               "type": "TEMP_BASAL",
+               "timeRemaining": 35
+             }
+           ],
+           "basal": {
+             "basalRate": 0.175,
+             "tempBasalRate": 1,
+             "tempBasalType": "ABSOLUTE",
+             "tempBasalDurationRemaining": 35
+           }
+         })*/
       }
     }
   } catch (e) {
     console.log(e);
+  }
+}
+
+function handleMenu(command) {
+  if (command === 'login') {
+    window.open("https://carelink.minimed.eu/patient/sso/login?country=hk&lang=zh")
+  } else {
+    location.href = `/${command}`
   }
 }
 
@@ -259,9 +386,15 @@ const lastOffset = computed(() => {
 })
 
 const lastUpdateTime = computed(() => {
-  return fromNow(state.data.lastSG.datetime)
+  return {
+    sg: fromNow(state.data.lastSG.datetime),
+    conduit: toNow(state.myData.lastConduitTime)
+  }
 })
 
+const modeObj = computed(() => {
+  return sugarCalc.getModeObj(state.data)
+})
 //获取升降趋势
 const trendObj = computed(() => {
   return state.data?.lastSGTrend && DIRECTIONS[state.data.lastSGTrend]
@@ -284,7 +417,8 @@ const charOption = computed(() => {
       trigger: 'axis',
       confine: true,
       position: (point, params, dom, rect, size) => {
-        return [point[0] - 100, point[1] - 110]  //返回x、y（横向、纵向）两个点的位置
+        const isInsulin = params[0].data[2].key === INSULIN_TYPE.INSULIN.key
+        return [point[0] - 100, point[1] - 110 * (isInsulin ? 1.5 : 1)]  //返回x、y（横向、纵向）两个点的位置
       },
       formatter: params => {
         // 获取xAxis data中的数据
@@ -293,13 +427,13 @@ const charOption = computed(() => {
           <span>${param.data[2].name}</span>
           <span>${dayjs(param.data[0]).format("HH:mm")}</span>
         </div>`
-        params.forEach(item => {
+        params.forEach((item, i) => {
           const type = item.data[2]
           const isInsulin = type.key === INSULIN_TYPE.INSULIN.key
           dataStr += `
             <div class="flex items-center justify-between my-1">
               <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
-              <span class="flex-1 ml-1">${isInsulin ? type.text[0] : ''}</span>
+              <span class="flex-1 ml-1 text-sm">${isInsulin ? type.text[0] : (params.length > 1 ? type.name : '')}</span>
               <span>${item.data[1]}</span>
             </div>`
           if (isInsulin) {
@@ -310,7 +444,7 @@ const charOption = computed(() => {
             </div>`
             dataStr += `<div class="flex items-center justify-between mb-1">
               <span style="width:10px;height:10px;background-color:${type.color3};"></span>
-              <span class="flex-1 ml-1">${type.text[2]}</span>
+              <span class="flex-1 ml-1 text-sm">${type.text[2]}</span>
               <span>${item.data[4]}</span>
             </div>`
           }
@@ -327,8 +461,9 @@ const charOption = computed(() => {
     xAxis: {
       type: 'time',
       splitLine: {show: true},
+      interval: 3600 * 1000,
+      boundaryGap: false,
       axisLabel: {
-        // interval: 5 * 60,
         formatter: function (value, index) {
           return dayjs(value).format('HH:mm');
         }
@@ -556,6 +691,16 @@ const charOption = computed(() => {
         type: "scatter",
         yAxisIndex: 3,
         symbolSize: 15,
+        label: {
+          formatter: (item) => {
+            return item.data[3]
+          },
+          position: 'top',
+          show: true,
+        },
+        emphasis: {
+          scale: true
+        },
         itemStyle: {
           borderColor: COLORS[2],
           color: (item) => {
@@ -563,11 +708,11 @@ const charOption = computed(() => {
               let percent = Number((item.data[3] / item.data[1]).toFixed(1))
               return percent === 1 ? COLORS[2] : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 {
-                  offset: percent,
+                  offset: 1 - percent,
                   color: 'white'
                 },
                 {
-                  offset: 1 - percent,
+                  offset: percent,
                   color: COLORS[2]
                 }
               ])
@@ -593,6 +738,15 @@ function drawLine() {
 }
 </script>
 <style lang="scss" scoped>
+.menu-panel {
+  position: absolute;
+
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
 .info-panel {
   :deep(.el-card__header) {
     padding: 8px;
@@ -606,6 +760,14 @@ function drawLine() {
 .arrow {
   svg {
     width: 25px;
+  }
+}
+
+.time-range {
+  .el-segmented {
+    --el-segmented-item-selected-color: white;
+    --el-segmented-item-selected-bg-color: var(--el-color-primary-light-3);
+    --el-border-radius-base: 16px;
   }
 }
 </style>

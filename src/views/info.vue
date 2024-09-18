@@ -154,7 +154,7 @@ onMounted(async () => {
   const result = await service.getDict("luck")
   if (result) {
     state.luck.id = result.id
-    Object.assign(state.luck, JSON.parse(result.val))
+    Object.assign(state.luck, JSON.parse(result))
     refreshLuck()
   }
 })
