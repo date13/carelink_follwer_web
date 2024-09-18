@@ -35,7 +35,8 @@
 - 在项目根目录运行 main.py --mode dev 即可
 - 配置文件在.dev.env和.prod.env中,切换环境只需要跟换 mode 变量即可
 - 之前用了 mysql,由于服务器不太稳定,数据库又是异步操作,这部分没写好,一直报错,索性直接跟换成了 redis,数据也不多,就启用了 mysql
-  
+- 获取 token 的方法参考 web_service/note.txt 文件
+
 ## 前端的运行
 - 全局安装 pnpm, npm i pnpm -g
 - 在项目根目录运行pnpm i

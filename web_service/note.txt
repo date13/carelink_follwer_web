@@ -1,0 +1,16 @@
+1.服务所用 token 要登录https://carelink.minimed.eu/然后从开发者工具中查看调用的 request,
+  找到对应的 authorities 的参数,自己填入到 redis 的 carelinkAuth 中才行
+2.后端服务有 2 个计划任务,一个定时刷新 token,对应的刷新时间参数为秒
+CARELINK_TOKEN_REFRESH_INTERVAL=600
+还有一个服务是获取 carelinkData就是刷新血糖数据,对应参数
+CARELINK_DATA_REFRESH_INTERVAL=210
+可自行修改,需要注意的是 token 刷新一次,原有的 token 就过期不能用了,官方的过期时间应该为 40分钟
+
+3.可以配置发送错误信息邮件的参数
+4.如果 carelinkAuth 的获取 status 为 401就代表 token 失效了,这时刷新 token 和获取 carelinkData 都将失败,唯一能做的就是重新登录
+然后再次获取 token,根据测试下来,一般来说刷新 token 都是成功的,少数情况下carelink.minimed.eu服务器会超时,这是 token 会失效
+只能重新登录获取 token
+
+5.有个技巧可以手机登录carelink.minimed.eu然后自动的刷新 token 到自己的redis 数据库,就是用"油猴",andorid 手机可以下载一个"可拓浏览器"
+这个浏览器支持浏览器插件,下载 headerEditor 和tampermonkey 插件,编写一段或者 token,然后调用接口的脚本,登录后刷新一下页面就可以自动更新到 redis 数据库
+post 到服务器的/dict 接口即可
