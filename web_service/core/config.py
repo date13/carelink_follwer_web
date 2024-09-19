@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     TOKEN_EXP: int
     HOST_PORT: int
     TASK_RUN: bool
+    MAIL_SEND: bool
 
     DB_HOST: str  # MySQL
     DB_USER: str

@@ -17,4 +17,5 @@ class MailObject(object):
         # self.server.smtp_server = "smtp.exmail.qq.com"
 
     def send(self, mailObj):
-        self.server.send_mail(config.MAIL_TO, mailObj)
+        if config.MAIL_SEND:
+            self.server.send_mail(config.MAIL_TO, mailObj)

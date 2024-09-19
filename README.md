@@ -30,20 +30,22 @@
 - 然后启动 web_page 项目即可
 
 ## 后端运行
+- 首先安装 redis https://redis.io/downloads/
+- 然后安装一个好用的客户端 https://github.com/qishibo/AnotherRedisDesktopManager
+- 导入模版文件,在 web_service/redis_dump_***.cvs文件
 - 要求 python3.10 及以上环境
 - 首先安装所需要的包 pip3 install -r requirements.txt
 - 在项目根目录运行 main.py --mode dev 即可
 - 配置文件在.dev.env和.prod.env中,切换环境只需要跟换 mode 变量即可
-- 之前用了 mysql,由于服务器不太稳定,数据库又是异步操作,这部分没写好,一直报错,索性直接跟换成了 redis,数据也不多,就启用了 mysql
 - 获取 token 的方法参考 web_service/note.txt 文件
 
 ## 前端的运行
 - 全局安装 pnpm, npm i pnpm -g
 - 在项目根目录运行pnpm i
-- 然后运行 pnpm run dev
+- 然后运行 pnpm run dev,配置文件在.dev.env,环境切换和 web_service 一样
 - 访问 http://localhost:8006/
 - 模拟数据在 /public/data.json里面
-- 实际要用要配合后端服务,晚点把后台项目也放出来
+- 通过 web_service 也可以获取模拟数据
 
 # Vue 3 + TypeScript + Vite
 
