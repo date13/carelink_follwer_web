@@ -2,12 +2,12 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from core.config import config, IS_DEV
-from core.db_core import get_db
+# from core.db_core import get_db
 from core.denpends import limiter
 from register import register_cors, register_exception, register_middleware
 from register.router import register_router
@@ -32,9 +32,12 @@ tags_metadata = [
 # 初始化 slowapi，注册进 fastapi
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    my_logger.info("启动定时任务")
-    asyncio.ensure_future(refreshCarelinkTokenInterval())
-    asyncio.ensure_future(refreshCarelinkDataInterval())
+    if config.TASK_RUN:
+        my_logger.info("启动定时任务")
+        asyncio.ensure_future(refreshCarelinkTokenInterval())
+        asyncio.ensure_future(refreshCarelinkDataInterval())
+    else:
+        my_logger.info("定时任务未启动")
     yield
 
 
@@ -47,7 +50,8 @@ app = FastAPI(
     version=config.PROJECT_VERSION,
     openapi_tags=tags_metadata,
     lifespan=lifespan,
-    dependencies=[Depends(get_db)])
+    # dependencies=[Depends(get_db)]
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

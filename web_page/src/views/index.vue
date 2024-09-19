@@ -12,6 +12,44 @@
         </template>
       </el-dropdown>
       <div class="flex flex-row h-50">
+        <div class="w-1/2 flex items-center justify-center">
+          <el-card class="w-max info-panel ma-1 max-w-110">
+            <template #header>
+              <div class="card-header text-center flex items-center justify-between">
+                <span class="text-xs hand" @click="reloadCarelinkData">状态:{{ status }}</span>
+                <span class="text-2xl font-bold hand" @click="refreshCarelinkToken">{{ time.format('HH:mm') }}</span>
+              </div>
+            </template>
+            <div class="flex justify-between flex-wrap">
+              <el-tag class="mb-1 mr-1" size="small" type="primary">活性:
+                {{ data.activeInsulin.amount }}
+              </el-tag>
+              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+                平均:
+                {{ sugarCalc.calcSG(data.averageSG) }},
+                {{ timeInRange[0] }}%,
+                CV:
+                {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
+              </el-tag>
+              <el-tag class="mb-1 mr-1" size="small" type="primary">
+                <span class="text-rose">Low:{{ timeInRange[1] }}%,</span>&nbsp;
+                <span class="text-rose">Hight:{{ timeInRange[2] }}%</span>
+              </el-tag>
+              <el-tag class="mb-1 mr-1" size="small" type="warning">泵:
+                {{ data.reservoirRemainingUnits }}U,
+                {{ data.medicalDeviceBatteryLevelPercent }}%
+              </el-tag>
+              <el-tag class="mb-1 mr-1" size="small" type="warning">探头:
+                {{
+                  dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true)
+                }},
+                {{
+                  data.gstBatteryLevel || '--'
+                }}%
+              </el-tag>
+            </div>
+          </el-card>
+        </div>
         <div class="w-1/2 flex items-center justify-center flex-col">
           <div class="flex items-center justify-between">
             <div :style="{color:sugarCalc.sgColor(sugarCalc.getLastSg(data.lastSG))}" class="text-7xl font-bold ">{{
@@ -64,51 +102,12 @@
             </div>
           </div>
         </div>
-        <div class="w-1/2 flex items-center justify-center ">
-          <el-card class="w-max info-panel ma-1 max-w-110">
-            <template #header>
-              <div class="card-header text-center flex items-center justify-between">
-                <span class="text-2xl font-bold hand" @click="refreshCarelinkToken">{{ time.format('HH:mm') }}</span>
-                <span class="text-xs hand" @click="reloadCarelinkData">状态:{{ status }}</span>
-              </div>
-            </template>
-            <div class="flex justify-between flex-wrap">
-              <el-tag class="mb-1 mr-1" type="primary">活性:
-                {{ data.activeInsulin.amount }}
-              </el-tag>
-              <el-tag class="mb-1 mr-1" type="primary">
-                平均:
-                {{ sugarCalc.calcSG(data.averageSG) }},
-                CV:
-                {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%,
-                {{ timeInRange[0] }}%
-              </el-tag>
-              <el-tag class="mb-1 mr-1" type="primary">
-                <span class="text-rose">Low:{{ timeInRange[1] }}%,</span>&nbsp;
-                <span class="text-rose">Hight:{{ timeInRange[2] }}%</span>
-              </el-tag>
-              <el-tag class="mb-1 mr-1" type="warning">泵:
-                {{ data.reservoirRemainingUnits }}U,
-                {{ data.medicalDeviceBatteryLevelPercent }}%
-              </el-tag>
-              <el-tag class="mb-1 mr-1" type="warning">探头:
-                {{
-                  dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true)
-                }},
-                {{
-                  data.gstBatteryLevel || '--'
-                }}%
-              </el-tag>
-
-            </div>
-          </el-card>
-        </div>
       </div>
       <div class="flex-1">
         <div ref="myChart" class="border-grey border-grey mb-4 h-full"></div>
       </div>
       <div class="h-20 px-2 flex items-center justify-around">
-        <el-tag :type="modeObj.mode.type" class="">
+        <el-tag :type="modeObj.mode.type" class="" size="small">
           {{ modeObj.mode.name }}
           <span v-if="modeObj.mode.key===PUMP_STATUS.sport.key">
             剩余:{{ modeObj.timeRemaining }}
@@ -120,7 +119,7 @@
                 </span>
             </span>
         </el-tag>
-        <el-tag class="hand" type="warning" @click="updateConduitTime">管路:
+        <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
           {{ lastUpdateTime.conduit || '--' }}
         </el-tag>
       </div>
@@ -740,7 +739,7 @@ function drawLine() {
 <style lang="scss" scoped>
 .menu-panel {
   position: absolute;
-
+  right: 0;
   svg {
     width: 30px;
     height: 30px;
@@ -749,11 +748,11 @@ function drawLine() {
 
 .info-panel {
   :deep(.el-card__header) {
-    padding: 8px;
+    padding: 4px;
   }
 
   :deep(.el-card__body) {
-    padding: 8px;
+    padding: 4px;
   }
 }
 

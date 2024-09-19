@@ -9,7 +9,7 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 
 from core.auth import Auth
-from core.db_core import db
+# from core.db_core import db
 from models.const import CROS_HEADER
 from models.result import Result
 
@@ -45,8 +45,8 @@ def register_middleware(app: FastAPI):
             response = await asyncio.wait_for(call_next(request), 60)
             return response
         except asyncio.TimeoutError as e:
-            if not db.is_closed():
-                db.close()
-                db.close_async()
+            # if not db.is_closed():
+            #     db.close()
+            #     db.close_async()
             return JSONResponse(status_code=status.HTTP_200_OK, headers=CROS_HEADER,
                                 content=Result.fail(msg=f'请求超时,{e}').model_dump())

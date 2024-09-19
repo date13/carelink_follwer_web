@@ -45,7 +45,7 @@ export default function () {
 
   const calcCV = (list, avgSg) => {
     if (list.length === 0) return 0
-    const stdNumber = std(list.map(item => item.sg))
+    const stdNumber = std(list.filter(item => item.sg !== 0).map(item => item.sg))
     return ((stdNumber / avgSg) * 100).toFixed(1)
   }
 

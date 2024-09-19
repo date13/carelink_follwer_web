@@ -14,7 +14,8 @@ IS_DEV = True if args.mode != 'prod' else False  # 是否开发环境
 print(f'MODE:{args.mode} ,IS_DEV:{IS_DEV} ,root:{Tools.getRoot()}')
 config_map = {
     "dev": '/.dev.env',
-    "prod": "/.prod.env"
+    "prod": "/.prod.env",
+    "local": "/.local.env"
 }
 
 
@@ -26,6 +27,7 @@ class Settings(BaseSettings):
     SALT: str  # md5 加密盐
     TOKEN_EXP: int
     HOST_PORT: int
+    TASK_RUN: bool
 
     DB_HOST: str  # MySQL
     DB_USER: str
