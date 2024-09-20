@@ -8,12 +8,15 @@ export class DictService extends BaseService {
   }
 
   getDict(key: string, mask = true) {
-    if (!CONST_VAR.isDemo && key !== CARELINK_DICT_KEY.carelinkMyData) {
+    if (!CONST_VAR.isDemo) {
       return HttpClient.get(`${this.apiContext}dict/${key}`, {
         mask
       })
     } else {
-      return "{\"lastConduitTime\":\"2024-09-16 20:35:08\"}"
+      if (key !== CARELINK_DICT_KEY.carelinkMyData) {
+        return "{\"lastConduitTime\":\"2024-09-16 20:35:08\"}"
+      }
+      return {}
     }
   }
 
