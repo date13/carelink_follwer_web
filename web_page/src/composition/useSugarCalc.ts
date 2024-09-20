@@ -120,8 +120,14 @@ export default function () {
     if (data.therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
       result.mode = PUMP_STATUS.auto
       if (!data.pumpBannerState || data.pumpBannerState.length > 0) {
-        result.mode = PUMP_STATUS.sport
-        result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+        const pumpState = data.pumpBannerState[0]
+        if (pumpState.type === 'TEMP_BASAL') {
+          result.mode = PUMP_STATUS.sport
+          result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+        }
+        if (pumpState.type === 'DELIVERY_SUSPEND') {
+          result.mode = PUMP_STATUS.stop
+        }
       }
     } else if (data.therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
       result.mode = PUMP_STATUS.safe

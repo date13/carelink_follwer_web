@@ -28,6 +28,11 @@ export const PUMP_STATUS = {
     name: '手动模式',
     type: 'info'
   },
+  stop: {
+    key: "stop",
+    name: '暂停输注',
+    type: 'danger'
+  },
   auto: {
     key: "auto",
     name: '闭环模式',

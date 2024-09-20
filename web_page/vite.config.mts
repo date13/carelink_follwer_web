@@ -41,7 +41,7 @@ export default defineConfig(({mode}) => {
       preprocessorOptions: {
         scss: {
           additionalData: `@use "@/styles/element/index.scss" as *;`,
-          silenceDeprecations: ["mixed-decls"]
+          silenceDeprecations: ["mixed-decls", 'legacy-js-api', 'color-functions']
         },
       },
     },

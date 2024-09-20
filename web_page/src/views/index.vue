@@ -16,8 +16,8 @@
           <el-card class="w-max info-panel ma-1 max-w-110">
             <template #header>
               <div class="card-header text-center flex items-center justify-between">
-                <span class="text-xs hand" @click="reloadCarelinkData">状态:{{ status }}</span>
-                <span class="text-2xl font-bold hand" @click="refreshCarelinkToken">{{ time.format('HH:mm') }}</span>
+                <span class="text-xs hand" @click="refreshCarelinkToken">状态:{{ status }}</span>
+                <span class="text-2xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</span>
               </div>
             </template>
             <div class="flex justify-between flex-wrap">
