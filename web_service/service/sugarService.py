@@ -72,10 +72,11 @@ def refreshCarelinkData():
     tokenObj = rds.get_json(authKey)
     dataObj = rds.get_json(dataKey)
     token = tokenObj["token"]
-    if tokenObj["status"] != 200:
-        if dataObj["status"] != tokenObj["status"]:
-            dataObj["status"] = tokenObj["status"]
-            text = "token失效,请手动刷新Token!!!"
+    status = tokenObj["status"]
+    if status != 200:
+        if dataObj["status"] != status:
+            dataObj["status"] = status
+            text = "refreshCarelinkData token失效,请手动刷新Token,当前状态:" + str(status)
             my_logger.info(text)
             sendMail(text)
             updateCarelinkDataToRedis(dataObj)
@@ -119,8 +120,10 @@ def updateCarelinkDataToRedis(dataObj):
 def refreshCarelinkToken():
     tokenObj = rds.get_json(dictKey["auth"])
     token = tokenObj["token"]
-    # print(tokenObj["token"])
-    if token:
+    status = tokenObj["status"]
+    if status != 200:
+        my_logger.info("refreshCarelinkToken token失效,请手动刷新Token,当前状态:" + str(status))
+    else:
         headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + token,
