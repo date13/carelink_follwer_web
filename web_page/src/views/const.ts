@@ -89,6 +89,10 @@ export const SYSTEM_STATUS_MAP = {
   WARM_UP: {
     name: '预热',
     color: COLORS[4]
+  },
+  UPDATING: {
+    name: '更新中',
+    color: COLORS[2]
   }
 }
 export const REFRESH_INTERVAL = {
