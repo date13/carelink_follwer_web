@@ -319,6 +319,7 @@ async function loadCarelinkData(mask = true) {
         state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
+        // state.data.therapyAlgorithmState = null
         /*state.data.markers.push({
           "type": "CALIBRATION",
           "index": 148,

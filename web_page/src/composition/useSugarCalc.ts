@@ -112,35 +112,39 @@ export default function () {
 
   const getModeObj = (data) => {
     let result = {
-      mode: {},
+      mode: PUMP_STATUS.none,
       basalRate: '',
       isTemp: false,
       timeRemaining: '--'
     }
-    if (data.therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
-      result.mode = PUMP_STATUS.auto
-      if (!data.pumpBannerState || data.pumpBannerState.length > 0) {
-        const pumpState = data.pumpBannerState[0]
-        if (pumpState.type === 'TEMP_BASAL') {
-          result.mode = PUMP_STATUS.sport
-          result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+    if (data.therapyAlgorithmState) {
+      const therapyAlgorithmState = data.therapyAlgorithmState
+      if (therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
+        result.mode = PUMP_STATUS.auto
+        if (!data.pumpBannerState || data.pumpBannerState.length > 0) {
+          const pumpState = data.pumpBannerState[0]
+          if (pumpState.type === 'TEMP_BASAL') {
+            result.mode = PUMP_STATUS.sport
+            result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+          }
+          if (pumpState.type === 'DELIVERY_SUSPEND') {
+            result.mode = PUMP_STATUS.stop
+          }
         }
-        if (pumpState.type === 'DELIVERY_SUSPEND') {
-          result.mode = PUMP_STATUS.stop
+      } else if (therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
+        result.mode = PUMP_STATUS.safe
+      } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
+        result.mode = PUMP_STATUS.manuel
+        if (data.basal.tempBasalRate) {
+          result.isTemp = true
+          result.basalRate = data.basal.tempBasalRate
+          result.timeRemaining = dayjs.duration(data.basal.tempBasalDurationRemaining, 'minutes').humanize(true)
+        } else {
+          result.basalRate = data.basal.basalRate
         }
-      }
-    } else if (data.therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
-      result.mode = PUMP_STATUS.safe
-    } else if (data.therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
-      result.mode = PUMP_STATUS.manuel
-      if (data.basal.tempBasalRate) {
-        result.isTemp = true
-        result.basalRate = data.basal.tempBasalRate
-        result.timeRemaining = dayjs.duration(data.basal.tempBasalDurationRemaining, 'minutes').humanize(true)
-      } else {
-        result.basalRate = data.basal.basalRate
       }
     }
+
     return result
   }
   return {

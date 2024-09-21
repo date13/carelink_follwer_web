@@ -42,6 +42,11 @@ export const PUMP_STATUS = {
     key: "safe",
     name: '安全模式',
     type: 'success'
+  },
+  none: {
+    key: "none",
+    name: '状态未知',
+    type: 'info'
   }
 }
 
