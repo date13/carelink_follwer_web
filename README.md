@@ -4,13 +4,17 @@
     之前自己搭建了一个nightsocut 作为查看的 web 工具,但是经过美敦力服务器几次崩溃和 IT 升级后(加入了 google 验证码)
     好多第三方的和 nightsocut 要想再看到数据就比较困难了
     
-    2.后面也对 nightsocut 进过一番改造,勉勉强强能够看到数据,但是最近频繁的无法读取数据,不停的去登录,让我烦不胜烦.
+    2.后面也对 nightsocut 进过一番改造,勉勉强强能够看到数据,但是最近频繁取数据的无法读,不停的去登录,让我烦不胜烦.
     nightsocut 也基本停止维护了,我想看个数据就这么难吗.
-    于是乎,经过一番研究,决定自己写个代码看数据,2 天后就完成了现在的这个 web 程序的第一版,进过几天测试下来,几乎不会断数据,现在拿出来分享给大家
+    于是乎,经过一番研究,决定自己写个代码看数据,几天后就完成了现在的这个 web 程序的雏形
     
-    3.有一定开发能力的,正好有身边有糖的,又正好用美敦力 carelink 的朋友(好像这样的人也不多)可以自己改改用用
-
-![image](https://github.com/user-attachments/assets/efc9a06b-9055-4301-a4fc-5ec7a3eb032a)
+    3.进过几天测试下来,几乎不会断数据.唯一token会失效的就是服务器网络问题,这时会报一个错误
+    'Connection aborted.', RemoteDisconnected('Remote end closed connection without response')
+    但其实token已经刷新,但又无法返回,这个时候token其实已经失效了,但又获取不到最新的,只能手动再次获取了
+    这个几率不大,搞个国外服务器基本不是问题,在国内运气好几天都不会遇到,运气不好一天几次也有可能
+    
+    
+    4.有一定开发能力的,正好有身边有糖的,又正好用美敦力 carelink 的朋友(好像这样的人也不多)可以自己改改用用
 
 
 ## 技术栈
@@ -20,7 +24,7 @@
 
     3.后端采用 python,因为简单,采用 fastApi 框架,redis 数据库, 主打就是一个简单
 
-    4.前端采用最流行的 vue3
+    4.前端采用 vue3
 
     5.干了快 20 年 IT ,做了这一个自己的项目
 
@@ -30,22 +34,28 @@
 - 然后启动 web_page 项目即可
 
 ## 后端运行
-- 首先安装 redis https://redis.io/downloads/
+
+- 首先安装 redis https://redis.io/downloads/ 连接参数全默认即可
 - 然后安装一个好用的客户端 https://github.com/qishibo/AnotherRedisDesktopManager
 - 导入模版文件,在 web_service/redis_dump_***.cvs文件
 - 要求 python3.10 及以上环境
 - 首先安装所需要的包 pip3 install -r requirements.txt
 - 在项目根目录运行 main.py --mode dev 即可
-- 配置文件在.dev.env和.prod.env中,切换环境只需要跟换 mode 变量即可
+- 配置文件在.dev.env和.prod.env中,切换环境只需要跟换 --mode 参数即可
 - 获取 token 的方法参考 web_service/note.txt 文件
 
 ## 前端的运行
-- 全局安装 pnpm, npm i pnpm -g
+
+- 安装nodejs最好18以上
+- 全局安装 pnpm, npm i pnpm -g 原因就是快
 - 在项目根目录运行pnpm i
 - 然后运行 pnpm run dev,配置文件在.dev.env,环境切换和 web_service 一样
 - 访问 http://localhost:8006/
 - 模拟数据在 /public/data.json里面
 - 通过 web_service 也可以获取模拟数据
+- 本机调试都ok的话,可以搞个服务器放上去,就可以浏览了
+
+# 以下都是技术细节
 
 # Vue 3 + TypeScript + Vite
 
