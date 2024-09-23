@@ -1,6 +1,7 @@
-import {COLORS, CONST_VAR, INSULIN_TYPE, PUMP_STATUS} from "@/views/const";
+import {COLORS, CONST_VAR, INSULIN_TYPE, PUMP_STATUS, TIME_RANGE_CONFIG} from "@/views/const";
 import dayjs from "dayjs";
 import {std} from "mathjs";
+import {compact} from "lodash-es";
 
 export default function () {
 
@@ -45,7 +46,7 @@ export default function () {
 
   const calcCV = (list, avgSg) => {
     if (list.length === 0) return 0
-    const stdNumber = std(list.filter(item => item.sg !== 0).map(item => item.sg))
+    const stdNumber = std(list.filter(item => item.kind === 'SG' && item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0).map(item => item.sg))
     return ((stdNumber / avgSg) * 100).toFixed(1)
   }
 
@@ -54,8 +55,9 @@ export default function () {
     return dayjs(time.replaceAll('T', ' ').replaceAll('.000Z', '').replaceAll(".000-00:00", "")).valueOf()
   }
 
-  const loadSgData = (list) => {
-    return list.map(item => {
+  const loadSgData = (list, forecast, startPercent) => {
+    const start = TIME_RANGE_CONFIG.find(item => item.value === startPercent) ?? TIME_RANGE_CONFIG[1]
+    const sgList = compact(list.map(item => {
       //获取有效数据
       if (item.sensorState === 'NO_ERROR_MESSAGE') {
         return [
@@ -64,7 +66,20 @@ export default function () {
           INSULIN_TYPE.SG
         ]
       }
-    })
+    }))
+    // console.log(sgList);
+    const lastSg = sgList[sgList.length - 1]
+    // console.log(dayjs(lastSg[0]).add(( 1) * 5, 'minutes'));
+    const forcastArr: any = []
+    for (let i = 0; i < start?.offset / 5; i++) {
+      forcastArr.push([
+        dayjs(lastSg[0]).add((i + 1) * 5, 'minutes').valueOf(),
+        calcSG(forecast[i]),
+        INSULIN_TYPE.SG_FORECAST
+      ])
+    }
+    // console.log(sgList.concat(forcastArr));
+    return sgList.concat(forcastArr)
   }
 
   const loadCalibrationData = (list) => {
@@ -112,35 +127,39 @@ export default function () {
 
   const getModeObj = (data) => {
     let result = {
-      mode: {},
+      mode: PUMP_STATUS.none,
       basalRate: '',
       isTemp: false,
       timeRemaining: '--'
     }
-    if (data.therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
-      result.mode = PUMP_STATUS.auto
-      if (!data.pumpBannerState || data.pumpBannerState.length > 0) {
-        const pumpState = data.pumpBannerState[0]
-        if (pumpState.type === 'TEMP_BASAL') {
-          result.mode = PUMP_STATUS.sport
-          result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+    if (data.therapyAlgorithmState) {
+      const therapyAlgorithmState = data.therapyAlgorithmState
+      if (therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
+        result.mode = PUMP_STATUS.auto
+        if (!data.pumpBannerState || data.pumpBannerState.length > 0) {
+          const pumpState = data.pumpBannerState[0]
+          if (pumpState.type === 'TEMP_TARGET') {
+            result.mode = PUMP_STATUS.sport
+            result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+          }
+          if (pumpState.type === 'DELIVERY_SUSPEND') {
+            result.mode = PUMP_STATUS.stop
+          }
         }
-        if (pumpState.type === 'DELIVERY_SUSPEND') {
-          result.mode = PUMP_STATUS.stop
+      } else if (therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
+        result.mode = PUMP_STATUS.safe
+      } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
+        result.mode = PUMP_STATUS.manuel
+        if (data.basal.tempBasalRate) {
+          result.isTemp = true
+          result.basalRate = data.basal.tempBasalRate
+          result.timeRemaining = dayjs.duration(data.basal.tempBasalDurationRemaining, 'minutes').humanize(true)
+        } else {
+          result.basalRate = data.basal.basalRate
         }
-      }
-    } else if (data.therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
-      result.mode = PUMP_STATUS.safe
-    } else if (data.therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
-      result.mode = PUMP_STATUS.manuel
-      if (data.basal.tempBasalRate) {
-        result.isTemp = true
-        result.basalRate = data.basal.tempBasalRate
-        result.timeRemaining = dayjs.duration(data.basal.tempBasalDurationRemaining, 'minutes').humanize(true)
-      } else {
-        result.basalRate = data.basal.basalRate
       }
     }
+
     return result
   }
   return {

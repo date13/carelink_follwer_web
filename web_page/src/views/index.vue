@@ -163,7 +163,7 @@ const myChart = ref<HTMLElement>();
 let chart: any
 let resizeObj: any = null
 const lastStatus: any = Tools.getLastStatus('sugar-setting', {
-  startPercent: 13
+  startPercent: TIME_RANGE_CONFIG[1].value
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
@@ -178,6 +178,7 @@ const state: any = reactive({
     myData: null,
   },
   myData: {},
+  forecast: {},
   data: {
     lastSG: {
       //最后获取的数据时间
@@ -316,9 +317,11 @@ async function loadCarelinkData(mask = true) {
       if (result) {
         state.data = result.data
         state.status = result.status
-        state.updateDatetime = dayjs(data.update_time).format("MM-DD HH:mm")
+        state.forecast = result.forecast
+        state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
+        // state.data.therapyAlgorithmState = null
         /*state.data.markers.push({
           "type": "CALIBRATION",
           "index": 148,
@@ -460,7 +463,6 @@ const charOption = computed(() => {
     xAxis: {
       type: 'time',
       splitLine: {show: true},
-      interval: 3600 * 1000,
       boundaryGap: false,
       axisLabel: {
         formatter: function (value, index) {
@@ -501,6 +503,8 @@ const charOption = computed(() => {
     ],
     dataZoom: [
       {
+        type: 'slider',
+        id: 'sliderX',
         start: 100 - state.startPercent,
         end: 100,
         labelFormatter: (value) => {
@@ -544,10 +548,12 @@ const charOption = computed(() => {
       {
         name: '血糖',
         type: 'line',
-        data: sugarCalc.loadSgData(state.data.sgs),
+        data: sugarCalc.loadSgData(state.data.sgs, state.forecast.ar2, state.startPercent),
         smooth: true,
         yAxisIndex: 0,
-        symbol: 'circle',
+        symbol: (value: any, params: Object) => {
+          return value[2].symbol
+        },
         symbolSize: 6,
         label: {
           show: false,
@@ -559,6 +565,18 @@ const charOption = computed(() => {
         markArea: {
           emphasis: {disabled: true},
           data: [
+            [
+              {
+                xAxis: dayjs(state.data.lastSG.datetime).add(5, 'minute').valueOf(),
+                itemStyle: {
+                  color: COLORS[2],
+                  opacity: 0.1
+                }
+              },
+              {
+                xAxis: dayjs(state.data.lastSG.datetime).add(3, 'hour').valueOf()
+              }
+            ],
             [
               {
                 yAxis: CONST_VAR.maxSeriousSg,
@@ -740,6 +758,7 @@ function drawLine() {
 .menu-panel {
   position: absolute;
   right: 0;
+
   svg {
     width: 30px;
     height: 30px;

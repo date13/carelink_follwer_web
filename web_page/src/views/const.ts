@@ -42,29 +42,39 @@ export const PUMP_STATUS = {
     key: "safe",
     name: '安全模式',
     type: 'success'
+  },
+  none: {
+    key: "none",
+    name: '状态未知',
+    type: 'info'
   }
 }
 
 export const TIME_RANGE_CONFIG = [
   {
     label: '2',
-    value: 8
+    value: 10,
+    offset: 30
   },
   {
     label: '3',
-    value: 13
+    value: 13,
+    offset: 40
   },
   {
     label: '4',
-    value: 17
+    value: 17,
+    offset: 50
   },
   {
     label: '6',
-    value: 25
+    value: 25,
+    offset: 60
   },
   {
     label: '12',
-    value: 50
+    value: 52,
+    offset: 80
   }
 ]
 
@@ -84,6 +94,10 @@ export const SYSTEM_STATUS_MAP = {
   WARM_UP: {
     name: '预热',
     color: COLORS[4]
+  },
+  UPDATING: {
+    name: '更新中',
+    color: COLORS[2]
   }
 }
 export const REFRESH_INTERVAL = {
@@ -104,7 +118,14 @@ export const INSULIN_TYPE = {
   SG: {
     name: '血糖',
     color: COLORS[0],
-    key: 'SG'
+    key: 'SG',
+    symbol: 'circle',
+  },
+  SG_FORECAST: {
+    name: '血糖预测',
+    color: COLORS[6],
+    key: 'SG_FORECAST',
+    symbol: 'emptyCircle',
   },
   CALIBRATION: {
     name: '校准',

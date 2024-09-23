@@ -3,8 +3,8 @@
     <template v-slot:header>
       <Title title="字典"></Title>
     </template>
-    <div class="flex">
-      <el-card class="w-full ma-6 dict-panel">
+    <div class="flex h-full">
+      <el-card class="w-full ma-6 dict-panel h-full">
         <template #header>
           <div class="flex justify-between">
             <span>字典</span>
@@ -26,7 +26,7 @@
           <el-form-item label="value" prop="value">
             <vue-jsoneditor v-if="load"
                             v-model:json="params.value"
-                            height="400"
+                            height="600"
                             mode="tree"
             />
           </el-form-item>

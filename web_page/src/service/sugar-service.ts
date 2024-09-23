@@ -12,11 +12,12 @@ export class SugarService extends BaseService {
     let resultData: any = null
     const dictService = new DictService()
     if (!CONST_VAR.isDemo) {
-      const result = await dictService.getDict(CARELINK_DICT_KEY.carelinkData, mask)
+      const result: any = await dictService.getDict(CARELINK_DICT_KEY.carelinkData, mask)
       if (result) {
         const data = JSON.parse(result)
         resultData = {
           data: JSON.parse(data.data),
+          forecast: data.forecast,
           status: data.status
         }
         console.log(resultData);
