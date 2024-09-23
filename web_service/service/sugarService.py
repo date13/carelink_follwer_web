@@ -2,7 +2,9 @@ import asyncio
 import json
 from datetime import datetime
 
+import pandas as pd
 import requests
+from statsmodels.tsa.ar_model import AutoReg
 
 from core.config import config
 from core.redis_core import RedisTool
@@ -49,21 +51,38 @@ def loadCarelinkData(token):
             # response.close()
             my_logger.info("读取 carelinkData 数据成功!!!")
             # print(result)
-            return [response.status_code, result]
+            return response.status_code, result
         text = "读取 carelinkData 数据失败!!!" + str(response.status_code)
         my_logger.info(text)
         sendMail(text)
-        return [response.status_code, None]
+        return response.status_code, None
     except requests.exceptions.RequestException as e:
         text = "读取 carelinkData 数据异常!!!" + str(e)
         my_logger.info(text)
         sendMail(text)
-        return [None, None]
+        return None, None
 
 
 async def getCarelinkToken():
     authKey = dictKey["auth"]
     return rds.get_json(authKey)
+
+
+def forcastAR2Sg(list):
+    series = pd.Series(list)
+
+    # 拟合AR(2)模型
+    model = AutoReg(series, lags=2)
+    model_fit = model.fit()
+
+    # 使用模型对未来5个时间点进行预测
+    forecast = model_fit.predict(start=len(series), end=len(series) + 20, dynamic=False)
+    result = []
+    for glucose in enumerate(forecast, start=1):
+        result.append(round(glucose[1]))
+
+    my_logger.info("ar2预测数据:" + ",".join(map(lambda x: str(x), result)))
+    return result
 
 
 def refreshCarelinkData():
@@ -82,12 +101,14 @@ def refreshCarelinkData():
             updateCarelinkDataToRedis(dataObj)
             # await updateCarelinkDataToDB(dataObj)
     else:
-        result = loadCarelinkData(token)
-        status = result[0]
+        status, data = loadCarelinkData(token)
         if status is not None:
             dataObj["status"] = status
-            if result[1] is not None:
-                dataObj["data"] = json.dumps(result[1])
+            if data is not None:
+                dataObj["data"] = json.dumps(data)
+                # dataObj["forecast"] = {"ar2": forcastAR2Sg(list(map(lambda x: x["sg"], data["sgs"])))}
+                dataObj["forecast"] = {
+                    "ar2": forcastAR2Sg(filter(lambda x: x != 0, list(map(lambda x: x["sg"], data["sgs"]))))}
         else:
             dataObj["status"] = 404
 
@@ -191,3 +212,5 @@ async def refreshCarelinkDataInterval():
 # token = result["data"]["tokenObj"]["token"]
 # print(token)
 # loadCarelinkData(token)
+
+# refreshCarelinkData()
