@@ -55,8 +55,8 @@ export default function () {
     return dayjs(time.replaceAll('T', ' ').replaceAll('.000Z', '').replaceAll(".000-00:00", "")).valueOf()
   }
 
-  const loadSgData = (list, forecast, startPercent) => {
-    const start = TIME_RANGE_CONFIG.find(item => item.value === startPercent) ?? TIME_RANGE_CONFIG[1]
+  const loadSgData = (list, forecast, setting) => {
+    const start = TIME_RANGE_CONFIG.find(item => item.value === setting.startPercent) ?? TIME_RANGE_CONFIG[1]
     const sgList = compact(list.map(item => {
       //获取有效数据
       if (item.sensorState === 'NO_ERROR_MESSAGE') {
@@ -71,10 +71,11 @@ export default function () {
     const lastSg = sgList[sgList.length - 1]
     // console.log(dayjs(lastSg[0]).add(( 1) * 5, 'minutes'));
     const forcastArr: any = []
+
     for (let i = 0; i < start?.offset / 5; i++) {
       forcastArr.push([
         dayjs(lastSg[0]).add((i + 1) * 5, 'minutes').valueOf(),
-        calcSG(forecast[i]),
+        setting.showAR2 ? calcSG(forecast[i]) : null,
         INSULIN_TYPE.SG_FORECAST
       ])
     }
@@ -162,6 +163,62 @@ export default function () {
 
     return result
   }
+
+  const getSGMarkArea = (lastSG, setting) => {
+    const options: any = [
+      [
+        {
+          yAxis: CONST_VAR.maxSeriousSg,
+          itemStyle: {
+            color: COLORS[8],
+            opacity: 0.3
+          }
+        },
+        {
+          yAxis: CONST_VAR.maxWarnSg
+        }
+      ],
+      [
+        {
+          yAxis: CONST_VAR.maxWarnSg,
+          itemStyle: {
+            color: COLORS[7],
+            opacity: 0.3
+          }
+        },
+        {
+          yAxis: CONST_VAR.minWarnSg
+        }
+      ],
+      [{
+        yAxis: CONST_VAR.minWarnSg,
+        itemStyle: {
+          color: COLORS[8],
+          opacity: 0.3
+        }
+      },
+        {
+          yAxis: CONST_VAR.minSeriousSg
+        }
+      ]
+    ]
+    if (setting.showAR2) {
+      options.push([
+        {
+          xAxis: dayjs(lastSG.datetime).add(5, 'minute').valueOf(),
+          itemStyle: {
+            color: COLORS[2],
+            opacity: 0.1
+          }
+        },
+        {
+          xAxis: dayjs(lastSG.datetime).add(3, 'hour').valueOf()
+        }
+      ])
+    }
+    return options
+  }
+
   return {
     getLastSg,
     calcSgYValueLimit,
@@ -175,6 +232,7 @@ export default function () {
     loadCalibrationData,
     loadBaselData,
     loadInsulinData,
-    getModeObj
+    getModeObj,
+    getSGMarkArea
   }
 }

@@ -26,7 +26,7 @@ export class SugarService extends BaseService {
       const result = await dictService.getDemo()
       if (result) {
         resultData = {
-          data: result,
+          ...result,
           status: 200
         }
       }

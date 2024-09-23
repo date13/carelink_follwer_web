@@ -84,7 +84,7 @@
             </span>
           </div>
           <div class="flex items-center justify-center time-range">
-            <el-radio-group v-model="startPercent" size="small" @change="changeTimeRange">
+            <el-radio-group v-model="setting.startPercent" size="small" @change="changeTimeRange">
               <el-radio-button v-for="item in TIME_RANGE_CONFIG" :label="item.label" :value="item.value"/>
             </el-radio-group>
             <!--
@@ -97,8 +97,11 @@
 
           <div class="flex text-xs items-center justify-between align-center my-1">
             <span class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
-            <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}">
+            <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}" class="mr-2">
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
+            </div>
+            <div>
+              <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="refreshChart"/>
             </div>
           </div>
         </div>
@@ -163,14 +166,15 @@ const myChart = ref<HTMLElement>();
 let chart: any
 let resizeObj: any = null
 const lastStatus: any = Tools.getLastStatus('sugar-setting', {
-  startPercent: TIME_RANGE_CONFIG[1].value
+  startPercent: TIME_RANGE_CONFIG[1].value,
+  showAR2: true
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
+
 const state: any = reactive({
   tokenData: {},
   status: 200,
-  startPercent: setting.startPercent,
   updateDatetime: '--',//数据更新时间
   interval: {
     time: null,
@@ -198,7 +202,20 @@ const state: any = reactive({
   time: dayjs()//当前系统时间
 })
 
-const {data, time, startPercent, updateDatetime, status} = toRefs(state)
+const {data, time, updateDatetime, status} = toRefs(state)
+
+onMounted(async () => {
+  await loadCarelinkData()
+  drawLine()
+  await loadCarelinkMyData()
+  startInterval()
+})
+
+onBeforeUnmount(() => {
+  if (resizeObj) {
+    resizeObj.beforeDestroy()
+  }
+})
 
 function fromNow(time: any) {
   if (!time) return
@@ -209,18 +226,6 @@ function toNow(time: any) {
   if (!time) return
   return dayjs().to(time)
 }
-
-onMounted(async () => {
-  await loadCarelinkData()
-  drawLine()
-  await loadCarelinkMyData()
-  startInterval()
-})
-onBeforeUnmount(() => {
-  if (resizeObj) {
-    resizeObj.beforeDestroy()
-  }
-})
 
 function updateConduitTime() {
   updateMyData(
@@ -303,7 +308,7 @@ function startDataLoadInterval() {
 }
 
 async function loadCarelinkMyData() {
-  const result = await dictService.getDict(CARELINK_DICT_KEY.carelinkMyData)
+  const result: any = await dictService.getDict(CARELINK_DICT_KEY.carelinkMyData)
   if (result) {
     state.myData = JSON.parse(result);
   }
@@ -317,7 +322,7 @@ async function loadCarelinkData(mask = true) {
       if (result) {
         state.data = result.data
         state.status = result.status
-        state.forecast = result.forecast
+        state.forecast = result.forecast || {ar2: []}
         state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
@@ -369,7 +374,7 @@ function handleMenu(command) {
 }
 
 function changeTimeRange() {
-  setting.startPercent = state.startPercent
+  // setting.startPercent = state.setting.startPercent
   refreshChart()
 }
 
@@ -505,7 +510,7 @@ const charOption = computed(() => {
       {
         type: 'slider',
         id: 'sliderX',
-        start: 100 - state.startPercent,
+        start: 100 - setting.startPercent,
         end: 100,
         labelFormatter: (value) => {
           return `${dayjs(value).format('MM-DD')}\n${dayjs(value).format('HH:mm')}`;
@@ -548,7 +553,7 @@ const charOption = computed(() => {
       {
         name: '血糖',
         type: 'line',
-        data: sugarCalc.loadSgData(state.data.sgs, state.forecast.ar2, state.startPercent),
+        data: sugarCalc.loadSgData(state.data.sgs, state.forecast.ar2, setting),
         smooth: true,
         yAxisIndex: 0,
         symbol: (value: any, params: Object) => {
@@ -564,55 +569,7 @@ const charOption = computed(() => {
         },
         markArea: {
           emphasis: {disabled: true},
-          data: [
-            [
-              {
-                xAxis: dayjs(state.data.lastSG.datetime).add(5, 'minute').valueOf(),
-                itemStyle: {
-                  color: COLORS[2],
-                  opacity: 0.1
-                }
-              },
-              {
-                xAxis: dayjs(state.data.lastSG.datetime).add(3, 'hour').valueOf()
-              }
-            ],
-            [
-              {
-                yAxis: CONST_VAR.maxSeriousSg,
-                itemStyle: {
-                  color: COLORS[8],
-                  opacity: 0.3
-                }
-              },
-              {
-                yAxis: CONST_VAR.maxWarnSg
-              }
-            ],
-            [
-              {
-                yAxis: CONST_VAR.maxWarnSg,
-                itemStyle: {
-                  color: COLORS[7],
-                  opacity: 0.3
-                }
-              },
-              {
-                yAxis: CONST_VAR.minWarnSg
-              }
-            ],
-            [{
-              yAxis: CONST_VAR.minWarnSg,
-              itemStyle: {
-                color: COLORS[8],
-                opacity: 0.3
-              }
-            },
-              {
-                yAxis: CONST_VAR.minSeriousSg
-              }
-            ]
-          ]
+          data: sugarCalc.getSGMarkArea(state.data.lastSG, setting)
         },
         markLine: {
           symbol: ['none', 'none'],
