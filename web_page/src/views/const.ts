@@ -21,7 +21,7 @@ export const PUMP_STATUS = {
   sport: {
     key: "sport",
     name: '运动模式',
-    type: 'warning'
+    type: 'success'
   },
   manuel: {
     key: "manuel",
@@ -80,25 +80,35 @@ export const TIME_RANGE_CONFIG = [
 
 export const SYSTEM_STATUS_MAP = {
   NO_ERROR_MESSAGE: {
+    key: 'NO_ERROR_MESSAGE',
     name: '正常',
     color: COLORS[0]
   },
   WARNING: {
+    key: 'WARNING',
     name: '警告',
     color: COLORS[6]
   },
   ERROR: {
+    key: 'ERROR',
     name: '错误',
     color: COLORS[5]
   },
   WARM_UP: {
     name: '预热',
+    key: 'WARM_UP',
     color: COLORS[4]
   },
   UPDATING: {
     name: '更新中',
+    key: 'UPDATING',
     color: COLORS[2]
-  }
+  },
+  SEARCHING_FOR_SENSOR_SIGNAL: {
+    name: '寻找探头',
+    key: 'SEARCHING_FOR_SENSOR_SIGNAL',
+    color: COLORS[5]
+  },
 }
 export const REFRESH_INTERVAL = {
   loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
@@ -129,7 +139,7 @@ export const INSULIN_TYPE = {
   },
   CALIBRATION: {
     name: '校准',
-    color: COLORS[5],
+    color: COLORS[9],
     key: 'CALIBRATION'
   },
   AUTO_BASAL_DELIVERY: {

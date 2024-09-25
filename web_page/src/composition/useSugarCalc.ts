@@ -1,4 +1,4 @@
-import {COLORS, CONST_VAR, INSULIN_TYPE, PUMP_STATUS, TIME_RANGE_CONFIG} from "@/views/const";
+import {COLORS, CONST_VAR, INSULIN_TYPE, PUMP_STATUS, SYSTEM_STATUS_MAP, TIME_RANGE_CONFIG} from "@/views/const";
 import dayjs from "dayjs";
 import {std} from "mathjs";
 import {compact} from "lodash-es";
@@ -55,9 +55,12 @@ export default function () {
     return dayjs(time.replaceAll('T', ' ').replaceAll('.000Z', '').replaceAll(".000-00:00", "")).valueOf()
   }
 
-  const loadSgData = (list, forecast, setting) => {
+  const shouldHaveAR2 = (data) => {
+    return data.systemStatusMessage === SYSTEM_STATUS_MAP.NO_ERROR_MESSAGE.key
+  }
+  const loadSgData = (data, forecast, setting) => {
     const start = TIME_RANGE_CONFIG.find(item => item.value === setting.startPercent) ?? TIME_RANGE_CONFIG[1]
-    const sgList = compact(list.map(item => {
+    const sgList = compact(data.sgs.map(item => {
       //获取有效数据
       if (item.sensorState === 'NO_ERROR_MESSAGE') {
         return [
@@ -67,6 +70,8 @@ export default function () {
         ]
       }
     }))
+
+    if (!shouldHaveAR2(data)) return sgList
     // console.log(sgList);
     const lastSg = sgList[sgList.length - 1]
     // console.log(dayjs(lastSg[0]).add(( 1) * 5, 'minutes'));
@@ -164,7 +169,7 @@ export default function () {
     return result
   }
 
-  const getSGMarkArea = (lastSG, setting) => {
+  const getSGMarkArea = (data, setting) => {
     const options: any = [
       [
         {
@@ -202,17 +207,17 @@ export default function () {
         }
       ]
     ]
-    if (setting.showAR2) {
+    if (shouldHaveAR2(data) && setting.showAR2) {
       options.push([
         {
-          xAxis: dayjs(lastSG.datetime).add(5, 'minute').valueOf(),
+          xAxis: dayjs(data.lastSG.datetime).add(2.5, 'minute').valueOf(),
           itemStyle: {
             color: COLORS[2],
             opacity: 0.1
           }
         },
         {
-          xAxis: dayjs(lastSG.datetime).add(3, 'hour').valueOf()
+          xAxis: dayjs(data.lastSG.datetime).add(3, 'hour').valueOf()
         }
       ])
     }
@@ -233,6 +238,7 @@ export default function () {
     loadBaselData,
     loadInsulinData,
     getModeObj,
-    getSGMarkArea
+    getSGMarkArea,
+    shouldHaveAR2
   }
 }

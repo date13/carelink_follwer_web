@@ -41,7 +41,7 @@
               </el-tag>
               <el-tag class="mb-1 mr-1" size="small" type="warning">探头:
                 {{
-                  dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true)
+                  data.sensorDurationMinutes ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : '待更换'
                 }},
                 {{
                   data.gstBatteryLevel || '--'
@@ -101,7 +101,7 @@
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
             <div>
-              <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="refreshChart"/>
+              <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
             </div>
           </div>
         </div>
@@ -373,6 +373,15 @@ function handleMenu(command) {
   }
 }
 
+function switchAR2() {
+  if (!sugarCalc.shouldHaveAR2(state.data) && setting.showAR2) {
+    setting.showAR2 = false
+    Msg.warnMsg(`当前系统状态为:${SYSTEM_STATUS_MAP[state.data.systemStatusMessage]?.name},无法预测`)
+  } else {
+    refreshChart()
+  }
+}
+
 function changeTimeRange() {
   // setting.startPercent = state.setting.startPercent
   refreshChart()
@@ -512,6 +521,7 @@ const charOption = computed(() => {
         id: 'sliderX',
         start: 100 - setting.startPercent,
         end: 100,
+        xAxisIndex: [0],
         labelFormatter: (value) => {
           return `${dayjs(value).format('MM-DD')}\n${dayjs(value).format('HH:mm')}`;
         },
@@ -553,8 +563,9 @@ const charOption = computed(() => {
       {
         name: '血糖',
         type: 'line',
-        data: sugarCalc.loadSgData(state.data.sgs, state.forecast.ar2, setting),
+        data: sugarCalc.loadSgData(state.data, state.forecast.ar2, setting),
         smooth: true,
+        connectNulls: false,
         yAxisIndex: 0,
         symbol: (value: any, params: Object) => {
           return value[2].symbol
@@ -569,7 +580,7 @@ const charOption = computed(() => {
         },
         markArea: {
           emphasis: {disabled: true},
-          data: sugarCalc.getSGMarkArea(state.data.lastSG, setting)
+          data: sugarCalc.getSGMarkArea(state.data, setting)
         },
         markLine: {
           symbol: ['none', 'none'],
@@ -613,16 +624,15 @@ const charOption = computed(() => {
               }
             }
           ],
-
         }
       },
       {
         name: '校准',
         data: sugarCalc.loadCalibrationData(state.data.markers),
-        type: 'line',
+        type: 'scatter',
         yAxisIndex: 1,
         symbol: 'circle',
-        symbolSize: 8,
+        symbolSize: 10,
         lineStyle: 'none',
         label: {
           show: false,
