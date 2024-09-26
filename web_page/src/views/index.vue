@@ -502,9 +502,6 @@ const charOption = computed(() => {
         nameLocation: 'start',
         type: 'value',
         inverse: true,
-        axisTick: {
-          alignWithLabel: true
-        },
         min: 0,
         max: 2,
       },
@@ -567,6 +564,7 @@ const charOption = computed(() => {
         smooth: true,
         connectNulls: false,
         yAxisIndex: 0,
+        connectNulls: false,
         symbol: (value: any, params: Object) => {
           return value[2].symbol
         },
@@ -646,15 +644,14 @@ const charOption = computed(() => {
         name: '基础率',
         type: "bar",
         yAxisIndex: 2,
-        step: 'middle',
-        connectNull: false,
+        connectNull: true,
+        barMaxWidth: 30,
         markArea: {
           silent: true,
           itemStyle: {
             opacity: 0.3
           },
         },
-        areaStyle: {},
         itemStyle: {
           color: item => {
             if (item.data) {
@@ -664,9 +661,6 @@ const charOption = computed(() => {
         },
         lineStyle: {
           width: 1
-        },
-        emphasis: {
-          focus: 'series'
         },
         data: sugarCalc.loadBaselData(state.data.markers)
       },
