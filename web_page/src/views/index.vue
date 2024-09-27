@@ -1,16 +1,19 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
-      <el-dropdown class="menu-panel" placement="bottom-start" trigger="click" @command="handleMenu">
-        <ep-Menu></ep-Menu>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="info">Info</el-dropdown-item>
-            <el-dropdown-item command="dict">Dict</el-dropdown-item>
-            <el-dropdown-item command="login">Login</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+      <el-badge :is-dot="setting.notification.hasNew" class="menu-panel">
+        <el-dropdown placement="bottom-start" trigger="click" @command="handleMenu">
+          <ep-Menu></ep-Menu>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="notification">Notification</el-dropdown-item>
+              <el-dropdown-item command="info">Info</el-dropdown-item>
+              <el-dropdown-item command="dict">Dict</el-dropdown-item>
+              <el-dropdown-item command="login">Login</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </el-badge>
       <div class="flex flex-row h-50">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
@@ -127,6 +130,8 @@
         </el-tag>
       </div>
     </div>
+    <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
+                        :list="data.notificationHistory.clearedNotifications"></NotificationDialog>
   </MainPanel>
 </template>
 <script lang="ts" name="mySugar" setup>
@@ -154,7 +159,9 @@ import {
 import useSugarCalc from "@/composition/useSugarCalc";
 import defaultSettings from "@/settings";
 import {DictService} from "@/service/dict-service";
+import CryptoJS from "crypto-js";
 import {forEach} from "lodash-es";
+import NotificationDialog from "@/views/components/notificationDialog.vue";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -167,7 +174,11 @@ let chart: any
 let resizeObj: any = null
 const lastStatus: any = Tools.getLastStatus('sugar-setting', {
   startPercent: TIME_RANGE_CONFIG[1].value,
-  showAR2: true
+  showAR2: true,
+  notification: {
+    hasNew: false,
+    lastKey: null
+  }
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
@@ -175,6 +186,7 @@ const setting = lastStatus.value['sugar-setting']
 const state: any = reactive({
   tokenData: {},
   status: 200,
+  showNotificationDialog: false,
   updateDatetime: '--',//数据更新时间
   interval: {
     time: null,
@@ -202,9 +214,10 @@ const state: any = reactive({
   time: dayjs()//当前系统时间
 })
 
-const {data, time, updateDatetime, status} = toRefs(state)
+const {data, time, updateDatetime, status, showNotificationDialog} = toRefs(state)
 
 onMounted(async () => {
+  initSetting()
   await loadCarelinkData()
   drawLine()
   await loadCarelinkMyData()
@@ -216,6 +229,15 @@ onBeforeUnmount(() => {
     resizeObj.beforeDestroy()
   }
 })
+
+function initSetting() {
+  if (!setting.notification) {
+    setting.notification = {
+      hasNew: false,
+      lastKey: null
+    }
+  }
+}
 
 function fromNow(time: any) {
   if (!time) return
@@ -325,6 +347,7 @@ async function loadCarelinkData(mask = true) {
         state.forecast = result.forecast || {ar2: []}
         state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+        dealNewNotification()
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
         // state.data.therapyAlgorithmState = null
         /*state.data.markers.push({
@@ -365,9 +388,23 @@ async function loadCarelinkData(mask = true) {
   }
 }
 
+function dealNewNotification() {
+  const notificationKey = CryptoJS.SHA1(JSON.stringify(state.data.notificationHistory.clearedNotifications)).toString()
+  // console.log(notificaitionKey, setting.notification.lastKey);
+  const {notification} = setting;
+  if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
+    notification.hasNew = true;
+  }
+  setting.notification.lastKey = notificationKey
+  // console.log(setting.notification);
+}
+
 function handleMenu(command) {
   if (command === 'login') {
     window.open("https://carelink.minimed.eu/patient/sso/login?country=hk&lang=zh")
+  } else if (command === 'notification') {
+    state.showNotificationDialog = true
+    setting.notification.hasNew = false
   } else {
     location.href = `/${command}`
   }
@@ -718,7 +755,7 @@ function drawLine() {
 <style lang="scss" scoped>
 .menu-panel {
   position: absolute;
-  right: 0;
+  right: 20px;
 
   svg {
     width: 30px;
