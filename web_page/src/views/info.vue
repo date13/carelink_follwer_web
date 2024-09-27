@@ -95,13 +95,13 @@
             <el-button :icon="Smoking" circle color="red" size="large" @click="push(false)">
               {{ luck.no }}
             </el-button>
-            <div class="text-sm mt-2">{{ showRate(true) }}%</div>
+            <div class="text-sm mt-2">{{ showRate(false) }}%</div>
           </div>
           <div class="flex flex-col items-center content-center w-1/2">
             <el-button :icon="Sugar" circle color="green" size="large" @click="push(true)">
               {{ luck.yes }}
             </el-button>
-            <div class="text-sm mt-2">{{ showRate(false) }}%</div>
+            <div class="text-sm mt-2">{{ showRate(true) }}%</div>
           </div>
         </div>
 

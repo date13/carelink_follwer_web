@@ -389,7 +389,12 @@ async function loadCarelinkData(mask = true) {
 }
 
 function dealNewNotification() {
-  const notificationKey = CryptoJS.SHA1(JSON.stringify(state.data.notificationHistory.clearedNotifications)).toString()
+  const notificationKey = CryptoJS.SHA1(JSON.stringify(
+      state.data.notificationHistory.clearedNotifications.map(item => {
+        const {messageId, sg, triggeredDateTime, type, dateTime} = item
+        return {messageId, sg: sg, triggeredDateTime, type, dateTime}
+      })
+  )).toString()
   // console.log(notificaitionKey, setting.notification.lastKey);
   const {notification} = setting;
   if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
