@@ -361,20 +361,20 @@ async function loadCarelinkData(mask = true) {
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         dealNewNotification()
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
-        state.data.notificationHistory.activeNotifications = [
-          {
-            "dateTime": "2024-09-27T19:26:58.000-00:00",
-            "GUID": "6F1B0000-3003-0000-823E-A72C00000000",
-            "type": "ALERT",
-            "faultId": 816,
-            "instanceId": 7023,
-            "messageId": "BC_SID_HIGH_SG_CHECK_BG",
-            "sg": 171,
-            "pumpDeliverySuspendState": false,
-            "relativeOffset": -307,
-            "alertSilenced": false
-          }
-        ]
+        /* state.data.notificationHistory.activeNotifications = [
+           {
+             "dateTime": "2024-09-27T19:26:58.000-00:00",
+             "GUID": "6F1B0000-3003-0000-823E-A72C00000000",
+             "type": "ALERT",
+             "faultId": 816,
+             "instanceId": 7023,
+             "messageId": "BC_SID_HIGH_SG_CHECK_BG",
+             "sg": 171,
+             "pumpDeliverySuspendState": false,
+             "relativeOffset": -307,
+             "alertSilenced": false
+           }
+         ]*/
         // state.data.therapyAlgorithmState = null
         /*state.data.markers.push({
           "type": "CALIBRATION",
