@@ -52,7 +52,8 @@
                   data.gstBatteryLevel || '--'
                 }}%
               </el-tag>
-              <el-tag v-if="setting.notification.hasNew" class="mb-1 mr-1" size="small" type="danger">
+              <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
+                      type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
                   {{ NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg) : messageId }}
                 </div>
@@ -158,6 +159,7 @@ import {
   CONST_VAR,
   DIRECTIONS,
   INSULIN_TYPE,
+  NOTIFICATION_HASH_KEY,
   NOTIFICATION_MAP,
   PUMP_STATUS,
   REFRESH_INTERVAL,
@@ -210,7 +212,10 @@ const state: any = reactive({
       sg: 0
     },
     sgs: [],
-    notificationHistory: {},
+    notificationHistory: {
+      activeNotifications: [],
+      clearedNotifications: []
+    },
     activeInsulin: {
       amount: 0
     },
@@ -419,13 +424,12 @@ function dealNewNotification() {
   if (state.data.notificationHistory.activeNotifications.length > 0) {
     notification.hasNew = true;
   }
-  const notificationKey = CryptoJS.SHA1(JSON.stringify(
+  const notificationKey = CryptoJS.HmacSHA1(JSON.stringify(
       state.data.notificationHistory.clearedNotifications.map(item => {
-        const {messageId, sg, triggeredDateTime, type, dateTime} = item
-        return {messageId, sg: sg, triggeredDateTime, type, dateTime}
+        return item.referenceGUID
       })
-  )).toString()
-
+  ), NOTIFICATION_HASH_KEY).toString()
+  // console.log(notificationKey);
   if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
     notification.hasNew = true;
   }

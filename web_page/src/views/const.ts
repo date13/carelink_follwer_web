@@ -11,6 +11,7 @@ export const COLORS = [
   '#eeb1c9'//9严重警告区域背景
 ]
 
+export const NOTIFICATION_HASH_KEY = 'carelink_follower'
 export const NOTIFICATION_MAP = {
   BC_SID_SG_APPROACH_LOW_LIMIT_CHECK_BG: {
     text: `低探头值前报警`,
