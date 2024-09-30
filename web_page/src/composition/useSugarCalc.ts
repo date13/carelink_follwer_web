@@ -1,4 +1,12 @@
-import {COLORS, CONST_VAR, INSULIN_TYPE, PUMP_STATUS, SYSTEM_STATUS_MAP, TIME_RANGE_CONFIG} from "@/views/const";
+import {
+  COLORS,
+  CONST_VAR,
+  INSULIN_TYPE,
+  NOTIFICATION_MAP,
+  PUMP_STATUS,
+  SYSTEM_STATUS_MAP,
+  TIME_RANGE_CONFIG
+} from "@/views/const";
 import dayjs from "dayjs";
 import {std} from "mathjs";
 import {compact} from "lodash-es";
@@ -224,6 +232,12 @@ export default function () {
     return options
   }
 
+  function showNotificationMsg(messageId, sg) {
+    const item = NOTIFICATION_MAP[messageId]
+    if (sg) return item.text.replace(item.replace, calcSG(sg))
+    return item.text
+  }
+
   return {
     getLastSg,
     calcSgYValueLimit,
@@ -239,6 +253,7 @@ export default function () {
     loadInsulinData,
     getModeObj,
     getSGMarkArea,
-    shouldHaveAR2
+    shouldHaveAR2,
+    showNotificationMsg
   }
 }

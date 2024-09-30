@@ -6,7 +6,9 @@
           <ep-Menu></ep-Menu>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="notification">Notification</el-dropdown-item>
+              <el-badge :is-dot="setting.notification.hasNew" :offset="[-13,8]">
+                <el-dropdown-item command="notification">Notification</el-dropdown-item>
+              </el-badge>
               <el-dropdown-item command="info">Info</el-dropdown-item>
               <el-dropdown-item command="dict">Dict</el-dropdown-item>
               <el-dropdown-item command="login">Login</el-dropdown-item>
@@ -49,6 +51,12 @@
                 {{
                   data.gstBatteryLevel || '--'
                 }}%
+              </el-tag>
+              <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
+                      type="danger">
+                <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
+                  {{ NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg) : messageId }}
+                </div>
               </el-tag>
             </div>
           </el-card>
@@ -131,7 +139,7 @@
       </div>
     </div>
     <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
-                        :list="data.notificationHistory.clearedNotifications"></NotificationDialog>
+                        :notificationHistory="data.notificationHistory"></NotificationDialog>
   </MainPanel>
 </template>
 <script lang="ts" name="mySugar" setup>
@@ -151,6 +159,8 @@ import {
   CONST_VAR,
   DIRECTIONS,
   INSULIN_TYPE,
+  NOTIFICATION_HASH_KEY,
+  NOTIFICATION_MAP,
   PUMP_STATUS,
   REFRESH_INTERVAL,
   SYSTEM_STATUS_MAP,
@@ -202,6 +212,10 @@ const state: any = reactive({
       sg: 0
     },
     sgs: [],
+    notificationHistory: {
+      activeNotifications: [],
+      clearedNotifications: []
+    },
     activeInsulin: {
       amount: 0
     },
@@ -216,8 +230,11 @@ const state: any = reactive({
 
 const {data, time, updateDatetime, status, showNotificationDialog} = toRefs(state)
 
-onMounted(async () => {
+onBeforeMount(() => {
   initSetting()
+})
+
+onMounted(async () => {
   await loadCarelinkData()
   drawLine()
   await loadCarelinkMyData()
@@ -349,6 +366,20 @@ async function loadCarelinkData(mask = true) {
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         dealNewNotification()
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
+        /* state.data.notificationHistory.activeNotifications = [
+           {
+             "dateTime": "2024-09-27T19:26:58.000-00:00",
+             "GUID": "6F1B0000-3003-0000-823E-A72C00000000",
+             "type": "ALERT",
+             "faultId": 816,
+             "instanceId": 7023,
+             "messageId": "BC_SID_HIGH_SG_CHECK_BG",
+             "sg": 171,
+             "pumpDeliverySuspendState": false,
+             "relativeOffset": -307,
+             "alertSilenced": false
+           }
+         ]*/
         // state.data.therapyAlgorithmState = null
         /*state.data.markers.push({
           "type": "CALIBRATION",
@@ -389,14 +420,16 @@ async function loadCarelinkData(mask = true) {
 }
 
 function dealNewNotification() {
-  const notificationKey = CryptoJS.SHA1(JSON.stringify(
-      state.data.notificationHistory.clearedNotifications.map(item => {
-        const {messageId, sg, triggeredDateTime, type, dateTime} = item
-        return {messageId, sg: sg, triggeredDateTime, type, dateTime}
-      })
-  )).toString()
-  // console.log(notificaitionKey, setting.notification.lastKey);
   const {notification} = setting;
+  if (state.data.notificationHistory.activeNotifications.length > 0) {
+    notification.hasNew = true;
+  }
+  const notificationKey = CryptoJS.HmacSHA1(JSON.stringify(
+      state.data.notificationHistory.clearedNotifications.map(item => {
+        return item.referenceGUID
+      })
+  ), NOTIFICATION_HASH_KEY).toString()
+  // console.log(notificationKey);
   if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
     notification.hasNew = true;
   }
@@ -726,7 +759,7 @@ const charOption = computed(() => {
           color: (item) => {
             if (item.data) {
               let percent = Number((item.data[3] / item.data[1]).toFixed(1))
-              return percent === 1 ? COLORS[2] : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              return percent === 1 ? COLORS[2] : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 1, 0, 0, [
                 {
                   offset: 1 - percent,
                   color: 'white'
