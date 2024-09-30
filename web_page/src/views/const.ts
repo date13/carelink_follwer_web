@@ -13,6 +13,11 @@ export const COLORS = [
 
 export const NOTIFICATION_HASH_KEY = 'carelink_follower'
 export const NOTIFICATION_MAP = {
+  BC_SID_BOLUS_ENTRY_TIMED_OUT: {
+    text: `大剂量输入超时`,
+    replace: '',
+    type: 'warning'
+  },
   BC_SID_SG_APPROACH_LOW_LIMIT_CHECK_BG: {
     text: `低探头值前报警`,
     replace: '',
@@ -24,17 +29,17 @@ export const NOTIFICATION_MAP = {
     type: 'warning'
   },
   BC_SID_LOW_SD_CHECK_BG: {
-    text: '低探头值报警:sg',
+    text: '低探头值报警: sg',
     replace: 'sg',
     type: 'error'
   },
   BC_SID_HIGH_SG_CHECK_BG: {
-    text: '高探头值报警:sg',
+    text: '高探头值报警: sg',
     replace: 'sg',
     type: 'error'
   },
   BC_MESSAGE_SG_UNDER_50_MG_DL: {
-    text: '探头值低于3:sg',
+    text: '探头值低于3: sg',
     replace: 'sg',
     type: 'error'
   },

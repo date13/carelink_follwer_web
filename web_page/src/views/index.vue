@@ -421,13 +421,19 @@ async function loadCarelinkData(mask = true) {
 
 function dealNewNotification() {
   const {notification} = setting;
+  const len = state.data.notificationHistory.clearedNotifications.length
   if (state.data.notificationHistory.activeNotifications.length > 0) {
     notification.hasNew = true;
   }
   const notificationKey = CryptoJS.HmacSHA1(JSON.stringify(
       state.data.notificationHistory.clearedNotifications.map(item => {
-        return item.referenceGUID
-      })
+        return {
+          referenceGUID: item.referenceGUID,
+          triggeredDateTime: item.triggeredDateTime
+        }
+      }).sort((a: any, b: any) => {
+        return sugarCalc.cleanTime(b.triggeredDateTime) - sugarCalc.cleanTime(a.triggeredDateTime)
+      }).slice(0, len > 4 ? 4 : len)
   ), NOTIFICATION_HASH_KEY).toString()
   // console.log(notificationKey);
   if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
@@ -639,7 +645,6 @@ const charOption = computed(() => {
         smooth: true,
         connectNulls: false,
         yAxisIndex: 0,
-        connectNulls: false,
         symbol: (value: any, params: Object) => {
           return value[2].symbol
         },

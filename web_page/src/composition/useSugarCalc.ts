@@ -43,13 +43,13 @@ export default function () {
     return [100 - (Number(lt) + Number(gt)), lt, gt]
   }
 
-  const calcLastOffset = (list) => {
+  const calcLastOffset = (list): number => {
     const len = list.length
     return len > 2 ? (calcSG(list[len - 1].sg - list[len - 2].sg, 2)) : 0
   }
 
   const calcSG = (sg: number, defaultDecision = 1) => {
-    return (sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision)
+    return parseFloat((sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision))
   }
 
   const calcCV = (list, avgSg) => {

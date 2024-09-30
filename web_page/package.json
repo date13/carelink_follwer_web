@@ -1,7 +1,7 @@
 {
   "name": "carelink_follower",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "scripts": {
     "dev": "vite --mode development",
     "build": "vite build --mode production",
@@ -47,7 +47,7 @@
     "@vue/runtime-core": "^3.5.10",
     "eslint": "^9.11.1",
     "rollup-plugin-visualizer": "^5.12.0",
-    "sass": "1.79.3",
+    "sass": "1.79.4",
     "typescript": "^5.6.2",
     "unocss": "^0.60.4",
     "unplugin-auto-import": "^0.18.3",
