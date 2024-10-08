@@ -654,6 +654,7 @@ const charOption = computed(() => {
       {
         name: '基础率',
         nameLocation: 'start',
+        show: false,
         type: 'value',
         inverse: true,
         min: 0,
