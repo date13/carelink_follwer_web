@@ -118,7 +118,7 @@
                         </el-segmented>-->
           </div>
 
-          <div class="flex text-xs items-center justify-between align-center my-1">
+          <div class="flex text-xs items-center justify-between align-center mt-1">
             <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
                 toNow(setting.nextStartupTime)
               }}</span>
@@ -126,8 +126,13 @@
             <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}" class="mr-2">
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
-            <div>
+          </div>
+          <div class="flex text-xs items-center justify-between align-center">
+            <div class="mr-2">
               <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
+            </div>
+            <div>
+              <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="switchYesterday"/>
             </div>
           </div>
         </div>
@@ -203,6 +208,7 @@ let resizeObj: any = null
 const lastStatus: any = Tools.getLastStatus('sugar-setting', {
   startPercent: TIME_RANGE_CONFIG[1].value,
   showAR2: true,
+  showYesterday: true,
   notification: {
     hasNew: false,
     lastKey: null
@@ -329,8 +335,8 @@ async function reloadCarelinkData() {
 
 async function onLoadCarelinkData(isMask = true) {
   await loadCarelinkData(isMask)
-  refreshChart()
   await loadCarelinkMyData(isMask)
+  refreshChart()
 }
 
 async function reload() {
@@ -371,6 +377,15 @@ async function loadCarelinkMyData(isMask = true) {
   const result: any = await dictService.getDict(CARELINK_DICT_KEY.carelinkMyData, isMask)
   if (result) {
     state.myData = JSON.parse(result);
+    if (state.myData.yesterdaySG) {
+      const curDatetime = dayjs().valueOf()
+      state.myData.yesterdaySG.sgs.forEach(item => {
+        item.datetime = dayjs(sugarCalc.cleanTime(item.datetime)).add(1, 'day').valueOf()
+      })
+      state.myData.yesterdaySG.sgs = state.myData.yesterdaySG.sgs.filter(item => {
+        return item.datetime <= curDatetime
+      })
+    }
   }
 }
 
@@ -500,6 +515,10 @@ function switchAR2() {
   } else {
     refreshChart()
   }
+}
+
+function switchYesterday() {
+  refreshChart()
 }
 
 function changeTimeRange() {
@@ -839,6 +858,24 @@ const charOption = computed(() => {
           }
         },
         data: sugarCalc.loadInsulinData(state.data.markers)
+      },
+      {
+        name: '昨日血糖',
+        type: 'line',
+        data: sugarCalc.loadYesterdaySgData(state.myData.yesterdaySG, setting),
+        smooth: true,
+        connectNulls: false,
+        symbol: 'none',
+        yAxisIndex: 0,
+        label: {
+          show: false,
+        },
+        lineStyle: {
+          opacity: 0.3
+        },
+        labelLine: {
+          smooth: true,
+        }
       },
     ]
   }

@@ -45,8 +45,9 @@ export default function () {
 
 
   const calcLastOffset = (list): number | string => {
-    const len = list.length
-    return len > 2 ? (calcSG(list[len - 1].sg - list[len - 2].sg, 2)) : 0
+    const listDeal = list.filter(item => item.sensorState === 'NO_ERROR_MESSAGE')
+    const len = listDeal.length
+    return len > 2 ? (calcSG(listDeal[len - 1].sg - listDeal[len - 2].sg, 2)) : 0
   }
 
   const calcSG = (sg: number, defaultDecision = 1) => {
@@ -95,6 +96,20 @@ export default function () {
     }
     // console.log(sgList.concat(forcastArr));
     return sgList.concat(forcastArr)
+  }
+
+  const loadYesterdaySgData = (data, setting) => {
+    if (!data) return
+    return setting.showYesterday ? compact(data.sgs.map(item => {
+      //获取有效数据
+      if (item.sensorState === 'NO_ERROR_MESSAGE') {
+        return [
+          item.datetime,
+          calcSG(item.sg),
+          INSULIN_TYPE.SG_YESTERDAY
+        ]
+      }
+    })) : []
   }
 
   const loadCalibrationData = (list) => {
@@ -255,6 +270,7 @@ export default function () {
     sgColor,
     cleanTime,
     loadSgData,
+    loadYesterdaySgData,
     loadCalibrationData,
     loadBaselData,
     loadInsulinData,
