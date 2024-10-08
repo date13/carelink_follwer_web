@@ -68,6 +68,21 @@ export const NOTIFICATION_MAP = {
     replace: null,
     type: 'warning'
   },
+  BC_MESSAGE_TIME_REMAINING_CHANGE_RESERVOIR: {
+    text: '等待更换储药器',
+    replace: null,
+    type: 'warning'
+  },
+  BC_SID_SMART_GUARD_MINIMUM_DELIVERY: {
+    text: '闭环安全模式最小输注',
+    replace: null,
+    type: 'warning'
+  },
+  BC_SID_ENTER_BG_TO_CONTINUE_IN_SMART_GUARD: {
+    text: '请输入血糖值,继续使用闭环模式',
+    replace: null,
+    type: 'warning'
+  }
 }
 
 export const CARELINK_DICT_KEY = {
@@ -143,16 +158,6 @@ export const SYSTEM_STATUS_MAP = {
     name: '正常',
     color: COLORS[0]
   },
-  WARNING: {
-    key: 'WARNING',
-    name: '警告',
-    color: COLORS[6]
-  },
-  ERROR: {
-    key: 'ERROR',
-    name: '错误',
-    color: COLORS[5]
-  },
   WARM_UP: {
     name: '预热',
     key: 'WARM_UP',
@@ -176,8 +181,10 @@ export const REFRESH_INTERVAL = {
 export const CONST_VAR = {
   maxSeriousSg: 12.5,
   maxWarnSg: 9.5,
+  maxTightWarnSg: 7.8,
   minWarnSg: 3.9,
   minSeriousSg: 3.2,
+  minTightWarnSg: 4,
   exchangeUnit: 18,
   minSgYValueLimit: 2,
   maxSgYValueOffset: 5,

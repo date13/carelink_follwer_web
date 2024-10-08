@@ -21,24 +21,32 @@
           <el-card class="w-max info-panel ma-1 max-w-110">
             <template #header>
               <div class="card-header text-center flex items-center justify-between">
-                <span class="text-xs hand" @click="refreshCarelinkToken">状态:{{ status }}</span>
+                <span :class="{'text-red':status!==200}" class="text-xs hand"
+                      @click="refreshCarelinkToken">状态:{{ status }}</span>
                 <span class="text-2xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</span>
               </div>
             </template>
             <div class="flex justify-between flex-wrap">
-              <el-tag class="mb-1 mr-1" size="small" type="primary">活性:
+              <el-tag class="mb-1 mr-1" size="small" type="primary">IOB:
                 {{ data.activeInsulin.amount }}
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
-                平均:
+                Avg:
                 {{ sugarCalc.calcSG(data.averageSG) }},
-                {{ timeInRange[0] }}%,
                 CV:
                 {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
               </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="primary">
-                <span class="text-rose">Low:{{ timeInRange[1] }}%,</span>&nbsp;
-                <span class="text-rose">Hight:{{ timeInRange[2] }}%</span>
+              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+                TIR:&nbsp;&nbsp;
+                {{ timeInRange[0] }}%,
+                <span class="text-rose">L:{{ timeInRange[1] }}%,</span>&nbsp;
+                <span class="text-rose">H:{{ timeInRange[2] }}%</span>
+              </el-tag>
+              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+                TTIR:
+                {{ tightTimeInRange[0] }}%,
+                <span class="text-rose">L:{{ tightTimeInRange[1] }}%,</span>&nbsp;
+                <span class="text-rose">H:{{ tightTimeInRange[2] }}%</span>
               </el-tag>
               <el-tag class="mb-1 mr-1" size="small" type="warning">泵:
                 {{ data.reservoirRemainingUnits }}U,
@@ -88,7 +96,11 @@
             </div>
           </div>
           <div class="flex text-xs items-center justify-between align-center mb-1">
-            <span class="mx-2">{{ lastUpdateTime.sg }}</span>
+            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2">
+              {{
+                lastUpdateTime.sg
+              }}
+            </span>
             <span class="mx-2">{{ lastOffset }}</span>
             <span class="ml-2 text-xs">
               <ep-Refresh class="hand" @click="reload"></ep-Refresh>
@@ -107,7 +119,10 @@
           </div>
 
           <div class="flex text-xs items-center justify-between align-center my-1">
-            <span class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
+            <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
+                toNow(setting.nextStartupTime)
+              }}</span>
+            <span v-else class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
             <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}" class="mr-2">
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
@@ -123,6 +138,9 @@
       <div class="h-20 px-2 flex items-center justify-around">
         <el-tag :type="modeObj.mode.type" class="" size="small">
           {{ modeObj.mode.name }}
+          <span v-if="modeObj.mode.key===PUMP_STATUS.safe.key">
+            ,闭环退出:{{ modeObj.timeRemaining }}
+            </span>
           <span v-if="modeObj.mode.key===PUMP_STATUS.sport.key">
             剩余:{{ modeObj.timeRemaining }}
             </span>
@@ -188,7 +206,8 @@ const lastStatus: any = Tools.getLastStatus('sugar-setting', {
   notification: {
     hasNew: false,
     lastKey: null
-  }
+  },
+  nextStartupTime: null
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
@@ -235,9 +254,7 @@ onBeforeMount(() => {
 })
 
 onMounted(async () => {
-  await loadCarelinkData()
-  drawLine()
-  await loadCarelinkMyData()
+  await onLoadCarelinkData()
   startInterval()
 })
 
@@ -310,13 +327,18 @@ async function reloadCarelinkData() {
   }
 }
 
+async function onLoadCarelinkData(isMask = true) {
+  await loadCarelinkData(isMask)
+  refreshChart()
+  await loadCarelinkMyData(isMask)
+}
+
 async function reload() {
   forEach(state.interval, (v, k) => {
     clearInterval(v)
   })
   try {
-    await loadCarelinkData()
-    refreshChart()
+    await onLoadCarelinkData()
     startInterval()
     Msg.successMsg('刷新数据成功')
   } catch (e) {
@@ -339,15 +361,14 @@ function startTimeInterval() {
 
 function startDataLoadInterval() {
   state.interval.data = setInterval(async () => {
-    await loadCarelinkData(false)
-    refreshChart()
+    await onLoadCarelinkData(false)
     // chart.refresh()
     // chart.setOption(charOption)
   }, REFRESH_INTERVAL.loadData * 60 * 1000)
 }
 
-async function loadCarelinkMyData() {
-  const result: any = await dictService.getDict(CARELINK_DICT_KEY.carelinkMyData)
+async function loadCarelinkMyData(isMask = true) {
+  const result: any = await dictService.getDict(CARELINK_DICT_KEY.carelinkMyData, isMask)
   if (result) {
     state.myData = JSON.parse(result);
   }
@@ -365,6 +386,15 @@ async function loadCarelinkData(mask = true) {
         state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
         state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         dealNewNotification()
+        // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
+        dealWarnUpStatus()
+        /* state.data.therapyAlgorithmState = {
+           "autoModeShieldState": "SAFE_BASAL",
+           "autoModeReadinessState": "NO_ACTION_REQUIRED",
+           "plgmLgsState": "FEATURE_OFF",
+           "safeBasalDuration": 213,
+           "waitToCalibrateDuration": 0
+         }*/
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
         /* state.data.notificationHistory.activeNotifications = [
            {
@@ -419,6 +449,15 @@ async function loadCarelinkData(mask = true) {
   }
 }
 
+function dealWarnUpStatus() {
+  const {systemStatusMessage} = state.data
+  if (systemStatusMessage === SYSTEM_STATUS_MAP.WARM_UP.key && !setting.nextStartupTime) {
+    setting.nextStartupTime = dayjs().add(2, 'hour')
+  } else if (systemStatusMessage !== SYSTEM_STATUS_MAP.WARM_UP.key && setting.nextStartupTime) {
+    setting.nextStartupTime = null
+  }
+}
+
 function dealNewNotification() {
   const {notification} = setting;
   const len = state.data.notificationHistory.clearedNotifications.length
@@ -469,6 +508,7 @@ function changeTimeRange() {
 }
 
 function refreshChart() {
+  if (!chart) drawLine()
   chart.setOption(charOption.value, true);
 }
 
@@ -477,6 +517,10 @@ const timeInRange = computed(() => {
   return sugarCalc.calcTimeInRange(state.data.sgs)
 })
 
+//计算入框率
+const tightTimeInRange = computed(() => {
+  return sugarCalc.calcTimeInRange(state.data.sgs, true)
+})
 //计算最后的数据升降幅度
 const lastOffset = computed(() => {
   return sugarCalc.calcLastOffset(state.data.sgs)
@@ -484,7 +528,8 @@ const lastOffset = computed(() => {
 
 const lastUpdateTime = computed(() => {
   return {
-    sg: fromNow(state.data.lastSG.datetime),
+    sg: toNow(state.data.lastSG.datetime),
+    sgDiff: dayjs().diff(state.data.lastSG.datetime, 'minute'),
     conduit: toNow(state.myData.lastConduitTime)
   }
 })
@@ -500,6 +545,15 @@ const trendObj = computed(() => {
 //画图的参数
 const charOption = computed(() => {
   return {
+    legend: {
+      icon: 'rect',
+      data: [
+        {name: '血糖', itemStyle: {color: COLORS[0]}},
+        {name: '校准'},
+        {name: '基础率', itemStyle: {color: COLORS[1]}},
+        {name: '大剂量', itemStyle: {color: COLORS[2]}}
+      ]
+    },
     toolbox: {
       show: false,
       feature: {
@@ -674,6 +728,13 @@ const charOption = computed(() => {
           },
           data: [
             {
+              name: '高值TTIR警告',
+              yAxis: CONST_VAR.maxTightWarnSg,
+              lineStyle: {
+                color: COLORS[9],
+              }
+            },
+            {
               name: '高值警告',
               yAxis: CONST_VAR.maxWarnSg,
               lineStyle: {
@@ -789,8 +850,6 @@ function drawLine() {
   if (!chart) { // 如果不存在，就进行初始化。
     chart = echarts.init(<HTMLElement>myChart.value)
   }
-  // 绘制图表
-  chart.setOption(charOption.value, true);
   resizeObj = useChartResize(chart)
   resizeObj.mounted()
 }
@@ -813,6 +872,10 @@ function drawLine() {
 
   :deep(.el-card__body) {
     padding: 4px;
+  }
+
+  :deep(.el-tag--small) {
+    padding: 0 3px;
   }
 }
 

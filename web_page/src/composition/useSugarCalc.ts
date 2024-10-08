@@ -36,20 +36,21 @@ export default function () {
     }
   }
 
-  const calcTimeInRange = (list) => {
-    const validSgs = list.filter(item => item.sensorState === 'NO_ERROR_MESSAGE')
-    const lt = ((validSgs.filter(item => item.sg <= CONST_VAR.minWarnSg * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
-    const gt = ((validSgs.filter(item => item.sg >= CONST_VAR.maxWarnSg * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
+  const calcTimeInRange = (list, isTight = false) => {
+    const validSgs = list.filter(item => item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0)
+    const lt = ((validSgs.filter(item => item.sg < (isTight ? CONST_VAR.minTightWarnSg : CONST_VAR.minWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
+    const gt = ((validSgs.filter(item => item.sg > (isTight ? CONST_VAR.maxTightWarnSg : CONST_VAR.maxWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
     return [100 - (Number(lt) + Number(gt)), lt, gt]
   }
 
-  const calcLastOffset = (list): number => {
+
+  const calcLastOffset = (list): number | string => {
     const len = list.length
     return len > 2 ? (calcSG(list[len - 1].sg - list[len - 2].sg, 2)) : 0
   }
 
   const calcSG = (sg: number, defaultDecision = 1) => {
-    return parseFloat((sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision))
+    return (sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision)
   }
 
   const calcCV = (list, avgSg) => {
@@ -139,6 +140,11 @@ export default function () {
     })
   }
 
+  function getTimeRemaining(time, units = "minutes") {
+    //@ts-ignore
+    return dayjs.duration(time, units).humanize(true);
+  }
+
   const getModeObj = (data) => {
     let result = {
       mode: PUMP_STATUS.none,
@@ -154,7 +160,7 @@ export default function () {
           const pumpState = data.pumpBannerState[0]
           if (pumpState.type === 'TEMP_TARGET') {
             result.mode = PUMP_STATUS.sport
-            result.timeRemaining = dayjs.duration(data.pumpBannerState[0].timeRemaining, 'minutes').humanize(true)
+            result.timeRemaining = getTimeRemaining(data.pumpBannerState[0].timeRemaining)
           }
           if (pumpState.type === 'DELIVERY_SUSPEND') {
             result.mode = PUMP_STATUS.stop
@@ -162,12 +168,13 @@ export default function () {
         }
       } else if (therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
         result.mode = PUMP_STATUS.safe
+        result.timeRemaining = getTimeRemaining(therapyAlgorithmState.safeBasalDuration)
       } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
         result.mode = PUMP_STATUS.manuel
         if (data.basal.tempBasalRate) {
           result.isTemp = true
           result.basalRate = data.basal.tempBasalRate
-          result.timeRemaining = dayjs.duration(data.basal.tempBasalDurationRemaining, 'minutes').humanize(true)
+          result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
         } else {
           result.basalRate = data.basal.basalRate
         }
