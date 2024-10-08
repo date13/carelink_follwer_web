@@ -1,22 +1,23 @@
 import asyncio
 import json
 from datetime import datetime
-
-import pandas as pd
+import time
 import requests
-from statsmodels.tsa.ar_model import AutoReg
 
 from core.config import config
 from core.redis_core import RedisTool
 from utils.http_utils import HttpUtils, HTTP_TIMEOUT
 from utils.logutils import my_logger
 from utils.mail import MailObject
+import pandas as pd
+from statsmodels.tsa.ar_model import AutoReg
 
 refreshCarelinkTokenUrl = config.CARELINK_API_DOMAIN + 'patient/sso/reauth'
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0"
 dictKey = {
     "auth": "carelinkAuth",
-    "data": "carelinkData"
+    "data": "carelinkData",
+    "myData": "carelinkMyData"
 }
 mailBody = {
     'subject': 'carelink_follower_web警报',
@@ -179,6 +180,30 @@ def refreshCarelinkToken():
 #     params: UpdateSysDictForm = UpdateSysDictForm(key=key, val=json.dumps(dataObj))
 #     result = await updateSysDict(params)
 #     return result
+yesterdayKey = "yesterdaySG"
+dataFormat = "%Y-%m-%d %H:%M:%S"
+
+
+def refreshCarelinkYesterdayData():
+    localtime = datetime.now()
+    myData = rds.get_json(dictKey["myData"])
+    # yesterdayDatatime = datetime.strptime(myData[yesterdayKey]["time"], dataFormat)
+    # print((localtime - yesterdayDatatime).total_seconds()/3600)
+    # 运行条件
+    # 1. 0小时0分
+    # 2. 没有数据
+    # 3. 数据间隔大于23小时
+    if ((localtime.hour == 0 and localtime.minute == 0) and
+            (yesterdayKey not in myData or
+             (localtime - datetime.strptime(myData[yesterdayKey]["time"], dataFormat)).total_seconds() / 3600 > 23)):
+        data = rds.get_json(dictKey["data"])
+        yesterdayData = json.loads(data["data"])
+        if yesterdayKey not in myData:
+            myData[yesterdayKey] = {}
+        myData[yesterdayKey]["sgs"] = yesterdayData["sgs"]
+        myData[yesterdayKey]["time"] = time.strftime(dataFormat, time.localtime())
+        rds.set_json(dictKey["myData"], myData)
+        my_logger.info("刷新carelinkYesterdayData数据成功")
 
 
 async def refreshCarelinkTokenInterval():
@@ -206,6 +231,18 @@ async def refreshCarelinkDataInterval():
         my_logger.info("!!!结束carelinkData刷新任务!!!")
         await asyncio.sleep(config.CARELINK_DATA_REFRESH_INTERVAL)
 
+
+async def refreshCarelinkYesterdayDataInterval():
+    while True:
+        try:
+            refreshCarelinkYesterdayData()
+        except Exception as ex:
+            text = "carelinkYesterdayData刷新任务刷新任务错误!!!" + str(ex)
+            my_logger.info(text)
+            sendMail(text)
+        await asyncio.sleep(60)
+
+
 # asyncio.run(refreshCarelinkToken())
 # asyncio.run(refreshCarelinkData())
 # result = getToken()
@@ -214,3 +251,4 @@ async def refreshCarelinkDataInterval():
 # loadCarelinkData(token)
 
 # refreshCarelinkData()
+# refreshCarelinkYesterdayData()
