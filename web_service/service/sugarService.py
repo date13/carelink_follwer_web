@@ -233,6 +233,7 @@ async def refreshCarelinkDataInterval():
 
 
 async def refreshCarelinkYesterdayDataInterval():
+    my_logger.info("==============开始carelinkYesterdayData刷新任务==============")
     while True:
         try:
             refreshCarelinkYesterdayData()
