@@ -37,13 +37,16 @@ def upadteDict(updateForm: UpdateSysDictForm):
 
 
 @router.put("/sugar")
-def sugar():
+def sugar() -> ResultSchema:
     data = getSysDict('carelinkData')
     myData = getSysDict('carelinkMyData')
-    return Result.success(data={
-        "data": data,
-        "myData": myData
-    })
+    try:
+        return Result.success(data={
+            "data": data,
+            "myData": myData
+        })
+    except Exception as ex:
+        return Result.fail(msg='获取 carelink 数据错误:' + ex)
 
 
 @router.put("/loadCarelinkData")
