@@ -15,6 +15,7 @@ from statsmodels.tsa.ar_model import AutoReg
 refreshCarelinkTokenUrl = config.CARELINK_API_DOMAIN + 'patient/sso/reauth'
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0"
 dictKey = {
+    "luck": "luck",
     "auth": "carelinkAuth",
     "data": "carelinkData",
     "myData": "carelinkMyData"
@@ -182,10 +183,11 @@ def refreshCarelinkToken():
 #     return result
 yesterdayKey = "yesterdaySG"
 dataFormat = "%Y-%m-%d %H:%M:%S"
+hourOffset = 23
+luckLimit = 90
 
 
-def refreshCarelinkYesterdayData():
-    localtime = datetime.now()
+def refreshCarelinkYesterdayData(localtime):
     myData = rds.get_json(dictKey["myData"])
     # yesterdayDatatime = datetime.strptime(myData[yesterdayKey]["time"], dataFormat)
     # print((localtime - yesterdayDatatime).total_seconds()/3600)
@@ -193,9 +195,9 @@ def refreshCarelinkYesterdayData():
     # 1. 0小时0分
     # 2. 没有数据
     # 3. 数据间隔大于23小时
-    if ((localtime.hour == 0 and localtime.minute == 0) and
-            (yesterdayKey not in myData or
-             (localtime - datetime.strptime(myData[yesterdayKey]["time"], dataFormat)).total_seconds() / 3600 > 23)):
+    if (yesterdayKey not in myData or
+            ((localtime - datetime.strptime(myData[yesterdayKey]["time"],
+                                            dataFormat)).total_seconds() / 3600) > hourOffset):
         data = rds.get_json(dictKey["data"])
         yesterdayData = json.loads(data["data"])
         if yesterdayKey not in myData:
@@ -204,6 +206,21 @@ def refreshCarelinkYesterdayData():
         myData[yesterdayKey]["time"] = time.strftime(dataFormat, time.localtime())
         rds.set_json(dictKey["myData"], myData)
         my_logger.info("刷新carelinkYesterdayData数据成功")
+
+
+def updateLuckData(localtime):
+    luck = rds.get_json(dictKey["luck"])
+    if ((localtime - datetime.strptime(luck["time"], dataFormat)).total_seconds() / 3600) > hourOffset:
+        data = rds.get_json(dictKey["data"])
+        sgData = json.loads(data["data"])
+        tir = sgData["timeInRange"]
+        if tir >= luckLimit:
+            luck["yes"] += 1
+        else:
+            luck["no"] += 1
+        luck["time"] = time.strftime(dataFormat, time.localtime())
+        rds.set_json(dictKey["luck"], luck)
+        my_logger.info("刷新luck数据成功")
 
 
 async def refreshCarelinkTokenInterval():
@@ -232,17 +249,20 @@ async def refreshCarelinkDataInterval():
         await asyncio.sleep(config.CARELINK_DATA_REFRESH_INTERVAL)
 
 
-async def refreshCarelinkYesterdayDataInterval():
-    my_logger.info("==============开始carelinkYesterdayData刷新任务==============")
+async def refreshCarelinkTaskIntervalMinutes():
+    my_logger.info("==============开始refreshCarelinkTaskIntervalMinutes刷新任务==============")
     while True:
         try:
-            refreshCarelinkYesterdayData()
+            localtime = datetime.now()
+            if localtime.hour == 0 and localtime.minute == 0:
+                my_logger.info("==============refreshCarelinkTaskIntervalMinutes任务开始==============")
+                updateLuckData(localtime)
+                refreshCarelinkYesterdayData(localtime)
         except Exception as ex:
-            text = "carelinkYesterdayData刷新任务刷新任务错误!!!" + str(ex)
+            text = "refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!" + str(ex)
             my_logger.info(text)
             sendMail(text)
         await asyncio.sleep(60)
-
 
 # asyncio.run(refreshCarelinkToken())
 # asyncio.run(refreshCarelinkData())
@@ -253,3 +273,4 @@ async def refreshCarelinkYesterdayDataInterval():
 
 # refreshCarelinkData()
 # refreshCarelinkYesterdayData()
+# updateLuckData()

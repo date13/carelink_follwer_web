@@ -12,7 +12,7 @@ from core.denpends import limiter
 from register import register_cors, register_exception, register_middleware
 from register.router import register_router
 from service.sugarService import refreshCarelinkTokenInterval, refreshCarelinkDataInterval, \
-    refreshCarelinkYesterdayDataInterval
+    refreshCarelinkTaskIntervalMinutes
 from utils.logutils import my_logger
 
 tags_metadata = [
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
         my_logger.info("启动定时任务")
         asyncio.ensure_future(refreshCarelinkTokenInterval())
         asyncio.ensure_future(refreshCarelinkDataInterval())
-        asyncio.ensure_future(refreshCarelinkYesterdayDataInterval())
+        asyncio.ensure_future(refreshCarelinkTaskIntervalMinutes())
     else:
         my_logger.info("定时任务未启动")
     yield
