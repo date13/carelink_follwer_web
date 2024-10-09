@@ -68,8 +68,12 @@ export default function () {
   const shouldHaveAR2 = (data) => {
     return data.systemStatusMessage === SYSTEM_STATUS_MAP.NO_ERROR_MESSAGE.key
   }
+
+  function getStartPercent(startPercent) {
+    return TIME_RANGE_CONFIG.find(item => item.value === startPercent) ?? TIME_RANGE_CONFIG[1]
+  }
+
   const loadSgData = (data, forecast, setting) => {
-    const start = TIME_RANGE_CONFIG.find(item => item.value === setting.startPercent) ?? TIME_RANGE_CONFIG[1]
     const sgList = compact(data.sgs.map(item => {
       //获取有效数据
       if (item.sensorState === 'NO_ERROR_MESSAGE') {
@@ -82,34 +86,33 @@ export default function () {
     }))
 
     if (!shouldHaveAR2(data)) return sgList
-    // console.log(sgList);
     const lastSg = sgList[sgList.length - 1]
-    // console.log(dayjs(lastSg[0]).add(( 1) * 5, 'minutes'));
     const forcastArr: any = []
-
-    for (let i = 0; i < start?.offset / 5; i++) {
+    for (let i = 0; i < getStartPercent(setting.startPercent)?.offset / 5; i++) {
       forcastArr.push([
         dayjs(lastSg[0]).add((i + 1) * 5, 'minutes').valueOf(),
         setting.showAR2 ? calcSG(forecast[i]) : null,
         INSULIN_TYPE.SG_FORECAST
       ])
     }
-    // console.log(sgList.concat(forcastArr));
     return sgList.concat(forcastArr)
   }
 
   const loadYesterdaySgData = (data, setting) => {
     if (!data) return
-    return setting.showYesterday ? compact(data.sgs.map(item => {
-      //获取有效数据
-      if (item.sensorState === 'NO_ERROR_MESSAGE') {
+    if (setting.showYesterday) {
+      const curDatetime = dayjs().add(getStartPercent(setting.startPercent)?.offset, 'minutes').valueOf()
+      return data.sgs.filter(item => {
+        return item.sensorState === 'NO_ERROR_MESSAGE' && item.datetime <= curDatetime
+      }).map(item => {
         return [
           item.datetime,
           calcSG(item.sg),
           INSULIN_TYPE.SG_YESTERDAY
         ]
-      }
-    })) : []
+      })
+    }
+    return []
   }
 
   const loadCalibrationData = (list) => {

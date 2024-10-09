@@ -378,12 +378,8 @@ async function loadCarelinkMyData(isMask = true) {
   if (result) {
     state.myData = JSON.parse(result);
     if (state.myData.yesterdaySG) {
-      const curDatetime = dayjs().valueOf()
       state.myData.yesterdaySG.sgs.forEach(item => {
         item.datetime = dayjs(sugarCalc.cleanTime(item.datetime)).add(1, 'day').valueOf()
-      })
-      state.myData.yesterdaySG.sgs = state.myData.yesterdaySG.sgs.filter(item => {
-        return item.datetime <= curDatetime
       })
     }
   }
@@ -751,7 +747,7 @@ const charOption = computed(() => {
               name: '高值TTIR警告',
               yAxis: CONST_VAR.maxTightWarnSg,
               lineStyle: {
-                color: COLORS[9],
+                color: COLORS[1],
               }
             },
             {
@@ -872,7 +868,7 @@ const charOption = computed(() => {
           show: false,
         },
         lineStyle: {
-          opacity: 0.3
+          opacity: 0.4
         },
         labelLine: {
           smooth: true,
