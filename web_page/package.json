@@ -1,7 +1,7 @@
 {
   "name": "carelink_follower",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "scripts": {
     "dev": "vite --mode development",
     "build": "vite build --mode production",
@@ -38,7 +38,7 @@
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
     "@element-plus/icons-vue": "^2.3.1",
-    "@iconify-json/ep": "^1.2.0",
+    "@iconify-json/ep": "^1.2.1",
     "@types/crypto-js": "^4.2.2",
     "@types/lodash": "^4.17.10",
     "@types/node": "^22.7.5",
@@ -53,8 +53,8 @@
     "eslint": "^9.12.0",
     "rollup-plugin-visualizer": "^5.12.0",
     "sass": "1.79.4",
-    "typescript": "^5.6.2",
-    "unocss": "^0.63.3",
+    "typescript": "^5.6.3",
+    "unocss": "^0.63.4",
     "unplugin-auto-import": "^0.18.3",
     "unplugin-element-plus": "^0.8.0",
     "unplugin-icons": "^0.19.3",
