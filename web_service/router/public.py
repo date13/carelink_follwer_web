@@ -36,6 +36,16 @@ def upadteDict(updateForm: UpdateSysDictForm):
     return Result.success(data=row) if row else Result.fail(msg='没有更新任何数据')
 
 
+@router.put("/sugar")
+def sugar():
+    data = getSysDict('carelinkData')
+    myData = getSysDict('carelinkMyData')
+    return Result.success(data={
+        "data": data,
+        "myData": myData
+    })
+
+
 @router.put("/loadCarelinkData")
 async def load_carelink_data() -> ResultSchema:
     result = getCarelinkToken()
