@@ -26,7 +26,7 @@
                 <span class="text-2xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</span>
               </div>
             </template>
-            <div class="flex justify-between flex-wrap">
+            <div class="flex flex-wrap">
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 IOB:
                 {{ data.activeInsulin.amount }}&nbsp;&nbsp;

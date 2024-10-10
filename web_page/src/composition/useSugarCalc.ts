@@ -267,7 +267,7 @@ export default function () {
     if (sgs.length < size || size <= 0) {
       return 0
     }
-    const arr = sgs.map(item => item.sg)
+    const arr = sgs.filter(item => item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0).map(item => item.sg)
     let maxChange = 0;
 
     for (let i = 0; i <= arr.length - size; i++) {
