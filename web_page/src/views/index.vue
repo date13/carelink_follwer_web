@@ -36,7 +36,7 @@
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 Avg:
                 {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;&nbsp;
-                MWave:
+                Wav:
                 {{ sugarCalc.maxChange(data.sgs) }}
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
