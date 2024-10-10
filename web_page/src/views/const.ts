@@ -246,13 +246,15 @@ export const DIRECTIONS = {
     num: 1
   }
   , UP_TRIPLE: {
-    direction: 2,
+    direction: 1,
+    num: 3
   }
   , FLAT: {
     direction: 3,
   }
   , DOWN_TRIPLE: {
-    direction: 4,
+    direction: 5,
+    num: 3
   }
   , DOWN: {
     direction: 5,
