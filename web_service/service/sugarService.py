@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 import time
 import requests
+from decorator import append
 
 from core.config import config
 from core.redis_core import RedisTool
@@ -188,29 +189,35 @@ luckLimit = 90
 
 
 def refreshCarelinkYesterdayData(localtime):
-    myData = rds.get_json(dictKey["myData"])
     # yesterdayDatatime = datetime.strptime(myData[yesterdayKey]["time"], dataFormat)
     # print((localtime - yesterdayDatatime).total_seconds()/3600)
     # 运行条件
     # 1. 0小时0分
     # 2. 没有数据
     # 3. 数据间隔大于23小时
-    if (yesterdayKey not in myData or
-            ((localtime - datetime.strptime(myData[yesterdayKey]["time"],
-                                            dataFormat)).total_seconds() / 3600) > hourOffset):
-        data = rds.get_json(dictKey["data"])
-        yesterdayData = json.loads(data["data"])
-        if yesterdayKey not in myData:
-            myData[yesterdayKey] = {}
-        myData[yesterdayKey]["sgs"] = yesterdayData["sgs"]
-        myData[yesterdayKey]["time"] = time.strftime(dataFormat, time.localtime())
-        rds.set_json(dictKey["myData"], myData)
-        my_logger.info("刷新carelinkYesterdayData数据成功")
+    myData = rds.get_json(dictKey["myData"])
+    data = rds.get_json(dictKey["data"])
+    yesterdayData = json.loads(data["data"])
+    if yesterdayKey not in myData:
+        myData[yesterdayKey] = {}
+        myData[yesterdayKey]["sgs"] = [yesterdayData["sgs"]]
+    elif ((localtime - datetime.strptime(myData[yesterdayKey]["update_time"],
+                                         dataFormat)).total_seconds() / 3600) > hourOffset:
+        yesArr = myData[yesterdayKey]["sgs"]
+        if len(yesArr) == 1:
+            yesArr.append(yesterdayData["sgs"])
+        elif len(yesArr) == 2:
+            yesArr[0] = yesArr[1]
+            yesArr[1] = yesterdayData["sgs"]
+
+    myData[yesterdayKey]["update_time"] = time.strftime(dataFormat, time.localtime())
+    rds.set_json(dictKey["myData"], myData)
+    my_logger.info("刷新carelinkYesterdayData数据成功")
 
 
 def updateLuckData(localtime):
     luck = rds.get_json(dictKey["luck"])
-    if ((localtime - datetime.strptime(luck["time"], dataFormat)).total_seconds() / 3600) > hourOffset:
+    if ((localtime - datetime.strptime(luck["update_time"], dataFormat)).total_seconds() / 3600) > hourOffset:
         data = rds.get_json(dictKey["data"])
         sgData = json.loads(data["data"])
         tir = sgData["timeInRange"]
@@ -218,7 +225,7 @@ def updateLuckData(localtime):
             luck["yes"] += 1
         else:
             luck["no"] += 1
-        luck["time"] = time.strftime(dataFormat, time.localtime())
+        luck["update_time"] = time.strftime(dataFormat, time.localtime())
         rds.set_json(dictKey["luck"], luck)
         my_logger.info("刷新luck数据成功")
 
@@ -272,5 +279,5 @@ async def refreshCarelinkTaskIntervalMinutes():
 # loadCarelinkData(token)
 
 # refreshCarelinkData()
-# refreshCarelinkYesterdayData()
+# refreshCarelinkYesterdayData(datetime.now())
 # updateLuckData()
