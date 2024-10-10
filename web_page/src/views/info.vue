@@ -23,7 +23,7 @@
           {{ illDays }}
         </el-tag>
       </el-card>
-      <el-card class="info-card">
+      <el-card class="info-card text-center">
         <template #header>
           <div class="flex justify-between items-center">
             ICR
@@ -180,5 +180,17 @@ function showRate(isLuck) {
 .info-card {
   width: 350px;
   margin: 10px;
+
+  :deep(.el-card__header) {
+    padding: 8px;
+  }
+
+  :deep(.el-card__body) {
+    padding: 8px;
+  }
+
+  :deep(.el-input-number--small) {
+    width: 90px;
+  }
 }
 </style>

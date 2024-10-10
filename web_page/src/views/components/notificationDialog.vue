@@ -67,21 +67,21 @@ function close() {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 10px;
+}
 
-  .item {
-    margin: 0 10px 10px 0;
+.item {
+  margin: 0 10px 10px 0;
 
-    :deep(.el-alert__icon) {
-      font-size: 18px;
-    }
+  :deep(.el-alert__icon) {
+    font-size: 18px;
+  }
 
-    :deep(.el-alert__title) {
-      font-size: 13px !important;
-    }
+  :deep(.el-alert__title) {
+    font-size: 13px !important;
+  }
 
-    :deep(.el-alert__description) {
-      font-size: 12px !important;
-    }
+  :deep(.el-alert__description) {
+    font-size: 12px !important;
   }
 }
 </style>

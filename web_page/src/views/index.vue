@@ -335,7 +335,7 @@ async function reloadCarelinkData() {
 
 async function onLoadCarelinkData(isMask = true) {
   await loadCarelinkData(isMask)
-  await loadCarelinkMyData(isMask)
+  // await loadCarelinkMyData(isMask)
   refreshChart()
 }
 
@@ -373,18 +373,6 @@ function startDataLoadInterval() {
   }, REFRESH_INTERVAL.loadData * 60 * 1000)
 }
 
-async function loadCarelinkMyData(isMask = true) {
-  const result: any = await dictService.getDict(CARELINK_DICT_KEY.carelinkMyData, isMask)
-  if (result) {
-    state.myData = JSON.parse(result);
-    if (state.myData.yesterdaySG) {
-      state.myData.yesterdaySG.sgs.forEach(item => {
-        item.datetime = dayjs(sugarCalc.cleanTime(item.datetime)).add(1, 'day').valueOf()
-      })
-    }
-  }
-}
-
 //获取数据库数据,不是去 carelink 刷新数据
 async function loadCarelinkData(mask = true) {
   try {
@@ -395,10 +383,11 @@ async function loadCarelinkData(mask = true) {
         state.status = result.status
         state.forecast = result.forecast || {ar2: []}
         state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
-        state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+        // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         dealNewNotification()
         // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
         dealWarnUpStatus()
+        dealMyData(result.myData)
         /* state.data.therapyAlgorithmState = {
            "autoModeShieldState": "SAFE_BASAL",
            "autoModeReadinessState": "NO_ACTION_REQUIRED",
@@ -457,6 +446,18 @@ async function loadCarelinkData(mask = true) {
     }
   } catch (e) {
     console.log(e);
+  }
+}
+
+function dealMyData(myData) {
+  state.myData = myData
+  if (state.myData.yesterdaySG) {
+    state.myData.yesterdaySG.sgs.forEach(item => {
+      item.datetime = dayjs(sugarCalc.cleanTime(item.datetime)).add(1, 'day').valueOf()
+    })
+    state.myData.yesterdaySG.sgs = state.myData.yesterdaySG.sgs.filter(item => {
+      return item.sensorState === 'NO_ERROR_MESSAGE' && item.datetime >= dayjs().add(-1, 'day').valueOf()
+    })
   }
 }
 
@@ -542,9 +543,10 @@ const lastOffset = computed(() => {
 })
 
 const lastUpdateTime = computed(() => {
+  const lastSgUpdateTime = sugarCalc.cleanTime(state.data.lastSG.datetime)
   return {
-    sg: toNow(state.data.lastSG.datetime),
-    sgDiff: dayjs().diff(state.data.lastSG.datetime, 'minute'),
+    sg: toNow(lastSgUpdateTime),
+    sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
     conduit: toNow(state.myData.lastConduitTime)
   }
 })
@@ -564,7 +566,7 @@ const charOption = computed(() => {
       icon: 'rect',
       data: [
         {name: '血糖', itemStyle: {color: COLORS[0]}},
-        {name: '校准'},
+        {name: '昨日血糖', itemStyle: {color: COLORS[9]}},
         {name: '基础率', itemStyle: {color: COLORS[1]}},
         {name: '大剂量', itemStyle: {color: COLORS[2]}}
       ]

@@ -1,7 +1,7 @@
 {
   "name": "carelink_follower",
   "private": true,
-  "version": "1.0.5",
+  "version": "1.0.6",
   "scripts": {
     "dev": "vite --mode development",
     "build": "vite build --mode production",
