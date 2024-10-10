@@ -27,35 +27,37 @@
               </div>
             </template>
             <div class="flex justify-between flex-wrap">
-              <el-tag class="mb-1 mr-1" size="small" type="primary">IOB:
-                {{ data.activeInsulin.amount }}
-              </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
-                Avg:
-                {{ sugarCalc.calcSG(data.averageSG) }},
+                IOB:
+                {{ data.activeInsulin.amount }}&nbsp;&nbsp;
                 CV:
                 {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
+                Avg:
+                {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;&nbsp;
+                MWave:
+                {{ sugarCalc.maxChange(data.sgs) }}
+              </el-tag>
+              <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 TIR:&nbsp;&nbsp;
-                {{ timeInRange[0] }}%,
-                <span class="text-rose">L:{{ timeInRange[1] }}%,</span>&nbsp;
-                <span class="text-rose">H:{{ timeInRange[2] }}%</span>
+                {{ timeInRange[0] }}%&nbsp;
+                <span class="text-rose mx-1">L:&nbsp;{{ timeInRange[1] }}%</span>&nbsp;
+                <span class="text-rose">H:&nbsp;{{ timeInRange[2] }}%</span>
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 TTIR:
-                {{ tightTimeInRange[0] }}%,
-                <span class="text-rose">L:{{ tightTimeInRange[1] }}%,</span>&nbsp;
-                <span class="text-rose">H:{{ tightTimeInRange[2] }}%</span>
+                {{ tightTimeInRange[0] }}%&nbsp;
+                <span class="text-rose mx-1">L:&nbsp;{{ tightTimeInRange[1] }}%</span>&nbsp;
+                <span class="text-rose">H:&nbsp;{{ tightTimeInRange[2] }}%</span>
               </el-tag>
               <el-tag class="mb-1 mr-1" size="small" type="warning">泵:
-                {{ data.reservoirRemainingUnits }}U,
-                {{ data.medicalDeviceBatteryLevelPercent }}%
-              </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="warning">探头:
+                {{ data.reservoirRemainingUnits }}U&nbsp;
+                {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
+                探头:
                 {{
                   data.sensorDurationMinutes ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : '待更换'
-                }},
+                }}&nbsp;
                 {{
                   data.gstBatteryLevel || '--'
                 }}%
@@ -672,6 +674,7 @@ const charOption = computed(() => {
         start: 100 - setting.startPercent,
         end: 100,
         xAxisIndex: [0],
+        bottom: 25,
         labelFormatter: (value) => {
           return `${dayjs(value).format('MM-DD')}\n${dayjs(value).format('HH:mm')}`;
         },

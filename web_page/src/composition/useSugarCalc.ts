@@ -263,6 +263,27 @@ export default function () {
     return item.text
   }
 
+  function maxChange(sgs, size = 12) {
+    if (sgs.length < size || size <= 0) {
+      return 0
+    }
+    const arr = sgs.map(item => item.sg)
+    let maxChange = 0;
+
+    for (let i = 0; i <= arr.length - size; i++) {
+      const subArray = arr.slice(i, i + size);
+      const minVal = Math.min(...subArray);
+      const maxVal = Math.max(...subArray);
+      const change = maxVal - minVal;
+
+      if (change > maxChange) {
+        maxChange = change;
+      }
+    }
+
+    return calcSG(maxChange);
+  }
+
   return {
     getLastSg,
     calcSgYValueLimit,
@@ -280,6 +301,7 @@ export default function () {
     getModeObj,
     getSGMarkArea,
     shouldHaveAR2,
-    showNotificationMsg
+    showNotificationMsg,
+    maxChange
   }
 }
