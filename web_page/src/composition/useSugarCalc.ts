@@ -243,14 +243,14 @@ export default function () {
     if (shouldHaveAR2(data) && setting.showAR2) {
       options.push([
         {
-          xAxis: dayjs(data.lastSG.datetime).add(2.5, 'minute').valueOf(),
+          xAxis: dayjs(cleanTime(data.lastSG.datetime)).add(2.5, 'minute').valueOf(),
           itemStyle: {
             color: COLORS[2],
             opacity: 0.1
           }
         },
         {
-          xAxis: dayjs(data.lastSG.datetime).add(3, 'hour').valueOf()
+          xAxis: dayjs(cleanTime(data.lastSG.datetime)).add(3, 'hour').valueOf()
         }
       ])
     }
