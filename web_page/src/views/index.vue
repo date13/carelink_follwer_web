@@ -54,6 +54,8 @@
               <el-tag class="mb-1 mr-1" size="small" type="warning">泵:
                 {{ data.reservoirRemainingUnits }}U&nbsp;
                 {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
+              </el-tag>
+              <el-tag class="mb-1 mr-1" size="small" type="warning">
                 探头:
                 {{
                   data.sensorDurationMinutes ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : '待更换'
@@ -140,9 +142,9 @@
         </div>
       </div>
       <div class="flex-1">
-        <div ref="myChart" class="border-grey border-grey mb-4 h-full"></div>
+        <div ref="myChart" class="border-grey border-grey h-full"></div>
       </div>
-      <div class="h-20 px-2 flex items-center justify-around">
+      <div class="h-15 px-2 flex items-center justify-around">
         <el-tag :type="modeObj.mode.type" class="" size="small">
           {{ modeObj.mode.name }}
           <span v-if="modeObj.mode.key===PUMP_STATUS.safe.key">
