@@ -263,11 +263,24 @@ export default function () {
     return item.text
   }
 
-  function maxChange(sgs, size = 12) {
-    if (sgs.length < size || size <= 0) {
-      return 0
+  function calcSgsLen(sgs, setting) {
+    if (setting.realWave) {
+      const percent = getStartPercent(setting.startPercent).value
+      // 计算需要跳过的元素数量
+      const startIndex = Math.floor(sgs.length * (1 - percent / 100));
+
+      // 返回从startIndex开始到数组末尾的所有元素
+      return sgs.slice(startIndex);
     }
-    const arr = sgs.map(item => item.sg)
+    return sgs
+  }
+
+  function maxChange(sgs, setting, size = 12) {
+    const list = calcSgsLen(sgs, setting)
+    if (list.length < size || size <= 0) {
+      return '--'
+    }
+    const arr = list.filter(item => item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0).map(item => item.sg)
     let maxChange = 0;
 
     for (let i = 0; i <= arr.length - size; i++) {

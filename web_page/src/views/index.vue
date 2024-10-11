@@ -26,7 +26,7 @@
                 <span class="text-2xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</span>
               </div>
             </template>
-            <div class="flex justify-between flex-wrap">
+            <div class="flex flex-wrap">
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 IOB:
                 {{ data.activeInsulin.amount }}&nbsp;&nbsp;
@@ -36,8 +36,8 @@
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 Avg:
                 {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;&nbsp;
-                Wav:
-                {{ sugarCalc.maxChange(data.sgs) }}
+                <span class="text-red">Wav:
+                  {{ sugarCalc.maxChange(data.sgs, setting) }}</span>
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 TIR:&nbsp;&nbsp;
@@ -135,8 +135,11 @@
             <div class="mr-2">
               <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
             </div>
-            <div>
+            <div class="mr-2">
               <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="switchYesterday"/>
+            </div>
+            <div class="mr-2">
+              <el-checkbox v-model="setting.realWave" label="实时波动" size="small" @change="switchRealWave"/>
             </div>
           </div>
         </div>
@@ -217,6 +220,7 @@ const lastStatus: any = Tools.getLastStatus('sugar-setting', {
     hasNew: false,
     lastKey: null
   },
+  realWave: true,
   nextStartupTime: null
 })
 const sugarCalc = useSugarCalc()
@@ -516,6 +520,10 @@ function switchAR2() {
   } else {
     refreshChart()
   }
+}
+
+function switchRealWave() {
+
 }
 
 function switchYesterday() {
