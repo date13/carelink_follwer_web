@@ -1,17 +1,17 @@
 import asyncio
 import json
-from datetime import datetime
 import time
+from datetime import datetime, timedelta
+
+import pandas as pd
 import requests
-from decorator import append
+from statsmodels.tsa.ar_model import AutoReg
 
 from core.config import config
 from core.redis_core import RedisTool
 from utils.http_utils import HttpUtils, HTTP_TIMEOUT
 from utils.logutils import my_logger
 from utils.mail import MailObject
-import pandas as pd
-from statsmodels.tsa.ar_model import AutoReg
 
 refreshCarelinkTokenUrl = config.CARELINK_API_DOMAIN + 'patient/sso/reauth'
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0"
@@ -108,7 +108,8 @@ def refreshCarelinkData():
         if status is not None:
             dataObj["status"] = status
             if data is not None:
-                dataObj["data"] = json.dumps(data)
+                dealWarmUp(data, dataObj)
+                dataObj["data"] = data
                 # dataObj["forecast"] = {"ar2": forcastAR2Sg(list(map(lambda x: x["sg"], data["sgs"])))}
                 dataObj["forecast"] = {
                     "ar2": forcastAR2Sg(filter(lambda x: x != 0, list(map(lambda x: x["sg"], data["sgs"]))))}
@@ -117,6 +118,19 @@ def refreshCarelinkData():
 
         updateCarelinkDataToRedis(dataObj)
         # await updateCarelinkDataToDB(dataObj)
+
+
+nextStartTimeKey = "nextStartTime"
+
+
+def dealWarmUp(data, dataObj):
+    status = data["systemStatusMessage"]
+    nextStart = dataObj[nextStartTimeKey]
+    if status == "WARM_UP" and nextStart == -1:
+        dataObj[nextStartTimeKey] = (datetime.now() + timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S")
+
+    if status == "NO_ERROR_MESSAGE" and nextStart != -1:
+        dataObj[nextStartTimeKey] = -1
 
 
 # async def updateCarelinkDataToDB(dataObj):
@@ -197,19 +211,21 @@ def refreshCarelinkYesterdayData(localtime):
     # 3. 数据间隔大于23小时
     myData = rds.get_json(dictKey["myData"])
     data = rds.get_json(dictKey["data"])
-    yesterdayData = json.loads(data["data"])
+    yesterdayData = data["data"]
     if yesterdayKey not in myData:
         myData[yesterdayKey] = {}
         myData[yesterdayKey]["sgs"] = [yesterdayData["sgs"]]
     elif ((localtime - datetime.strptime(myData[yesterdayKey]["update_time"],
                                          dataFormat)).total_seconds() / 3600) > hourOffset:
+        # 先备份一下前一天的数据
+        rds.set_json("carelinkMyData_Backup", myData)
         yesArr = myData[yesterdayKey]["sgs"]
         if len(yesArr) == 1:
             yesArr.append(yesterdayData["sgs"])
         elif len(yesArr) == 2:
             yesArr[0] = yesArr[1]
             yesArr[1] = yesterdayData["sgs"]
-
+        my_logger.info("刷新carelinkYesterdayData数据:" + str(len(yesArr)))
     myData[yesterdayKey]["update_time"] = time.strftime(dataFormat, time.localtime())
     rds.set_json(dictKey["myData"], myData)
     my_logger.info("刷新carelinkYesterdayData数据成功")
@@ -279,5 +295,5 @@ async def refreshCarelinkTaskIntervalMinutes():
 # loadCarelinkData(token)
 
 # refreshCarelinkData()
-# refreshCarelinkYesterdayData(datetime.now())
+refreshCarelinkYesterdayData(datetime.now())
 # updateLuckData()
