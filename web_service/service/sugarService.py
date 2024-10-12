@@ -295,5 +295,5 @@ async def refreshCarelinkTaskIntervalMinutes():
 # loadCarelinkData(token)
 
 # refreshCarelinkData()
-refreshCarelinkYesterdayData(datetime.now())
+# refreshCarelinkYesterdayData(datetime.now())
 # updateLuckData()
