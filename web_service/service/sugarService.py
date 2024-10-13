@@ -220,12 +220,12 @@ def refreshCarelinkYesterdayData(localtime):
         # 先备份一下前一天的数据
         rds.set_json("carelinkMyData_Backup", myData)
         yesArr = myData[yesterdayKey]["sgs"]
+        my_logger.info("刷新carelinkYesterdayData数据:" + str(len(yesArr)))
         if len(yesArr) == 1:
             yesArr.append(yesterdayData["sgs"])
         elif len(yesArr) == 2:
             yesArr[0] = yesArr[1]
             yesArr[1] = yesterdayData["sgs"]
-        my_logger.info("刷新carelinkYesterdayData数据:" + str(len(yesArr)))
     myData[yesterdayKey]["update_time"] = time.strftime(dataFormat, time.localtime())
     rds.set_json(dictKey["myData"], myData)
     my_logger.info("刷新carelinkYesterdayData数据成功")
@@ -293,7 +293,7 @@ async def refreshCarelinkTaskIntervalMinutes():
 # token = result["data"]["tokenObj"]["token"]
 # print(token)
 # loadCarelinkData(token)
-
+# updateLuckData(datetime.now())
 # refreshCarelinkData()
 # refreshCarelinkYesterdayData(datetime.now())
 # updateLuckData()
