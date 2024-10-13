@@ -235,7 +235,7 @@ def updateLuckData(localtime):
     luck = rds.get_json(dictKey["luck"])
     if ((localtime - datetime.strptime(luck["update_time"], dataFormat)).total_seconds() / 3600) > hourOffset:
         data = rds.get_json(dictKey["data"])
-        sgData = json.loads(data["data"])
+        sgData = data["data"]
         tir = sgData["timeInRange"]
         if tir >= luckLimit:
             luck["yes"] += 1
