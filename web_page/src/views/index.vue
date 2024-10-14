@@ -29,27 +29,39 @@
             <div class="flex flex-wrap">
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 IOB:
-                {{ data.activeInsulin.amount }}&nbsp;&nbsp;
+                {{ data.activeInsulin.amount }}&nbsp;
+                Avg:
+                {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;
                 CV:
                 {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
-                Avg:
-                {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;&nbsp;
                 <span class="text-red">Wav:
-                  {{ sugarCalc.maxChange(data.sgs, setting) }}</span>
+                  {{ sugarCalc.maxWave(data.sgs, setting) }}</span>&nbsp;
+                <span class="text-red">Min:
+                  {{ minMaxSG[0] }}</span>&nbsp;
+                <span class="text-red">Max:
+                  {{ minMaxSG[1] }}</span>
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
-                TIR:&nbsp;&nbsp;
-                {{ timeInRange[0] }}%&nbsp;
-                <span class="text-rose mx-1">L:&nbsp;{{ timeInRange[1] }}%</span>&nbsp;
-                <span class="text-rose">H:&nbsp;{{ timeInRange[2] }}%</span>
+                TIR:
+                {{ timeInRange[0] }}%
+                <span class="text-rose mx-1">L:
+                  {{ timeInRange[1] }}%
+                </span>
+                <span class="text-rose">H:
+                  {{ timeInRange[2] }}%
+                </span>
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 TTIR:
-                {{ tightTimeInRange[0] }}%&nbsp;
-                <span class="text-rose mx-1">L:&nbsp;{{ tightTimeInRange[1] }}%</span>&nbsp;
-                <span class="text-rose">H:&nbsp;{{ tightTimeInRange[2] }}%</span>
+                {{ tightTimeInRange[0] }}%
+                <span class="text-rose mx-1">L:
+                  {{ tightTimeInRange[1] }}%
+                </span>
+                <span class="text-rose">H:
+                  {{ tightTimeInRange[2] }}%
+                </span>
               </el-tag>
               <el-tag class="mb-1 mr-1" size="small" type="warning">泵:
                 {{ data.reservoirRemainingUnits }}U&nbsp;
@@ -124,7 +136,7 @@
 
           <div class="flex text-xs items-center justify-between align-center mt-1">
             <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
-                toNow(setting.nextStartupTime)
+                toNow(nextStartTime)
               }}</span>
             <span v-else class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
             <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}" class="mr-2">
@@ -139,7 +151,7 @@
               <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="switchYesterday"/>
             </div>
             <div class="mr-2">
-              <el-checkbox v-model="setting.realWave" label="实时波动" size="small" @change="switchRealWave"/>
+              <el-checkbox v-model="setting.realWave" label="实时波动" size="small"/>
             </div>
           </div>
         </div>
@@ -221,7 +233,6 @@ const lastStatus: any = Tools.getLastStatus('sugar-setting', {
     lastKey: null
   },
   realWave: true,
-  nextStartupTime: null
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
@@ -238,6 +249,7 @@ const state: any = reactive({
   },
   myData: {},
   forecast: {},
+  nextStartTime: -1,
   data: {
     lastSG: {
       //最后获取的数据时间
@@ -261,7 +273,7 @@ const state: any = reactive({
   time: dayjs()//当前系统时间
 })
 
-const {data, time, updateDatetime, status, showNotificationDialog} = toRefs(state)
+const {data, time, updateDatetime, status, showNotificationDialog, nextStartTime} = toRefs(state)
 
 onBeforeMount(() => {
   initSetting()
@@ -390,11 +402,11 @@ async function loadCarelinkData(mask = true) {
         state.data = result.data
         state.status = result.status
         state.forecast = result.forecast || {ar2: []}
+        state.nextStartTime = result.nextStartTime
         state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
         // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         dealNewNotification()
         // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
-        dealWarnUpStatus()
         dealMyData(result.myData)
         /* state.data.therapyAlgorithmState = {
            "autoModeShieldState": "SAFE_BASAL",
@@ -469,15 +481,6 @@ function dealMyData(myData) {
   }
 }
 
-function dealWarnUpStatus() {
-  const {systemStatusMessage} = state.data
-  if (systemStatusMessage === SYSTEM_STATUS_MAP.WARM_UP.key && !setting.nextStartupTime) {
-    setting.nextStartupTime = dayjs().add(2, 'hour')
-  } else if (systemStatusMessage !== SYSTEM_STATUS_MAP.WARM_UP.key && setting.nextStartupTime) {
-    setting.nextStartupTime = null
-  }
-}
-
 function dealNewNotification() {
   const {notification} = setting;
   const len = state.data.notificationHistory.clearedNotifications.length
@@ -520,10 +523,6 @@ function switchAR2() {
   } else {
     refreshChart()
   }
-}
-
-function switchRealWave() {
-
 }
 
 function switchYesterday() {
@@ -569,6 +568,11 @@ const modeObj = computed(() => {
 //获取升降趋势
 const trendObj = computed(() => {
   return state.data?.lastSGTrend && DIRECTIONS[state.data.lastSGTrend]
+})
+
+//计算最大和最小值
+const minMaxSG = computed(() => {
+  return sugarCalc.minMaxSG(state.data.sgs, setting)
 })
 
 //画图的参数

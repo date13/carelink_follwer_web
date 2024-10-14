@@ -37,7 +37,7 @@ export default function () {
   }
 
   const calcTimeInRange = (list, isTight = false) => {
-    const validSgs = list.filter(item => item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0)
+    const validSgs = list.filter(item => validItem(item))
     const lt = ((validSgs.filter(item => item.sg < (isTight ? CONST_VAR.minTightWarnSg : CONST_VAR.minWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
     const gt = ((validSgs.filter(item => item.sg > (isTight ? CONST_VAR.maxTightWarnSg : CONST_VAR.maxWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
     return [100 - (Number(lt) + Number(gt)), lt, gt]
@@ -45,7 +45,7 @@ export default function () {
 
 
   const calcLastOffset = (list): number | string => {
-    const listDeal = list.filter(item => item.sensorState === 'NO_ERROR_MESSAGE')
+    const listDeal = list.filter(item => validItem(item))
     const len = listDeal.length
     return len > 2 ? (calcSG(listDeal[len - 1].sg - listDeal[len - 2].sg, 2)) : 0
   }
@@ -56,7 +56,7 @@ export default function () {
 
   const calcCV = (list, avgSg) => {
     if (list.length === 0) return 0
-    const stdNumber = std(list.filter(item => item.kind === 'SG' && item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0).map(item => item.sg))
+    const stdNumber = std(list.filter(item => item.kind === 'SG' && validItem(item)).map(item => item.sg))
     return ((stdNumber / avgSg) * 100).toFixed(1)
   }
 
@@ -76,7 +76,7 @@ export default function () {
   const loadSgData = (data, forecast, setting) => {
     const sgList = compact(data.sgs.map(item => {
       //获取有效数据
-      if (item.sensorState === 'NO_ERROR_MESSAGE') {
+      if (validItem(item)) {
         return [
           cleanTime(item.datetime),
           calcSG(item.sg),
@@ -103,7 +103,7 @@ export default function () {
     if (setting.showYesterday) {
       const curDatetime = dayjs().add(getStartPercent(setting.startPercent)?.offset, 'minutes').valueOf()
       return data.sgs.filter(item => {
-        return item.sensorState === 'NO_ERROR_MESSAGE' && item.datetime <= curDatetime
+        return validItem(item) && item.datetime <= curDatetime
       }).map(item => {
         return [
           item.datetime,
@@ -143,7 +143,7 @@ export default function () {
 
   const loadInsulinData = (list) => {
     return list.map(item => {
-      if (item.type === 'INSULIN' && item.activationType === 'RECOMMENDED') {
+      if (item.type === 'INSULIN' && (item.activationType === 'RECOMMENDED' || item.activationType === 'MANUAL')) {
         const plan = item.programmedFastAmount.toFixed(2)
         const delivered = item.deliveredFastAmount.toFixed(2)
         const meal = list.find(mark => mark.type === 'MEAL' && item.index === mark.index)
@@ -275,12 +275,16 @@ export default function () {
     return sgs
   }
 
-  function maxChange(sgs, setting, size = 12) {
+  function validItem(item) {
+    return item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0
+  }
+
+  function maxWave(sgs, setting, size = 12) {
     const list = calcSgsLen(sgs, setting)
     if (list.length < size || size <= 0) {
       return '--'
     }
-    const arr = list.filter(item => item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0).map(item => item.sg)
+    const arr = list.filter(item => validItem(item)).map(item => item.sg)
     let maxChange = 0;
 
     for (let i = 0; i <= arr.length - size; i++) {
@@ -293,8 +297,13 @@ export default function () {
         maxChange = change;
       }
     }
-
     return calcSG(maxChange);
+  }
+
+  function minMaxSG(sgs, setting) {
+    const list = calcSgsLen(sgs, setting)
+    const arr = list.filter(item => validItem(item)).map(item => item.sg)
+    return [calcSG(Math.min(...arr)), calcSG(Math.max(...arr))]
   }
 
   return {
@@ -315,6 +324,7 @@ export default function () {
     getSGMarkArea,
     shouldHaveAR2,
     showNotificationMsg,
-    maxChange
+    maxWave,
+    minMaxSG
   }
 }

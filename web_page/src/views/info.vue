@@ -8,20 +8,22 @@
         <template #header>
           Note
         </template>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="success"
-        >
-          {{ retireDays }}
-        </el-tag>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="success"
-        >
-          {{ illDays }}
-        </el-tag>
+        <div class="flex ma-auto w-max">
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="success"
+          >
+            {{ retireDays }}
+          </el-tag>
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="success"
+          >
+            {{ illDays }}
+          </el-tag>
+        </div>
       </el-card>
       <el-card class="info-card text-center">
         <template #header>
@@ -30,33 +32,35 @@
             <el-button type="primary" @click="updateICR">保存</el-button>
           </div>
         </template>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="warning"
-        >
-          早,1U=
-          <el-input-number v-model="luck.ICR.morning" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
-          碳水
-        </el-tag>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="warning"
-        >
-          中,1U=
-          <el-input-number v-model="luck.ICR.afternoon" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
-          碳水
-        </el-tag>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="warning"
-        >
-          晚,1U=
-          <el-input-number v-model="luck.ICR.evening" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
-          碳水
-        </el-tag>
+        <div class="flex flex-col ma-auto w-max">
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="warning"
+          >
+            早
+            <el-input-number v-model="luck.ICR.morning" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
+            碳水
+          </el-tag>
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="warning"
+          >
+            中
+            <el-input-number v-model="luck.ICR.afternoon" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
+            碳水
+          </el-tag>
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="warning"
+          >
+            晚
+            <el-input-number v-model="luck.ICR.evening" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
+            碳水
+          </el-tag>
+        </div>
       </el-card>
     </div>
     <div class="flex">
@@ -64,27 +68,29 @@
         <template #header>
           ISF
         </template>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="info"
-        >
-          早,1U={{ toISF(luck.ICR.morning) }}mmo/l
-        </el-tag>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="info"
-        >
-          中,1U={{ toISF(luck.ICR.afternoon) }}mmo/l
-        </el-tag>
-        <el-tag
-            class="m-1"
-            effect="dark"
-            type="info"
-        >
-          晚,1U={{ toISF(luck.ICR.evening) }}mmo/l
-        </el-tag>
+        <div class="flex flex-col ma-auto w-max">
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="info"
+          >
+            早,1U={{ toISF(luck.ICR.morning) }}mmo/l
+          </el-tag>
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="info"
+          >
+            中,1U={{ toISF(luck.ICR.afternoon) }}mmo/l
+          </el-tag>
+          <el-tag
+              class="m-1"
+              effect="dark"
+              type="info"
+          >
+            晚,1U={{ toISF(luck.ICR.evening) }}mmo/l
+          </el-tag>
+        </div>
       </el-card>
       <el-card class="info-card">
         <template #header>
