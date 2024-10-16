@@ -9,6 +9,7 @@ from statsmodels.tsa.ar_model import AutoReg
 
 from core.config import config
 from core.redis_core import RedisTool
+from models.result import RedisHashObj
 from utils.http_utils import HttpUtils, HTTP_TIMEOUT
 from utils.logutils import my_logger
 from utils.mail import MailObject
@@ -287,6 +288,17 @@ async def refreshCarelinkTaskIntervalMinutes():
             sendMail(text)
         await asyncio.sleep(60)
 
+
+def getAllFood():
+    return rds.get_all_hash_kv('food')
+
+
+def updateFood(hashObj: RedisHashObj):
+    return rds.set_hash_kv('food', hashObj.key, hashObj.val)
+
+
+def delFood(key):
+    return rds.del_hash_kv('food', key)
 # asyncio.run(refreshCarelinkToken())
 # asyncio.run(refreshCarelinkData())
 # result = getToken()

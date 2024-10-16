@@ -5,8 +5,9 @@ from starlette.requests import Request
 
 from core.denpends import limiter
 from core.route_log import LogRoute
-from models.result import Result, ResultSchema
-from service.sugarService import loadCarelinkData, getCarelinkToken, refreshCarelinkData, refreshCarelinkToken
+from models.result import Result, ResultSchema, RedisHashObj
+from service.sugarService import loadCarelinkData, getCarelinkToken, refreshCarelinkData, refreshCarelinkToken, \
+    getAllFood, updateFood, delFood
 from service.sysService import getSysDict, UpdateSysDictForm, updateSysDict
 
 router = APIRouter(route_class=LogRoute)
@@ -69,3 +70,19 @@ def refresh_carelink_data() -> ResultSchema:
 def refresh_carelink_token() -> ResultSchema:
     refreshCarelinkToken()
     return Result.success(data=True)
+
+
+
+@router.get("/foods")
+def foods() -> ResultSchema:
+    return Result.success(data=getAllFood())
+
+
+@router.put("/food")
+def setFood(hashObj: RedisHashObj) -> ResultSchema:
+    return Result.success(data=updateFood(hashObj))
+
+
+@router.delete("/food/{key}")
+def setFood(key: str) -> ResultSchema:
+    return Result.success(data=delFood(key))
