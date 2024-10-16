@@ -4,7 +4,7 @@
       <Title title="字典"></Title>
     </template>
     <div class="flex h-full">
-      <el-card class="w-full ma-6 dict-panel h-full">
+      <el-card class="w-full dict-panel h-full">
         <template #header>
           <div class="flex justify-between">
             <span>字典</span>
@@ -23,10 +23,10 @@
           <el-form-item label="更新时间" prop="update_time">
             {{ params.value.update_time }}
           </el-form-item>
-          <el-form-item label="value" prop="value">
+          <el-form-item class="json-editor-item" label="value" prop="value">
             <vue-jsoneditor v-if="load"
                             v-model:json="params.value"
-                            height="600"
+                            class="json-editor"
                             mode="tree"
             />
           </el-form-item>
@@ -51,7 +51,7 @@ import VueJsoneditor from 'vue3-ts-jsoneditor';
 import {Refresh} from "@element-plus/icons-vue";
 
 const service = new DictService()
-const keys = ['carelinkAuth', 'carelinkData', "luck"]
+const keys = ['carelinkAuth', 'carelinkData', 'carelinkMyData', "luck"]
 const state = reactive({
   params: {
     key: keys[0],
@@ -101,19 +101,45 @@ function update() {
 }
 </script>
 <style lang="scss" scoped>
-.dict-form {
-  :deep(.el-form-item) {
-    margin-bottom: 8px;
-  }
-}
+
 
 .dict-panel {
+  display: flex;
+  flex-flow: column;
+
+  .dict-form {
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+
+    .json-editor-item {
+      flex: 1;
+
+      :deep(.el-form-item__content) {
+        height: 100%;
+      }
+    }
+
+    :deep(.el-form-item) {
+      margin-bottom: 8px;
+    }
+
+    .json-editor {
+      height: calc(100%)
+    }
+  }
+
   :deep(.el-card__header) {
+    padding: 8px;
+  }
+
+  :deep(.el-card__footer) {
     padding: 8px;
   }
 
   :deep(.el-card__body) {
     padding: 8px;
+    flex: 1;
   }
 }
 </style>

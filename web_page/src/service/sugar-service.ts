@@ -2,7 +2,6 @@ import {BaseService} from './base-service'
 import {HttpClient} from "@/utils/http-client";
 import {DictService} from "@/service/dict-service";
 import {CONST_VAR} from "@/views/const";
-import {flatten} from "lodash-es";
 
 export class SugarService extends BaseService {
   constructor() {
@@ -19,21 +18,13 @@ export class SugarService extends BaseService {
       if (result) {
         const data = JSON.parse(result.data)
         const myData = JSON.parse(result.myData)
-        if (myData.yesterdaySG) {
-          myData.yesterdaySG.sgs = flatten(myData.yesterdaySG.sgs)
-        }
         resultData = {
-          data: JSON.parse(data.data),
-          myData,
-          forecast: data.forecast,
-          status: data.status
+          ...data,
+          myData
         }
       }
     } else {
       const result = await dictService.getDemo()
-      if (result.myData.yesterdaySG) {
-        result.myData.yesterdaySG.sgs = flatten(result.myData.yesterdaySG.sgs)
-      }
       if (result) {
         resultData = {
           ...result

@@ -151,7 +151,7 @@
               <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="switchYesterday"/>
             </div>
             <div class="mr-2">
-              <el-checkbox v-model="setting.realWave" label="实时波动" size="small"/>
+              <el-checkbox v-model="setting.realWave" label="实时" size="small"/>
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@ import useSugarCalc from "@/composition/useSugarCalc";
 import defaultSettings from "@/settings";
 import {DictService} from "@/service/dict-service";
 import CryptoJS from "crypto-js";
-import {forEach} from "lodash-es";
+import {cloneDeep, flatten, forEach} from "lodash-es";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 
 dayjs.locale('zh-cn')
@@ -236,7 +236,6 @@ const lastStatus: any = Tools.getLastStatus('sugar-setting', {
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
-
 const state: any = reactive({
   tokenData: {},
   status: 200,
@@ -247,6 +246,7 @@ const state: any = reactive({
     data: null,
     myData: null,
   },
+  orgMyData: {},
   myData: {},
   forecast: {},
   nextStartTime: -1,
@@ -310,25 +310,14 @@ function toNow(time: any) {
 }
 
 function updateConduitTime() {
-  updateMyData(
-      "是否确认更新管路更换时间?",
-      () => {
-        state.myData.lastConduitTime = dayjs().format(DATE_FORMAT.datetime)
-      },
-      () => Msg.successMsg('更新管路更换时间成功'))
-}
-
-function updateMyData(confirmStr: string, sureFunc = () => {
-}, afterFunc = () => {
-}) {
-  Msg.confirm(confirmStr, async () => {
-    sureFunc()
+  Msg.confirm("是否确认更新管路更换时间", async () => {
+    state.orgMyData.lastConduitTime = dayjs().format(DATE_FORMAT.datetime)
     const result = await dictService.updateDict({
       key: CARELINK_DICT_KEY.carelinkMyData,
-      val: JSON.stringify(state.myData)
+      val: JSON.stringify(state.orgMyData)
     })
     if (result) {
-      afterFunc()
+      Msg.successMsg('更新管路更换时间成功')
     }
   })
 }
@@ -470,8 +459,11 @@ async function loadCarelinkData(mask = true) {
 }
 
 function dealMyData(myData) {
+  // console.log(myData);
+  state.orgMyData = cloneDeep(myData)
   state.myData = myData
   if (state.myData.yesterdaySG) {
+    state.myData.yesterdaySG.sgs = flatten(state.myData.yesterdaySG.sgs)
     state.myData.yesterdaySG.sgs.forEach(item => {
       item.datetime = dayjs(sugarCalc.cleanTime(item.datetime)).add(1, 'day').valueOf()
     })
@@ -558,7 +550,7 @@ const lastUpdateTime = computed(() => {
   return {
     sg: toNow(lastSgUpdateTime),
     sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
-    conduit: toNow(state.myData.lastConduitTime)
+    conduit: toNow(state.orgMyData.lastConduitTime)
   }
 })
 

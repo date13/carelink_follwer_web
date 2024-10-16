@@ -40,7 +40,7 @@
           >
             早
             <el-input-number v-model="luck.ICR.morning" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
-            碳水
+            碳
           </el-tag>
           <el-tag
               class="m-1"
@@ -49,7 +49,7 @@
           >
             中
             <el-input-number v-model="luck.ICR.afternoon" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
-            碳水
+            碳
           </el-tag>
           <el-tag
               class="m-1"
@@ -58,7 +58,7 @@
           >
             晚
             <el-input-number v-model="luck.ICR.evening" :max="20" :min="1" :precision="1" :step="0.1" size="small"/>
-            碳水
+            碳
           </el-tag>
         </div>
       </el-card>
