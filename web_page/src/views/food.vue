@@ -11,24 +11,26 @@
               :prefix-icon="Search"
               class="w-full"
               filterable
+              samll
               placeholder="输入搜索关键字"
           >
           </el-input>
-          <div class="flex justify-between items-center pl-2">
-            <el-button type="primary" @click="add">添加</el-button>
+          <div class="flex justify-between items-center px-2">
+            <el-button :icon="CirclePlus" type="primary" @click="add">添加</el-button>
+            <ep-Refresh class="ml-4 hand" @click="load"></ep-Refresh>
           </div>
         </div>
       </template>
-      <div class="flex flex-col">
+      <el-scrollbar class="flex flex-col h-full">
         <div v-for="item in foodList" class="flex justify-between food-item mb-3 pb-2 text-sm">
-          <div>{{ item.key }}</div>
-          <div>{{ item.val }}</div>
-          <div class="flex">
+          <div class="flex-1 flex justify-start pl-4">{{ item.key }}</div>
+          <div class="flex-1">{{ item.val }}</div>
+          <div class="flex flex-1 justify-end pr-4">
             <ep-Edit class="hand mr-2 text-blue" @click="edit(item)"></ep-Edit>
             <ep-Close class="hand text-red" @click="del(item)"></ep-Close>
           </div>
         </div>
-      </div>
+      </el-scrollbar>
     </el-card>
     <el-dialog :close-on-press-escape="false" :destroy-on-close="true" :model-value="show"
                :show-close="false" title="更新食物" width="80%">
@@ -55,7 +57,7 @@
 <script lang="ts" name="food" setup>
 import MainPanel from '@/layout/components/MainPanel.vue'
 import Title from "@/components/Title.vue"
-import {Check, Close, Search} from "@element-plus/icons-vue";
+import {Check, CirclePlus, Close, Search} from "@element-plus/icons-vue";
 import {SugarService} from "@/service/sugar-service";
 import {Msg, Tools} from "@/utils/tools";
 import {ElForm} from "element-plus";
@@ -129,7 +131,19 @@ function close() {
 }
 </script>
 <style lang="scss" scoped>
-.food-item {
-  border-bottom: 1px solid #e3e2e2;
+.food-card {
+  .food-item {
+    border-bottom: 1px solid #e3e2e2;
+  }
+
+  :deep(.el-card__header) {
+    padding: 4px;
+  }
+
+  :deep(.el-card__body) {
+    padding: 8px;
+    height: calc(100% - 30px);
+  }
 }
+
 </style>
