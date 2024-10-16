@@ -11,6 +11,7 @@
               </el-badge>
               <el-dropdown-item command="info">Info</el-dropdown-item>
               <el-dropdown-item command="dict">Dict</el-dropdown-item>
+              <el-dropdown-item command="food">Food</el-dropdown-item>
               <el-dropdown-item command="login">Login</el-dropdown-item>
             </el-dropdown-menu>
           </template>

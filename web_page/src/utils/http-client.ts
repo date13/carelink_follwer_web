@@ -24,7 +24,7 @@ function checkResponse(response: AxiosResponse): Promise<AxiosResponse<any>> {
             Msg.alert(result.msg || result.message)
             response.data = false
           } else {
-            response.data = result.data || (result.code === '0')
+            response.data = result.data || (result.code === '0') || (result.code === 0)
           }
         }
       } else {

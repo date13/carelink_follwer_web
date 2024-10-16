@@ -27,7 +27,7 @@ export function hideLoading() {
       loadingCount--
       if (loadingCount === 0) {
         loadingInstance.close()
-        //loadingcount为0了.强制close掉,去掉loading框,去掉body的class和loadNumber
+        //loadingcount为0了.强制close掉,去掉loading框,去掉body的class和loadNumer
         const el = document.querySelector("div.el-loading-mask.is-fullscreen")
         if (el) {
           el.remove()
@@ -337,6 +337,10 @@ export class Tools {
       }
     }
     return arr
+  }
+
+  static objToArrFlat(obj: any) {
+    return Object.entries(obj).map(([key, val]) => ({key, val}))
   }
 
   static arrToObj(arr: Array<any>, key = 'val') {

@@ -15,6 +15,10 @@ export const constantRoutes: Array<RouteRecordRaw> = [
     component: () => import("@/views/info.vue"),
   },
   {
+    path: "/food",
+    component: () => import("@/views/food.vue"),
+  },
+  {
     path: "/dict",
     component: () => import("@/views/system/dict.vue"),
   },

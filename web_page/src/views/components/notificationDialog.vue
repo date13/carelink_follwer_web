@@ -29,7 +29,6 @@
         </el-button>
       </div>
     </div>
-
   </el-dialog>
 </template>
 <script lang="ts" name="notificationDialog" setup>

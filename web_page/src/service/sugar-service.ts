@@ -46,4 +46,18 @@ export class SugarService extends BaseService {
       mask: true
     })
   }
+
+  loadFood() {
+    return HttpClient.get(`${this.apiContext}foods`, {})
+  }
+
+  updateFood(params) {
+    return HttpClient.putBody(`${this.apiContext}food`, {
+      body: params
+    })
+  }
+
+  delFood(key) {
+    return HttpClient.destroy(`${this.apiContext}food/${key}`,)
+  }
 }
