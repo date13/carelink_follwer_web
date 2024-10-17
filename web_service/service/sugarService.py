@@ -213,10 +213,12 @@ def refreshCarelinkYesterdayData(localtime):
     myData = rds.get_json(dictKey["myData"])
     data = rds.get_json(dictKey["data"])
     yesterdayData = data["data"]
+    sgsData = yesterdayData["sgs"]
+    markersData = yesterdayData["markers"]
     if yesterdayKey not in myData:
         myData[yesterdayKey] = {}
-        myData[yesterdayKey]["sgs"] = [yesterdayData["sgs"]]
-        myData[yesterdayKey]["markers"] = [yesterdayData["markers"]]
+        myData[yesterdayKey]["sgs"] = [sgsData]
+        myData[yesterdayKey]["markers"] = [markersData]
     elif ((localtime - datetime.strptime(myData[yesterdayKey]["update_time"],
                                          dataFormat)).total_seconds() / 3600) > hourOffset:
         # 先备份一下前一天的数据
@@ -225,8 +227,8 @@ def refreshCarelinkYesterdayData(localtime):
         yesMarkersArr = myData[yesterdayKey]["markers"]
         my_logger.info(
             "刷新carelinkYesterdayData数据,sgsArr:" + str(len(yesSgsArr)) + " markersArr:" + str(len(yesMarkersArr)))
-        dealYesData(yesSgsArr, yesterdayData["sgs"])
-        dealYesData(yesMarkersArr, yesterdayData["markers"])
+        dealYesData(yesSgsArr, sgsData)
+        dealYesData(yesMarkersArr, markersData)
 
     myData[yesterdayKey]["update_time"] = time.strftime(dataFormat, time.localtime())
     rds.set_json(dictKey["myData"], myData)
