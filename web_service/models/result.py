@@ -6,9 +6,11 @@ from pydantic import BaseModel
 
 T = TypeVar("T")  # 泛型 T ：https://docs.pydantic.dev/usage/models/#generic-models
 
+
 class RedisHashObj(BaseModel):
     key: str
-    val: str
+    val: str | float | int
+
 
 class ResultSchema(BaseModel, Generic[T]):
     """ 结果数据模型 """
