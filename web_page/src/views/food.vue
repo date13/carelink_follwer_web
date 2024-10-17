@@ -48,7 +48,7 @@
       <el-form ref="formRef" :model="curFood" :rules="rules" class="pa-2"
                label-position="left" label-width="50px">
         <el-form-item label="名称" prop="key">
-          <el-input v-model="curFood.key" placeholder="请输入食物名称"></el-input>
+          <el-input v-model="curFood.key" :disabled="curIndex!==-1" placeholder="请输入食物名称"></el-input>
         </el-form-item>
         <el-form-item label="碳水" prop="val">
           <el-input-number v-model="curFood.val" :min="1" placeholder="请输入每百克食物碳水"
@@ -110,7 +110,7 @@ const state: any = reactive({
   curIndex: -1
 })
 
-const {searchText, show, selectItems, curFood} = toRefs(state)
+const {searchText, show, selectItems, curFood, curIndex} = toRefs(state)
 
 const rules = {
   key: RegFunc.require('食物名称'),
@@ -128,6 +128,7 @@ const foodList = computed(() => {
 })
 
 function edit(item, i) {
+  item.val = parseFloat(item.val)
   Object.assign(state.curFood, item)
   state.show = true
   state.curIndex = i
@@ -155,7 +156,6 @@ function update() {
         list = state.list
       }
       state.curFood.key = state.curFood.key.trim()
-      state.curFood.val = state.curFood.val.trim()
       if (list.findIndex(item => item.key === state.curFood.key) !== -1) {
         Msg.warnMsg('已存在该名称，请重新输入')
         return
