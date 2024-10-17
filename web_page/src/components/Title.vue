@@ -9,7 +9,6 @@
 </template>
 
 <script>
-import {boolean} from "mathjs";
 
 export default {
   name: 'Title',
@@ -23,7 +22,7 @@ export default {
       default: ''
     },
     back: {
-      type: boolean,
+      type: Boolean,
       default: false
     }
   },

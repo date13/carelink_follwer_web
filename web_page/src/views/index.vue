@@ -463,12 +463,12 @@ function dealMyData(myData) {
   // console.log(myData);
   state.orgMyData = cloneDeep(myData)
   state.myData = myData
-  if (state.myData.yesterdaySG) {
-    state.myData.yesterdaySG.sgs = flatten(state.myData.yesterdaySG.sgs)
-    state.myData.yesterdaySG.sgs.forEach(item => {
+  if (state.myData.yesterday) {
+    state.myData.yesterday.sgs = flatten(state.myData.yesterday.sgs)
+    state.myData.yesterday.sgs.forEach(item => {
       item.datetime = dayjs(sugarCalc.cleanTime(item.datetime)).add(1, 'day').valueOf()
     })
-    state.myData.yesterdaySG.sgs = state.myData.yesterdaySG.sgs.filter(item => {
+    state.myData.yesterday.sgs = state.myData.yesterday.sgs.filter(item => {
       return item.sensorState === 'NO_ERROR_MESSAGE' && item.datetime >= dayjs().add(-1, 'day').valueOf()
     })
   }
@@ -871,7 +871,7 @@ const charOption = computed(() => {
       {
         name: '昨日血糖',
         type: 'line',
-        data: sugarCalc.loadYesterdaySgData(state.myData.yesterdaySG, setting),
+        data: sugarCalc.loadYesterdaySgData(state.myData.yesterday, setting),
         smooth: true,
         connectNulls: false,
         symbol: 'none',
