@@ -122,7 +122,7 @@
               <el-radio-button :value="luck.ICR.afternoon" label="中"/>
               <el-radio-button :value="luck.ICR.evening" label="晚"/>
             </el-radio-group>
-            <el-button size="small" type="primary" @click="addFood">添加</el-button>
+            <el-button size="small" type="primary" @click="addFood">选择</el-button>
           </div>
         </template>
         <div class="flex flex-col calc-panel">
@@ -139,7 +139,7 @@
             <div class="flex-1 flex justify-start items-center">{{ item.key }}</div>
             <div class="flex-1 flex justify-center items-center">{{ item.val }}</div>
             <div class="flex-1 flex justify-center items-center">
-              <el-input v-model="item.weight" clearable></el-input>
+              <el-input-number v-model="item.weight" :min="1" clearable size="small"></el-input-number>
             </div>
           </div>
         </div>

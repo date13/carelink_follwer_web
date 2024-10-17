@@ -39,8 +39,8 @@
     </el-card>
     <template v-if="isDialog" v-slot:footer>
       <div class="flex justify-center items-center pa-2">
-        <el-button :icon="Check" type="warning" @click="selectFoods">确定</el-button>
-        <el-button :icon="Close" type="primary" @click="closeDialog">关闭</el-button>
+        <el-button :icon="Close" size="small" type="warning" @click="closeDialog">关闭</el-button>
+        <el-button :icon="Check" size="small" type="primary" @click="selectFoods">确定</el-button>
       </div>
     </template>
     <el-dialog :close-on-press-escape="false" :destroy-on-close="true" :model-value="show"
@@ -51,15 +51,16 @@
           <el-input v-model="curFood.key" placeholder="请输入食物名称"></el-input>
         </el-form-item>
         <el-form-item label="碳水" prop="val">
-          <el-input v-model="curFood.val" placeholder="请输入每百克食物碳水"></el-input>
+          <el-input-number v-model="curFood.val" :min="1" placeholder="请输入每百克食物碳水"
+                           style="width: 100%;"></el-input-number>
         </el-form-item>
       </el-form>
       <div class="text-center">
-        <el-button :icon="Check" type="warning" @click="update">
-          保存
-        </el-button>
-        <el-button :icon="Close" type="primary" @click="close">
+        <el-button :icon="Close" size="small" type="warning" @click="close">
           关闭
+        </el-button>
+        <el-button :icon="Check" size="small" type="primary" @click="update">
+          保存
         </el-button>
       </div>
     </el-dialog>
@@ -102,7 +103,10 @@ const state: any = reactive({
   list: [],
   show: false,
   selectItems: [],
-  curFood: {},
+  curFood: {
+    key: '',
+    val: 10
+  },
   curIndex: -1
 })
 
@@ -177,7 +181,10 @@ function del(item) {
 
 function close() {
   state.show = false
-  state.curFood = {}
+  state.curFood = {
+    key: '',
+    val: 10
+  }
 }
 
 function selectFoods() {
