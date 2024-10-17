@@ -1,7 +1,7 @@
 <template>
   <MainPanel :no-top="1">
     <template v-slot:header>
-      <Title title="食物碳水"></Title>
+      <Title :back="true" title="食物碳水"></Title>
     </template>
     <el-card class="food-card text-center w-full h-full">
       <template #header>

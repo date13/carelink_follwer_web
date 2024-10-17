@@ -1,7 +1,7 @@
 <template>
   <MainPanel :no-top="1">
     <template v-slot:header>
-      <Title title="信息"></Title>
+      <Title :back="true" title="信息"></Title>
     </template>
     <div class="flex">
       <el-card class="info-card">

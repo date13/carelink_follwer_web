@@ -1,7 +1,7 @@
 <template>
   <MainPanel :no-top="1">
     <template v-slot:header>
-      <Title title="字典"></Title>
+      <Title :back="true" title="字典"></Title>
     </template>
     <div class="flex h-full">
       <el-card class="w-full dict-panel h-full">

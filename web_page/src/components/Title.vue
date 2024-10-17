@@ -1,11 +1,16 @@
 <template>
   <div class="title">
-    <div class="title_title">{{ title }}</div>
+    <div class="title_title flex justify-between">
+      <span>{{ title }}</span>
+      <ep-Back v-if="back" class="hand text-lg" @click="backPage"></ep-Back>
+    </div>
     <div v-if="subTitle" class="title_sub-title">{{ subTitle }}</div>
   </div>
 </template>
 
 <script>
+import {boolean} from "mathjs";
+
 export default {
   name: 'Title',
   props: {
@@ -16,8 +21,17 @@ export default {
     subTitle: {
       type: String,
       default: ''
+    },
+    back: {
+      type: boolean,
+      default: false
     }
   },
+  methods: {
+    backPage() {
+      this.$router.back();
+    }
+  }
 }
 </script>
 
