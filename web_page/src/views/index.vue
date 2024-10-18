@@ -587,10 +587,10 @@ const charOption = computed(() => {
       icon: 'rect',
       data: [
         {name: '血糖', itemStyle: {color: COLORS[0]}},
-        {name: '昨日血糖', itemStyle: {color: COLORS[9]}},
+        {name: '血糖(昨)', itemStyle: {color: COLORS[9]}},
         {name: '基础率', itemStyle: {color: COLORS[1]}},
         {name: '大剂量', itemStyle: {color: COLORS[2]}},
-        {name: '昨日大剂量', itemStyle: {color: COLORS[6]}}
+        {name: '大剂量(昨)', itemStyle: {color: COLORS[6]}}
       ]
     },
     toolbox: {
