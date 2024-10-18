@@ -868,7 +868,7 @@ const charOption = computed(() => {
         data: sugarCalc.loadInsulinData(state.data.markers, setting)
       },
       {
-        name: '昨日血糖',
+        name: '血糖(昨)',
         type: 'line',
         data: sugarCalc.loadYesterdaySgData(state.myData.yesterday, setting),
         smooth: true,
@@ -886,7 +886,7 @@ const charOption = computed(() => {
         }
       },
       {
-        name: '昨日大剂量',
+        name: '大剂量(昨)',
         type: "scatter",
         yAxisIndex: 3,
         symbolSize: 15,
