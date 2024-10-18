@@ -10,6 +10,7 @@ import {
 import dayjs from "dayjs";
 import {std} from "mathjs";
 import {compact} from "lodash-es";
+import echarts from "@/plugins/echart";
 
 export default function () {
 
@@ -60,8 +61,9 @@ export default function () {
     return ((stdNumber / avgSg) * 100).toFixed(1)
   }
 
-  const cleanTime = (time: string) => {
+  const cleanTime = (time: string | number) => {
     if (!time) return
+    if (typeof time === 'number') return time
     return dayjs(time.replaceAll('T', ' ').replaceAll('.000Z', '').replaceAll(".000-00:00", "")).valueOf()
   }
 
@@ -141,7 +143,17 @@ export default function () {
     })
   }
 
-  const loadInsulinData = (list) => {
+  const loadInsulinData = (list, setting, type = INSULIN_TYPE.INSULIN) => {
+    if (type === INSULIN_TYPE.INSULIN_YESTERDAY) {
+      if (!setting.showYesterday) {
+        return []
+      } else {
+        const curDatetime = dayjs().add(getStartPercent(setting.startPercent)?.offset, 'minutes').valueOf()
+        list = list.filter(item => {
+          return item.dateTime <= curDatetime
+        })
+      }
+    }
     return list.map(item => {
       if (item.type === 'INSULIN' && (item.activationType === 'RECOMMENDED' || item.activationType === 'MANUAL')) {
         const plan = item.programmedFastAmount.toFixed(2)
@@ -150,7 +162,7 @@ export default function () {
         return [
           cleanTime(item.dateTime),
           plan,
-          INSULIN_TYPE.INSULIN,
+          type,
           delivered,
           meal ? meal.amount : 0
         ]
@@ -306,6 +318,23 @@ export default function () {
     return [calcSG(Math.min(...arr)), calcSG(Math.max(...arr))]
   }
 
+  function showInsulin(item) {
+    if (item.data) {
+      const percent = Number((item.data[3] / item.data[1]).toFixed(1))
+      const color = item.data[2].color2
+      return percent === 1 ? color : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 1, 0, 0, [
+        {
+          offset: 1 - percent,
+          color: 'white'
+        },
+        {
+          offset: percent,
+          color: color
+        }
+      ])
+    }
+  }
+
   return {
     getLastSg,
     calcSgYValueLimit,
@@ -325,6 +354,7 @@ export default function () {
     shouldHaveAR2,
     showNotificationMsg,
     maxWave,
-    minMaxSG
+    minMaxSG,
+    showInsulin
   }
 }

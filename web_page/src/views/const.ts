@@ -82,7 +82,17 @@ export const NOTIFICATION_MAP = {
     text: '请输入血糖值,继续使用闭环模式',
     replace: null,
     type: 'warning'
-  }
+  },
+  BC_SID_SENSOR_RELATED_ISSUE_INSERT_NEW: {
+    text: '请更换新探头',
+    replace: null,
+    type: 'error'
+  },
+  BC_SID_BASAL_STARTED_SMART_GUARD: {
+    text: '基础率开启，请继续使用闭环模式',
+    replace: null,
+    type: 'warning'
+  },
 }
 
 export const CARELINK_DICT_KEY = {
@@ -173,6 +183,11 @@ export const SYSTEM_STATUS_MAP = {
     key: 'SEARCHING_FOR_SENSOR_SIGNAL',
     color: COLORS[5]
   },
+  RECONNECTING_TO_PUMP: {
+    name: '重连中',
+    key: 'RECONNECTING_TO_PUMP',
+    color: COLORS[1]
+  }
 }
 export const REFRESH_INTERVAL = {
   loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
@@ -225,6 +240,14 @@ export const INSULIN_TYPE = {
     color2: COLORS[2],
     color3: COLORS[0],
     key: 'INSULIN',
+    text: ['手动输注', '已输注', '碳水']
+  },
+  INSULIN_YESTERDAY: {
+    name: '昨日大剂量',
+    color: COLORS[4],
+    color2: COLORS[6],
+    color3: COLORS[0],
+    key: 'INSULIN_YESTERDAY',
     text: ['手动输注', '已输注', '碳水']
   },
   AUTOCORRECTION: {

@@ -305,7 +305,7 @@ const totalCalc = computed(() => {
 
 .calc-panel {
   min-height: 100px;
-  max-height: 200px;
+  max-height: 250px;
   overflow: auto;
 }
 

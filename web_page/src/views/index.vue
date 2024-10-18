@@ -71,7 +71,7 @@
               <el-tag class="mb-1 mr-1" size="small" type="warning">
                 探头:
                 {{
-                  data.sensorDurationMinutes ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : '待更换'
+                  data.sensorDurationMinutes ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name
                 }}&nbsp;
                 {{
                   data.gstBatteryLevel || '--'
@@ -464,14 +464,26 @@ function dealMyData(myData) {
   state.orgMyData = cloneDeep(myData)
   state.myData = myData
   if (state.myData.yesterday) {
-    state.myData.yesterday.sgs = flatten(state.myData.yesterday.sgs)
-    state.myData.yesterday.sgs.forEach(item => {
-      item.datetime = dayjs(sugarCalc.cleanTime(item.datetime)).add(1, 'day').valueOf()
+    flattenYesterdayData('sgs', 'datetime', () => {
+      state.myData.yesterday.sgs = state.myData.yesterday.sgs.filter(item => {
+        return item.sensorState === 'NO_ERROR_MESSAGE' && item.datetime >= dayjs().add(-1, 'day').valueOf()
+      })
     })
-    state.myData.yesterday.sgs = state.myData.yesterday.sgs.filter(item => {
-      return item.sensorState === 'NO_ERROR_MESSAGE' && item.datetime >= dayjs().add(-1, 'day').valueOf()
+    flattenYesterdayData('markers', 'dateTime', () => {
+      state.myData.yesterday.markers = state.myData.yesterday.markers.filter(item => {
+        return (item.type === 'INSULIN' || item.type === 'MEAL') && item.dateTime >= dayjs().add(-1, 'day').valueOf()
+      })
     })
   }
+}
+
+function flattenYesterdayData(key, timeKey = 'datetime', suffixFunc = () => {
+}) {
+  state.myData.yesterday[key] = flatten(state.myData.yesterday[key])
+  state.myData.yesterday[key].forEach(item => {
+    item[timeKey] = dayjs(sugarCalc.cleanTime(item[timeKey])).add(1, 'day').valueOf()
+  })
+  suffixFunc()
 }
 
 function dealNewNotification() {
@@ -577,7 +589,8 @@ const charOption = computed(() => {
         {name: '血糖', itemStyle: {color: COLORS[0]}},
         {name: '昨日血糖', itemStyle: {color: COLORS[9]}},
         {name: '基础率', itemStyle: {color: COLORS[1]}},
-        {name: '大剂量', itemStyle: {color: COLORS[2]}}
+        {name: '大剂量', itemStyle: {color: COLORS[2]}},
+        {name: '昨日大剂量', itemStyle: {color: COLORS[6]}}
       ]
     },
     toolbox: {
@@ -606,7 +619,7 @@ const charOption = computed(() => {
         </div>`
         params.forEach((item, i) => {
           const type = item.data[2]
-          const isInsulin = type.key === INSULIN_TYPE.INSULIN.key
+          const isInsulin = (type.key === INSULIN_TYPE.INSULIN.key || type.key === INSULIN_TYPE.INSULIN_YESTERDAY.key)
           dataStr += `
             <div class="flex items-center justify-between my-1">
               <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
@@ -850,23 +863,9 @@ const charOption = computed(() => {
         },
         itemStyle: {
           borderColor: COLORS[2],
-          color: (item) => {
-            if (item.data) {
-              let percent = Number((item.data[3] / item.data[1]).toFixed(1))
-              return percent === 1 ? COLORS[2] : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 1, 0, 0, [
-                {
-                  offset: 1 - percent,
-                  color: 'white'
-                },
-                {
-                  offset: percent,
-                  color: COLORS[2]
-                }
-              ])
-            }
-          }
+          color: sugarCalc.showInsulin
         },
-        data: sugarCalc.loadInsulinData(state.data.markers)
+        data: sugarCalc.loadInsulinData(state.data.markers, setting)
       },
       {
         name: '昨日血糖',
@@ -885,6 +884,27 @@ const charOption = computed(() => {
         labelLine: {
           smooth: true,
         }
+      },
+      {
+        name: '昨日大剂量',
+        type: "scatter",
+        yAxisIndex: 3,
+        symbolSize: 15,
+        label: {
+          formatter: (item) => {
+            return item.data[3]
+          },
+          position: 'top',
+          show: true,
+        },
+        emphasis: {
+          scale: true
+        },
+        itemStyle: {
+          borderColor: COLORS[6],
+          color: sugarCalc.showInsulin
+        },
+        data: sugarCalc.loadInsulinData(state.myData.yesterday.markers, setting, INSULIN_TYPE.INSULIN_YESTERDAY)
       },
     ]
   }
