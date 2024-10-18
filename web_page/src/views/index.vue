@@ -585,10 +585,12 @@ const charOption = computed(() => {
   return {
     legend: {
       icon: 'rect',
+      itemGap: 5,
+      itemWidth: 20,
       data: [
         {name: '血糖', itemStyle: {color: COLORS[0]}},
         {name: '血糖(昨)', itemStyle: {color: COLORS[9]}},
-        {name: '基础率', itemStyle: {color: COLORS[1]}},
+        {name: '基础', itemStyle: {color: COLORS[1]}},
         {name: '大剂量', itemStyle: {color: COLORS[2]}},
         {name: '大剂量(昨)', itemStyle: {color: COLORS[6]}}
       ]
@@ -672,7 +674,7 @@ const charOption = computed(() => {
         show: false
       },
       {
-        name: '基础率',
+        name: '基础',
         nameLocation: 'start',
         show: false,
         type: 'value',
@@ -823,7 +825,7 @@ const charOption = computed(() => {
         }
       },
       {
-        name: '基础率',
+        name: '基础',
         type: "bar",
         yAxisIndex: 2,
         connectNull: true,
@@ -889,7 +891,7 @@ const charOption = computed(() => {
         name: '大剂量(昨)',
         type: "scatter",
         yAxisIndex: 3,
-        symbolSize: 15,
+        symbolSize: 10,
         label: {
           formatter: (item) => {
             return item.data[3]
