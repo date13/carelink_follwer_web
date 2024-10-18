@@ -27,8 +27,12 @@
             <div v-if="isDialog" class="w-10">
               <el-checkbox :value="item"/>
             </div>
-            <div class="flex-1 flex justify-start pl-4 items-center">{{ item.key }}</div>
-            <div class="flex-1 flex justify-center items-center">{{ item.val }}</div>
+            <div class="flex-1 flex justify-start pl-4 items-center hand"
+                 @click="checkFood(item)">{{ item.key }}
+            </div>
+            <div class="flex-1 flex justify-center items-center hand"
+                 @click="checkFood(item)">{{ item.val }}
+            </div>
             <div class="flex flex-1 justify-end pr-4 items-center">
               <ep-Edit class="hand mr-2 text-blue" @click="edit(item,i)"></ep-Edit>
               <ep-Close class="hand text-red" @click="del(item)"></ep-Close>
@@ -48,7 +52,7 @@
       <el-form ref="formRef" :model="curFood" :rules="rules" class="pa-2"
                label-position="left" label-width="50px">
         <el-form-item label="名称" prop="key">
-          <el-input v-model="curFood.key" :disabled="curIndex!==-1" placeholder="请输入食物名称"></el-input>
+          <el-input v-model="curFood.key" :disabled="curIndex!==-1" clearable placeholder="请输入食物名称"></el-input>
         </el-form-item>
         <el-form-item label="碳水" prop="val">
           <el-input-number v-model="curFood.val" :min="1" placeholder="请输入每百克食物碳水"
@@ -190,6 +194,15 @@ function close() {
 function selectFoods() {
   props.callback(state.selectItems)
   props.closeDialog()
+}
+
+function checkFood(food) {
+  const index = state.selectItems.findIndex(item => item.key === food.key)
+  if (index !== -1) {
+    state.selectItems.splice(index, 1)
+  } else {
+    state.selectItems.push(food)
+  }
 }
 </script>
 <style lang="scss" scoped>
