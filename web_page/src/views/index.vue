@@ -71,7 +71,7 @@
               <el-tag class="mb-1 mr-1" size="small" type="warning">
                 探头:
                 {{
-                  data.sensorDurationMinutes ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name
+                  sugarCalc.sensorState(data)
                 }}&nbsp;
                 {{
                   data.gstBatteryLevel || '--'
@@ -206,6 +206,7 @@ import {
   NOTIFICATION_MAP,
   PUMP_STATUS,
   REFRESH_INTERVAL,
+  SG_STATUS,
   SYSTEM_STATUS_MAP,
   TIME_RANGE_CONFIG
 } from "@/views/const";
@@ -466,7 +467,7 @@ function dealMyData(myData) {
   if (state.myData.yesterday) {
     flattenYesterdayData('sgs', 'datetime', () => {
       state.myData.yesterday.sgs = state.myData.yesterday.sgs.filter(item => {
-        return item.sensorState === 'NO_ERROR_MESSAGE' && item.datetime >= dayjs().add(-1, 'day').valueOf()
+        return item.sensorState === SG_STATUS.NO_ERROR_MESSAGE.key && item.datetime >= dayjs().add(-1, 'day').valueOf()
       })
     })
     flattenYesterdayData('markers', 'dateTime', () => {
@@ -609,8 +610,8 @@ const charOption = computed(() => {
       trigger: 'axis',
       confine: true,
       position: (point, params, dom, rect, size) => {
-        const isInsulin = params[0].data[2].key === INSULIN_TYPE.INSULIN.key
-        return [point[0] - 100, point[1] - 110 * (isInsulin ? 1.5 : 1)]  //返回x、y（横向、纵向）两个点的位置
+        // const isInsulin = params[0].data[2].key === INSULIN_TYPE.INSULIN.key
+        return [point[0] - 100, point[1] - 150]  //返回x、y（横向、纵向）两个点的位置
       },
       formatter: params => {
         // 获取xAxis data中的数据

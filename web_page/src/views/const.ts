@@ -12,6 +12,16 @@ export const COLORS = [
 ]
 
 export const NOTIFICATION_HASH_KEY = 'carelink_follower'
+export const SG_STATUS = {
+  NO_ERROR_MESSAGE: {
+    key: 'NO_ERROR_MESSAGE',
+    name: '正常'
+  },
+  SG_BELOW_40_MGDL: {
+    key: 'SG_BELOW_40_MGDL',
+    name: '探头值低于2.2'
+  }
+}
 export const NOTIFICATION_MAP = {
   BC_SID_BOLUS_ENTRY_TIMED_OUT: {
     text: `大剂量输入超时`,
@@ -93,6 +103,16 @@ export const NOTIFICATION_MAP = {
     replace: null,
     type: 'warning'
   },
+  BC_SID_BATTERY_LIFE_LESS_30_MINUTES: {
+    text: '电池剩余时间不足30分钟',
+    replace: null,
+    type: 'warning'
+  },
+  BC_SID_DELIVERY_STOPPED_INSERT_NEW_BATTERY: {
+    text: '输注暂停,请更换新电池',
+    replace: null,
+    type: 'error'
+  },
 }
 
 export const CARELINK_DICT_KEY = {
@@ -101,6 +121,20 @@ export const CARELINK_DICT_KEY = {
   carelinkMyData: "carelinkMyData"
 }
 
+export const SENSOR_STATUS = {
+  SENSOR_DISCONNECTED: {
+    key: 'SENSOR_DISCONNECTED',
+    name: '探头断开'
+  },
+  UNKNOWN: {
+    key: 'UNKNOWN',
+    name: '未知'
+  },
+  NO_ERROR_MESSAGE: {
+    key: 'NO_ERROR_MESSAGE',
+    name: '正常'
+  }
+}
 export const PUMP_STATUS = {
   sport: {
     key: "sport",
@@ -187,6 +221,11 @@ export const SYSTEM_STATUS_MAP = {
     name: '重连中',
     key: 'RECONNECTING_TO_PUMP',
     color: COLORS[1]
+  },
+  SENSOR_DISCONNECTED: {
+    name: '探头断开',
+    key: 'SENSOR_DISCONNECTED',
+    color: COLORS[5]
   }
 }
 export const REFRESH_INTERVAL = {

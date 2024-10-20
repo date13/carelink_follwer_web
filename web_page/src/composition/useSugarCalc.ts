@@ -4,6 +4,8 @@ import {
   INSULIN_TYPE,
   NOTIFICATION_MAP,
   PUMP_STATUS,
+  SENSOR_STATUS,
+  SG_STATUS,
   SYSTEM_STATUS_MAP,
   TIME_RANGE_CONFIG
 } from "@/views/const";
@@ -15,7 +17,7 @@ import echarts from "@/plugins/echart";
 export default function () {
 
   const getLastSg = (lastSG) => {
-    return lastSG.sensorState === "NO_ERROR_MESSAGE" ? calcSG(lastSG.sg) : "--"
+    return lastSG.sensorState === SG_STATUS.NO_ERROR_MESSAGE.key && lastSG.sg !== 0 ? calcSG(lastSG.sg) : "--"
   }
 
   const calcSgYValueLimit = () => {
@@ -271,7 +273,7 @@ export default function () {
 
   function showNotificationMsg(messageId, sg) {
     const item = NOTIFICATION_MAP[messageId]
-    if (sg) return item.text.replace(item.replace, calcSG(sg))
+    if (sg) return item.text.replace(item.replace, parseFloat(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
     return item.text
   }
 
@@ -288,7 +290,8 @@ export default function () {
   }
 
   function validItem(item) {
-    return item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0
+    return (item.sensorState === SG_STATUS.NO_ERROR_MESSAGE.key && item.sg !== 0) || item.sensorState === SG_STATUS.SG_BELOW_40_MGDL.key
+    // return item.sensorState === 'NO_ERROR_MESSAGE' && item.sg !== 0
   }
 
   function maxWave(sgs, setting, size = 12) {
@@ -335,6 +338,12 @@ export default function () {
     }
   }
 
+  function sensorState(data) {
+    return data.sensorState === SENSOR_STATUS.NO_ERROR_MESSAGE.key && data.sensorDurationMinutes ?
+        dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) :
+        SENSOR_STATUS[data.sensorState] ? SENSOR_STATUS[data.sensorState].name : data.sensorState
+  }
+
   return {
     getLastSg,
     calcSgYValueLimit,
@@ -355,6 +364,7 @@ export default function () {
     showNotificationMsg,
     maxWave,
     minMaxSG,
-    showInsulin
+    showInsulin,
+    sensorState
   }
 }
