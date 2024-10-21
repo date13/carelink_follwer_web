@@ -11,6 +11,13 @@ export const COLORS = [
   '#eeb1c9'//9严重警告区域背景
 ]
 
+export const CHART_LEGEND = [
+  {name: '血糖', itemStyle: {color: COLORS[0]}},
+  {name: '血糖(昨)', itemStyle: {color: COLORS[9]}},
+  {name: '基础', itemStyle: {color: COLORS[1]}},
+  {name: '大剂量', itemStyle: {color: COLORS[2]}},
+  {name: '大剂量(昨)', itemStyle: {color: COLORS[6]}}
+]
 export const NOTIFICATION_HASH_KEY = 'carelink_follower'
 export const SG_STATUS = {
   NO_ERROR_MESSAGE: {
@@ -20,6 +27,14 @@ export const SG_STATUS = {
   SG_BELOW_40_MGDL: {
     key: 'SG_BELOW_40_MGDL',
     name: '探头值低于2.2'
+  },
+  NO_DATA_FROM_PUMP: {
+    key: 'NO_DATA_FROM_PUMP',
+    name: 'n/a'
+  },
+  WARM_UP: {
+    key: 'WARM_UP',
+    name: '--'
   }
 }
 export const NOTIFICATION_MAP = {
@@ -113,6 +128,11 @@ export const NOTIFICATION_MAP = {
     replace: null,
     type: 'error'
   },
+  BC_SID_SELECT_FILL_CANNULA_OR_SKIP: {
+    text: '请选择是否使用新管路或跳过',
+    replace: null,
+    type: 'warning'
+  }
 }
 
 export const CARELINK_DICT_KEY = {
@@ -133,6 +153,14 @@ export const SENSOR_STATUS = {
   NO_ERROR_MESSAGE: {
     key: 'NO_ERROR_MESSAGE',
     name: '正常'
+  },
+  SEARCHING_FOR_SENSOR_SIGNAL: {
+    key: 'SEARCHING_FOR_SENSOR_SIGNAL',
+    name: '寻找探头'
+  },
+  WARM_UP: {
+    key: 'WARM_UP',
+    name: '预热'
   }
 }
 export const PUMP_STATUS = {

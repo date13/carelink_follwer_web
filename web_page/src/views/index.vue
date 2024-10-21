@@ -198,6 +198,7 @@ import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {
   CARELINK_DICT_KEY,
+  CHART_LEGEND,
   COLORS,
   CONST_VAR,
   DIRECTIONS,
@@ -299,6 +300,15 @@ function initSetting() {
       lastKey: null
     }
   }
+  if (!setting.legend) {
+    const legendOptions = {}
+    CHART_LEGEND.forEach(item => {
+      legendOptions[item.name] = true
+    })
+    setting.legend = {
+      selected: legendOptions
+    }
+  }
 }
 
 function fromNow(time: any) {
@@ -397,62 +407,8 @@ async function loadCarelinkData(mask = true) {
         state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
         // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
         dealNewNotification()
-        // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
         dealMyData(result.myData)
-        /* state.data.therapyAlgorithmState = {
-           "autoModeShieldState": "SAFE_BASAL",
-           "autoModeReadinessState": "NO_ACTION_REQUIRED",
-           "plgmLgsState": "FEATURE_OFF",
-           "safeBasalDuration": 213,
-           "waitToCalibrateDuration": 0
-         }*/
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
-        /* state.data.notificationHistory.activeNotifications = [
-           {
-             "dateTime": "2024-09-27T19:26:58.000-00:00",
-             "GUID": "6F1B0000-3003-0000-823E-A72C00000000",
-             "type": "ALERT",
-             "faultId": 816,
-             "instanceId": 7023,
-             "messageId": "BC_SID_HIGH_SG_CHECK_BG",
-             "sg": 171,
-             "pumpDeliverySuspendState": false,
-             "relativeOffset": -307,
-             "alertSilenced": false
-           }
-         ]*/
-        // state.data.therapyAlgorithmState = null
-        /*state.data.markers.push({
-          "type": "CALIBRATION",
-          "index": 148,
-          "value": 130,
-          "kind": "Marker",
-          "version": 1,
-          "dateTime": "2024-09-11T14:18:00.000-00:00",
-          "relativeOffset": -41836,
-          "calibrationSuccess": true
-        },)*/
-        /* Object.assign(state.data, {
-           "therapyAlgorithmState": {
-             "autoModeShieldState": "FEATURE_OFF",
-             "autoModeReadinessState": "NO_ACTION_REQUIRED",
-             "plgmLgsState": "MONITORING",
-             "safeBasalDuration": 0,
-             "waitToCalibrateDuration": 0
-           },
-           "pumpBannerState": [
-             {
-               "type": "TEMP_BASAL",
-               "timeRemaining": 35
-             }
-           ],
-           "basal": {
-             "basalRate": 0.175,
-             "tempBasalRate": 1,
-             "tempBasalType": "ABSOLUTE",
-             "tempBasalDurationRemaining": 35
-           }
-         })*/
       }
     }
   } catch (e) {
@@ -525,7 +481,7 @@ function handleMenu(command) {
 function switchAR2() {
   if (!sugarCalc.shouldHaveAR2(state.data) && setting.showAR2) {
     setting.showAR2 = false
-    Msg.warnMsg(`当前系统状态为:${SYSTEM_STATUS_MAP[state.data.systemStatusMessage]?.name},无法预测`)
+    Msg.warnMsg(`当前系统状态为:${SYSTEM_STATUS_MAP[state.data.systemStatusMessage]?.name},最近血糖为:${SG_STATUS[state.data.lastSG.sensorState]?.name}`)
   } else {
     refreshChart()
   }
@@ -588,13 +544,8 @@ const charOption = computed(() => {
       icon: 'rect',
       itemGap: 5,
       itemWidth: 20,
-      data: [
-        {name: '血糖', itemStyle: {color: COLORS[0]}},
-        {name: '血糖(昨)', itemStyle: {color: COLORS[9]}},
-        {name: '基础', itemStyle: {color: COLORS[1]}},
-        {name: '大剂量', itemStyle: {color: COLORS[2]}},
-        {name: '大剂量(昨)', itemStyle: {color: COLORS[6]}}
-      ]
+      data: CHART_LEGEND,
+      selected: setting.legend.selected
     },
     toolbox: {
       show: false,
@@ -919,6 +870,9 @@ function drawLine() {
   if (!chart) { // 如果不存在，就进行初始化。
     chart = echarts.init(<HTMLElement>myChart.value)
   }
+  chart.on('legendselectchanged', function (params) {
+    Object.assign(setting.legend.selected, params.selected)
+  });
   resizeObj = useChartResize(chart)
   resizeObj.mounted()
 }
