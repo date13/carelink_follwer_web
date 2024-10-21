@@ -198,7 +198,7 @@ def refreshCarelinkToken():
 #     params: UpdateSysDictForm = UpdateSysDictForm(key=key, val=json.dumps(dataObj))
 #     result = await updateSysDict(params)
 #     return result
-yesterdayKey = "yesterdaySG"
+yesterdayKey = "yesterday"
 datetimeFormat = "%Y-%m-%d %H:%M:%S"
 dateFormat = "%Y-%m-%d"
 hourOffset = 23
@@ -214,23 +214,34 @@ def refreshCarelinkYesterdayData(data, localtime):
     # 3. 数据间隔大于23小时
     myData = rds.get_json(dictKey["myData"])
     yesterdayData = data["data"]
+    sgsData = yesterdayData["sgs"]
+    markersData = yesterdayData["markers"]
     if yesterdayKey not in myData:
         myData[yesterdayKey] = {}
-        myData[yesterdayKey]["sgs"] = [yesterdayData["sgs"]]
+        myData[yesterdayKey]["sgs"] = [sgsData]
+        myData[yesterdayKey]["markers"] = [markersData]
     elif ((localtime - datetime.strptime(myData[yesterdayKey]["update_time"],
                                          datetimeFormat)).total_seconds() / 3600) > hourOffset:
         # 先备份一下前一天的数据
         # rds.set_json("carelinkMyData_Backup", myData)
-        yesArr = myData[yesterdayKey]["sgs"]
-        my_logger.info("刷新carelinkYesterdayData数据:" + str(len(yesArr)))
-        if len(yesArr) == 1:
-            yesArr.append(yesterdayData["sgs"])
-        elif len(yesArr) == 2:
-            yesArr[0] = yesArr[1]
-            yesArr[1] = yesterdayData["sgs"]
+        yesSgsArr = myData[yesterdayKey]["sgs"]
+        yesMarkersArr = myData[yesterdayKey]["markers"]
+        my_logger.info(
+            "刷新carelinkYesterdayData数据,sgsArr:" + str(len(yesSgsArr)) + " markersArr:" + str(len(yesMarkersArr)))
+        dealYesData(yesSgsArr, sgsData)
+        dealYesData(yesMarkersArr, markersData)
+
     myData[yesterdayKey]["update_time"] = localtime.strftime(datetimeFormat)
     rds.set_json(dictKey["myData"], myData)
     my_logger.info("刷新carelinkYesterdayData数据成功")
+
+
+def dealYesData(yesArr, yesData):
+    if len(yesArr) < 2:
+        yesArr.append(yesData)
+    elif len(yesArr) == 2:
+        yesArr[0] = yesArr[1]
+        yesArr[1] = yesData
 
 
 def saveHistoryData(data, localtime):
