@@ -1,9 +1,9 @@
 <template>
   <MainPanel :no-top="1">
     <template v-slot:header>
-      <Title :back="true" title="信息"></Title>
+      <Title :back="!isDialog" :title="title"></Title>
     </template>
-    <div class="flex">
+    <div v-if="!isDialog" class="flex">
       <el-card class="info-card">
         <template #header>
           Note
@@ -83,7 +83,7 @@
           </el-tag>
         </div>
       </el-card>
-      <el-card class="info-card">
+      <el-card v-if="!isDialog" class="info-card">
         <template #header>
           ISF
         </template>
@@ -153,6 +153,11 @@
         </template>
       </el-card>
     </div>
+    <template v-if="isDialog" v-slot:footer>
+      <div class="flex justify-center items-center pa-4">
+        <el-button type="primary" @click="closeDrawer">关闭</el-button>
+      </div>
+    </template>
     <el-dialog :close-on-press-escape="false" :destroy-on-close="true" :model-value="show"
                :show-close="false" style="height:70%;" width="80%">
       <food :callback="foodCallback" :closeDialog="close" :is-dialog="true" :selected="foods"></food>
@@ -173,7 +178,19 @@ const illDays = dayjs().diff(dayjs('2023-2-27'), 'days')
 const luckDays = dayjs().diff(dayjs('2023-10-16'), 'days')
 
 const service = new DictService()
-
+const props = defineProps({
+  title: {
+    default: '信息'
+  },
+  isDialog: {
+    default: false,
+    type: Boolean
+  },
+  closeDrawer: {
+    default: () => {
+    }
+  },
+})
 const state: any = reactive({
   luck: {
     yes: 0,

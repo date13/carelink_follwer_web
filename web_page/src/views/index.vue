@@ -1,22 +1,17 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
-      <el-badge :is-dot="setting.notification.hasNew" class="menu-panel">
-        <el-dropdown placement="bottom-start" trigger="click" @command="handleMenu">
-          <ep-Menu></ep-Menu>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-badge :is-dot="setting.notification.hasNew" :offset="[-13,8]">
-                <el-dropdown-item command="notification">Notification</el-dropdown-item>
-              </el-badge>
-              <el-dropdown-item command="info">Info</el-dropdown-item>
-              <el-dropdown-item command="dict">Dict</el-dropdown-item>
-              <el-dropdown-item command="food">Food</el-dropdown-item>
-              <el-dropdown-item command="login">Login</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-badge>
+      <el-dropdown class="menu-panel" placement="bottom-start" trigger="click" @command="handleMenu">
+        <ep-Menu></ep-Menu>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="info">Info</el-dropdown-item>
+            <el-dropdown-item command="dict">Dict</el-dropdown-item>
+            <el-dropdown-item command="food">Food</el-dropdown-item>
+            <el-dropdown-item command="login">Login</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <div class="flex flex-row h-50">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
@@ -157,7 +152,7 @@
           </div>
         </div>
       </div>
-      <div class="flex-1">
+      <div class="flex-1 chart-panel">
         <div ref="myChart" class="border-grey border-grey h-full"></div>
       </div>
       <div class="h-15 px-2 flex items-center justify-around">
@@ -181,6 +176,23 @@
         </el-tag>
       </div>
     </div>
+    <div class="float-panel flex flex-col items-center justify-center">
+      <div class="item flex items-center justify-center border-solid border-1" style="border-bottom:none;">
+        <el-badge :is-dot="setting.notification.hasNew">
+          <ep-Bell class="hand" @click="handleMenu('notification')"></ep-Bell>
+        </el-badge>
+      </div>
+      <div class="item flex items-center justify-center border-solid border-1">
+        <ep-KnifeFork class="hand" @click="showDrawer"></ep-KnifeFork>
+      </div>
+    </div>
+    <el-drawer
+        v-model="drawer"
+        direction="rtl"
+        size="80%"
+    >
+      <Info :close-drawer="closeDrawer" :is-dialog="true" title="碳水计算"></Info>
+    </el-drawer>
     <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                         :notificationHistory="data.notificationHistory"></NotificationDialog>
   </MainPanel>
@@ -217,6 +229,7 @@ import {DictService} from "@/service/dict-service";
 import CryptoJS from "crypto-js";
 import {cloneDeep, flatten, forEach} from "lodash-es";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
+import Info from "@/views/info.vue"
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -273,10 +286,11 @@ const state: any = reactive({
     gstBatteryLevel: 0,
     sensorDurationMinutes: 0,
   },
-  time: dayjs()//当前系统时间
+  time: dayjs(),//当前系统时间
+  drawer: false
 })
 
-const {data, time, updateDatetime, status, showNotificationDialog, nextStartTime} = toRefs(state)
+const {data, time, updateDatetime, status, showNotificationDialog, nextStartTime, drawer} = toRefs(state)
 
 onBeforeMount(() => {
   initSetting()
@@ -406,6 +420,7 @@ async function loadCarelinkData(mask = true) {
         state.nextStartTime = result.nextStartTime
         state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
         // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+        // setting.notification.hasNew = true
         dealNewNotification()
         dealMyData(result.myData)
         document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
@@ -476,6 +491,14 @@ function handleMenu(command) {
   } else {
     location.href = `/${command}`
   }
+}
+
+function showDrawer() {
+  state.drawer = true
+}
+
+function closeDrawer() {
+  state.drawer = false
 }
 
 function switchAR2() {
@@ -913,6 +936,17 @@ function drawLine() {
     --el-segmented-item-selected-color: white;
     --el-segmented-item-selected-bg-color: var(--el-color-primary-light-3);
     --el-border-radius-base: 16px;
+  }
+}
+
+.float-panel {
+  right: 0;
+  position: absolute;
+  bottom: 100px;
+
+  .item {
+    width: 35px;
+    height: 35px;
   }
 }
 </style>

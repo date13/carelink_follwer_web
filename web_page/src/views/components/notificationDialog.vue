@@ -1,6 +1,6 @@
 <template>
   <el-dialog :close-on-press-escape="false" :destroy-on-close="true" :model-value="show"
-             :show-close="false" width="60%" @close="close">
+             :show-close="false" width="80%" @close="close">
     <div class="flex flex-col h-100">
       <div v-if="notificationHistory.activeNotifications.length>0" class="mx-3 mb-2">
         <div class="mb-1">当前警报:</div>
