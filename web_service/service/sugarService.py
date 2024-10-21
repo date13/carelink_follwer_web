@@ -20,7 +20,8 @@ dictKey = {
     "luck": "luck",
     "auth": "carelinkAuth",
     "data": "carelinkData",
-    "myData": "carelinkMyData"
+    "myData": "carelinkMyData",
+    "history": "history"
 }
 mailBody = {
     'subject': 'carelink_follower_web警报',
@@ -63,7 +64,7 @@ def loadCarelinkData(token):
     except requests.exceptions.RequestException as e:
         text = "读取 carelinkData 数据异常!!!" + str(e)
         my_logger.info(text)
-        sendMail(text)
+        # sendMail(text)
         return None, None
 
 
@@ -197,13 +198,14 @@ def refreshCarelinkToken():
 #     params: UpdateSysDictForm = UpdateSysDictForm(key=key, val=json.dumps(dataObj))
 #     result = await updateSysDict(params)
 #     return result
-yesterdayKey = "yesterday"
-dataFormat = "%Y-%m-%d %H:%M:%S"
+yesterdayKey = "yesterdaySG"
+datetimeFormat = "%Y-%m-%d %H:%M:%S"
+dateFormat = "%Y-%m-%d"
 hourOffset = 23
 luckLimit = 90
 
 
-def refreshCarelinkYesterdayData(localtime):
+def refreshCarelinkYesterdayData(data, localtime):
     # yesterdayDatatime = datetime.strptime(myData[yesterdayKey]["time"], dataFormat)
     # print((localtime - yesterdayDatatime).total_seconds()/3600)
     # 运行条件
@@ -211,41 +213,43 @@ def refreshCarelinkYesterdayData(localtime):
     # 2. 没有数据
     # 3. 数据间隔大于23小时
     myData = rds.get_json(dictKey["myData"])
-    data = rds.get_json(dictKey["data"])
     yesterdayData = data["data"]
-    sgsData = yesterdayData["sgs"]
-    markersData = yesterdayData["markers"]
     if yesterdayKey not in myData:
         myData[yesterdayKey] = {}
-        myData[yesterdayKey]["sgs"] = [sgsData]
-        myData[yesterdayKey]["markers"] = [markersData]
+        myData[yesterdayKey]["sgs"] = [yesterdayData["sgs"]]
     elif ((localtime - datetime.strptime(myData[yesterdayKey]["update_time"],
-                                         dataFormat)).total_seconds() / 3600) > hourOffset:
+                                         datetimeFormat)).total_seconds() / 3600) > hourOffset:
         # 先备份一下前一天的数据
-        rds.set_json("carelinkMyData_Backup", myData)
-        yesSgsArr = myData[yesterdayKey]["sgs"]
-        yesMarkersArr = myData[yesterdayKey]["markers"]
-        my_logger.info(
-            "刷新carelinkYesterdayData数据,sgsArr:" + str(len(yesSgsArr)) + " markersArr:" + str(len(yesMarkersArr)))
-        dealYesData(yesSgsArr, sgsData)
-        dealYesData(yesMarkersArr, markersData)
-
-    myData[yesterdayKey]["update_time"] = time.strftime(dataFormat, time.localtime())
+        # rds.set_json("carelinkMyData_Backup", myData)
+        yesArr = myData[yesterdayKey]["sgs"]
+        my_logger.info("刷新carelinkYesterdayData数据:" + str(len(yesArr)))
+        if len(yesArr) == 1:
+            yesArr.append(yesterdayData["sgs"])
+        elif len(yesArr) == 2:
+            yesArr[0] = yesArr[1]
+            yesArr[1] = yesterdayData["sgs"]
+    myData[yesterdayKey]["update_time"] = localtime.strftime(datetimeFormat)
     rds.set_json(dictKey["myData"], myData)
     my_logger.info("刷新carelinkYesterdayData数据成功")
 
 
-def dealYesData(yesArr, yesData):
-    if len(yesArr) < 2:
-        yesArr.append(yesData)
-    elif len(yesArr) == 2:
-        yesArr[0] = yesArr[1]
-        yesArr[1] = yesData
+def saveHistoryData(data, localtime):
+    yesterdayData = data["data"]
+    historyData = {
+        "averageSG": yesterdayData["averageSG"],
+        "belowHypoLimit": yesterdayData["belowHypoLimit"],
+        "aboveHyperLimit": yesterdayData["aboveHyperLimit"],
+        "timeInRange": yesterdayData["timeInRange"],
+        "averageSGFloat": yesterdayData["averageSGFloat"]
+    }
+    rds.set_hash_kv(dictKey["history"], (localtime - timedelta(days=1)).strftime("%Y-%m-%d"),
+                    json.dumps(historyData))
+    my_logger.info("历史数据保存成功")
 
 
 def updateLuckData(localtime):
     luck = rds.get_json(dictKey["luck"])
-    if ((localtime - datetime.strptime(luck["update_time"], dataFormat)).total_seconds() / 3600) > hourOffset:
+    if ((localtime - datetime.strptime(luck["update_time"], datetimeFormat)).total_seconds() / 3600) > hourOffset:
         data = rds.get_json(dictKey["data"])
         sgData = data["data"]
         tir = sgData["timeInRange"]
@@ -253,7 +257,7 @@ def updateLuckData(localtime):
             luck["yes"] += 1
         else:
             luck["no"] += 1
-        luck["update_time"] = time.strftime(dataFormat, time.localtime())
+        luck["update_time"] = localtime.strftime(datetimeFormat)
         rds.set_json(dictKey["luck"], luck)
         my_logger.info("刷新luck数据成功")
 
@@ -291,8 +295,10 @@ async def refreshCarelinkTaskIntervalMinutes():
             localtime = datetime.now()
             if localtime.hour == 0 and localtime.minute == 0:
                 my_logger.info("==============refreshCarelinkTaskIntervalMinutes任务开始==============")
+                data = rds.get_json(dictKey["data"])
                 updateLuckData(localtime)
-                refreshCarelinkYesterdayData(localtime)
+                saveHistoryData(data, localtime)
+                refreshCarelinkYesterdayData(data, localtime)
         except Exception as ex:
             text = "refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!" + str(ex)
             my_logger.info(text)
@@ -310,6 +316,7 @@ def updateFood(hashObj: RedisHashObj):
 
 def delFood(key):
     return rds.del_hash_kv('food', key)
+
 # asyncio.run(refreshCarelinkToken())
 # asyncio.run(refreshCarelinkData())
 # result = getToken()
@@ -320,3 +327,8 @@ def delFood(key):
 # refreshCarelinkData()
 # refreshCarelinkYesterdayData(datetime.now())
 # updateLuckData()
+# data = rds.get_json(dictKey["data"])
+# saveHistoryData(data)
+# localtime = datetime.now()
+# print((localtime - timedelta(days=1)).strftime("%Y-%m-%d"))
+# print(localtime.strftime(datetimeFormat))
