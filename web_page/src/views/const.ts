@@ -37,6 +37,66 @@ export const SG_STATUS = {
     name: '--'
   }
 }
+
+export const SENSOR_STATUS = {
+  SENSOR_DISCONNECTED: {
+    key: 'SENSOR_DISCONNECTED',
+    name: '探头断开'
+  },
+  UNKNOWN: {
+    key: 'UNKNOWN',
+    name: '未知'
+  },
+  NO_ERROR_MESSAGE: {
+    key: 'NO_ERROR_MESSAGE',
+    name: '正常'
+  },
+  SEARCHING_FOR_SENSOR_SIGNAL: {
+    key: 'SEARCHING_FOR_SENSOR_SIGNAL',
+    name: '寻找探头'
+  },
+  WARM_UP: {
+    key: 'WARM_UP',
+    name: '预热'
+  },
+  DO_NOT_CALIBRATE: {
+    key: 'DO_NOT_CALIBRATE',
+    name: '无需校准'
+  }
+}
+export const PUMP_STATUS = {
+  sport: {
+    key: "sport",
+    name: '运动模式',
+    type: 'success'
+  },
+  manuel: {
+    key: "manuel",
+    name: '手动模式',
+    type: 'info'
+  },
+  stop: {
+    key: "stop",
+    name: '暂停输注',
+    type: 'danger'
+  },
+  auto: {
+    key: "auto",
+    name: '闭环模式',
+    type: 'success'
+  },
+  safe: {
+    key: "safe",
+    name: '安全模式',
+    type: 'success'
+  },
+  none: {
+    key: "none",
+    name: '状态未知',
+    type: 'info'
+  }
+}
+
 export const NOTIFICATION_MAP = {
   BC_SID_BOLUS_ENTRY_TIMED_OUT: {
     text: `大剂量输入超时`,
@@ -139,61 +199,6 @@ export const CARELINK_DICT_KEY = {
   carelinkAuth: "carelinkAuth",
   carelinkData: "carelinkData",
   carelinkMyData: "carelinkMyData"
-}
-
-export const SENSOR_STATUS = {
-  SENSOR_DISCONNECTED: {
-    key: 'SENSOR_DISCONNECTED',
-    name: '探头断开'
-  },
-  UNKNOWN: {
-    key: 'UNKNOWN',
-    name: '未知'
-  },
-  NO_ERROR_MESSAGE: {
-    key: 'NO_ERROR_MESSAGE',
-    name: '正常'
-  },
-  SEARCHING_FOR_SENSOR_SIGNAL: {
-    key: 'SEARCHING_FOR_SENSOR_SIGNAL',
-    name: '寻找探头'
-  },
-  WARM_UP: {
-    key: 'WARM_UP',
-    name: '预热'
-  }
-}
-export const PUMP_STATUS = {
-  sport: {
-    key: "sport",
-    name: '运动模式',
-    type: 'success'
-  },
-  manuel: {
-    key: "manuel",
-    name: '手动模式',
-    type: 'info'
-  },
-  stop: {
-    key: "stop",
-    name: '暂停输注',
-    type: 'danger'
-  },
-  auto: {
-    key: "auto",
-    name: '闭环模式',
-    type: 'success'
-  },
-  safe: {
-    key: "safe",
-    name: '安全模式',
-    type: 'success'
-  },
-  none: {
-    key: "none",
-    name: '状态未知',
-    type: 'info'
-  }
 }
 
 export const TIME_RANGE_CONFIG = [

@@ -182,8 +182,11 @@
           <ep-Bell class="hand" @click="handleMenu('notification')"></ep-Bell>
         </el-badge>
       </div>
-      <div class="item flex items-center justify-center border-solid border-1">
+      <div class="item flex items-center justify-center border-solid border-1" style="border-bottom:none;">
         <ep-KnifeFork class="hand" @click="showDrawer"></ep-KnifeFork>
+      </div>
+      <div class="item flex items-center justify-center border-solid border-1">
+        <ep-Refresh class="hand" @click="reload"></ep-Refresh>
       </div>
     </div>
     <el-drawer
@@ -940,9 +943,10 @@ function drawLine() {
 }
 
 .float-panel {
-  right: 0;
+  right: 5px;
   position: absolute;
-  bottom: 100px;
+  bottom: 60px;
+  background: white;
 
   .item {
     width: 35px;

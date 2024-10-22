@@ -1,7 +1,7 @@
 {
   "name": "carelink_follower",
   "private": true,
-  "version": "1.0.7",
+  "version": "1.0.8",
   "scripts": {
     "dev": "vite --mode development",
     "local": "vite --mode dev_local",
@@ -46,8 +46,8 @@
     "@types/nprogress": "^0.2.3",
     "@types/path-browserify": "^1.0.3",
     "@types/qs": "^6.9.16",
-    "@typescript-eslint/eslint-plugin": "^8.10.0",
-    "@typescript-eslint/parser": "^8.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@typescript-eslint/parser": "^8.11.0",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "@vitejs/plugin-vue": "5.1.3",
     "@vue/runtime-core": "^3.5.12",
