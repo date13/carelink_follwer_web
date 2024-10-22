@@ -177,16 +177,18 @@
       </div>
     </div>
     <div class="float-panel flex flex-col items-center justify-center">
-      <div class="item flex items-center justify-center border-solid border-1" style="border-bottom:none;">
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+           @click="handleMenu('notification')">
         <el-badge :is-dot="setting.notification.hasNew">
-          <ep-Bell class="hand" @click="handleMenu('notification')"></ep-Bell>
+          <ep-Bell></ep-Bell>
         </el-badge>
       </div>
-      <div class="item flex items-center justify-center border-solid border-1" style="border-bottom:none;">
-        <ep-KnifeFork class="hand" @click="showDrawer"></ep-KnifeFork>
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+           @click="showDrawer">
+        <ep-KnifeFork></ep-KnifeFork>
       </div>
-      <div class="item flex items-center justify-center border-solid border-1">
-        <ep-Refresh class="hand" @click="reload"></ep-Refresh>
+      <div class="item flex items-center justify-center border-solid border-1 hand" @click="reload">
+        <ep-Refresh></ep-Refresh>
       </div>
     </div>
     <el-drawer
@@ -256,8 +258,8 @@ const lastStatus: any = Tools.getLastStatus('sugar-setting', {
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
 const state: any = reactive({
-  tokenData: {},
   status: 200,
+  prepare: false,
   showNotificationDialog: false,
   updateDatetime: '--',//数据更新时间
   interval: {
@@ -414,20 +416,22 @@ function startDataLoadInterval() {
 //获取数据库数据,不是去 carelink 刷新数据
 async function loadCarelinkData(mask = true) {
   try {
-    if (state.tokenData) {
-      const result = await sugarService.loadData(mask)
-      if (result) {
-        state.data = result.data
-        state.status = result.status
-        state.forecast = result.forecast || {ar2: []}
-        state.nextStartTime = result.nextStartTime
-        state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
-        // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
-        // setting.notification.hasNew = true
-        dealNewNotification()
-        dealMyData(result.myData)
-        document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
-      }
+    const result = await sugarService.loadData(mask)
+    if (result) {
+      state.data = result.data
+      state.status = result.status
+      state.forecast = result.forecast || {ar2: []}
+      state.nextStartTime = result.nextStartTime
+      state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
+      // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+      // setting.notification.hasNew = true
+      dealNewNotification()
+      dealMyData(result.myData)
+
+      state.prepare = true
+      document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
+    } else {
+      state.prepare = false
     }
   } catch (e) {
     console.log(e);
@@ -523,6 +527,7 @@ function changeTimeRange() {
 }
 
 function refreshChart() {
+  if (!state.prepare) return
   if (!chart) drawLine()
   chart.setOption(charOption.value, true);
 }
@@ -951,6 +956,10 @@ function drawLine() {
   .item {
     width: 35px;
     height: 35px;
+  }
+
+  .no-bottom {
+    border-bottom: none;
   }
 }
 </style>

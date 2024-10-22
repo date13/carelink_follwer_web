@@ -4,7 +4,7 @@ import {CARELINK_DICT_KEY, CONST_VAR} from "@/views/const";
 
 export class DictService extends BaseService {
   constructor() {
-    super('/public/', '');
+    super('/system/', '');
   }
 
   async getDict(key: string, mask = true) {

@@ -5,14 +5,14 @@ import {CONST_VAR} from "@/views/const";
 
 export class SugarService extends BaseService {
   constructor() {
-    super('/public/', '');
+    super('/sugar/', '');
   }
 
   async loadData(mask) {
     let resultData: any = null
     const dictService = new DictService()
     if (!CONST_VAR.isDemo) {
-      const result: any = await HttpClient.put(`${this.apiContext}sugar`, {
+      const result: any = await HttpClient.put(`${this.apiContext}`, {
         mask
       })
       if (result) {
