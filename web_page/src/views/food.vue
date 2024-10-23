@@ -192,6 +192,12 @@ function close() {
 }
 
 function selectFoods() {
+  state.selectItems.forEach(item => {
+    const orgFood = props.selected.find(food => food.key === item.key)
+    if (orgFood) {
+      item.weight = orgFood.weight
+    }
+  })
   props.callback(state.selectItems)
   props.closeDialog()
 }

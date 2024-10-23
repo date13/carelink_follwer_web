@@ -275,7 +275,10 @@ function addFood() {
 
 function foodCallback(foods) {
   state.foods = foods
-  state.foods.forEach(item => item.weight = 0)
+  state.foods.forEach(item => {
+        if (!item.weight) item.weight = 1
+      }
+  )
 }
 
 function delFood(i) {
