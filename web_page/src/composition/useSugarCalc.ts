@@ -17,7 +17,7 @@ import echarts from "@/plugins/echart";
 export default function () {
 
   const getLastSg = (lastSG) => {
-    return lastSG.sensorState === SG_STATUS.NO_ERROR_MESSAGE.key && lastSG.sg !== 0 ? calcSG(lastSG.sg) : "--"
+    return lastSG.sensorState === SG_STATUS.NO_ERROR_MESSAGE.key && lastSG.sg !== 0 ? calcSG(lastSG.sg) : SG_STATUS[lastSG.sensorState]?.name || '--'
   }
 
   const calcSgYValueLimit = () => {
@@ -70,7 +70,7 @@ export default function () {
   }
 
   const shouldHaveAR2 = (data) => {
-    return data.systemStatusMessage === SYSTEM_STATUS_MAP.NO_ERROR_MESSAGE.key
+    return data.systemStatusMessage === SYSTEM_STATUS_MAP.NO_ERROR_MESSAGE.key && data.lastSG.sensorState === SENSOR_STATUS.NO_ERROR_MESSAGE.key
   }
 
   function getStartPercent(startPercent) {
@@ -170,6 +170,35 @@ export default function () {
         ]
       }
     })
+  }
+
+
+  function showInsulinPeak(list, setting) {
+    const result: any = []
+    if (setting.showPeak) {
+      list.forEach(item => {
+        if (item.type === 'INSULIN' && (item.activationType === 'RECOMMENDED' || item.activationType === 'MANUAL')) {
+          const start = cleanTime(item.dateTime)
+          result.push([
+            {
+              xAxis: start,
+              itemStyle: {
+                color: 'transparent',
+                borderType: 'dashed',
+                borderCap: 'round',
+                borderWidth: 0.7,
+                borderColor: COLORS[2],
+                opacity: 0.5
+              }
+            },
+            {
+              xAxis: dayjs(start).add(40, 'minutes').valueOf()
+            }
+          ])
+        }
+      })
+    }
+    return result
   }
 
   function getTimeRemaining(time, units = "minutes") {
@@ -365,6 +394,8 @@ export default function () {
     maxWave,
     minMaxSG,
     showInsulin,
-    sensorState
+    showInsulinPeak,
+    sensorState,
+    getStartPercent
   }
 }

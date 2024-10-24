@@ -59,19 +59,6 @@
                   {{ tightTimeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="warning">泵:
-                {{ data.reservoirRemainingUnits }}U&nbsp;
-                {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
-              </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="warning">
-                探头:
-                {{
-                  sugarCalc.sensorState(data)
-                }}&nbsp;
-                {{
-                  data.gstBatteryLevel || '--'
-                }}%
-              </el-tag>
               <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
                       type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
@@ -107,29 +94,22 @@
               </template>
             </div>
           </div>
-          <div class="flex text-xs items-center justify-between align-center mb-1">
+          <div class="flex text-xs items-center justify-between align-center">
             <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2">
               {{
                 lastUpdateTime.sg
               }}
             </span>
             <span class="mx-2">{{ lastOffset }}</span>
-            <span class="ml-2 text-xs">
-              <ep-Refresh class="hand" @click="reload"></ep-Refresh>
-            </span>
+            <!--            <span class="ml-2 text-xs">
+                          <ep-Refresh class="hand" @click="reload"></ep-Refresh>
+                        </span>-->
           </div>
           <div class="flex items-center justify-center time-range">
             <el-radio-group v-model="setting.startPercent" size="small" @change="changeTimeRange">
               <el-radio-button v-for="item in TIME_RANGE_CONFIG" :label="item.label" :value="item.value"/>
             </el-radio-group>
-            <!--
-                        <el-segmented v-model="startPercent" :options="TIME_RANGE_CONFIG" size="default" @change="changeTimeRange">
-                          <template #default="{ item }">
-                            <div>{{ item.label }}</div>
-                          </template>
-                        </el-segmented>-->
           </div>
-
           <div class="flex text-xs items-center justify-between align-center mt-1">
             <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
                 toNow(nextStartTime)
@@ -139,16 +119,19 @@
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
           </div>
-          <div class="flex text-xs items-center justify-between align-center">
-            <div class="mr-2">
-              <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
-            </div>
-            <div class="mr-2">
-              <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="switchYesterday"/>
-            </div>
-            <div class="mr-2">
-              <el-checkbox v-model="setting.realWave" label="实时" size="small"/>
-            </div>
+          <div class="flex items-center justify-around align-center info-panel">
+            <el-tag class="mb-1 mr-1" size="small" type="warning">
+              泵:
+              {{ data.reservoirRemainingUnits }}
+              {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
+              探头:
+              {{
+                sugarCalc.sensorState(data)
+              }}
+              {{
+                data.gstBatteryLevel || '--'
+              }}%
+            </el-tag>
           </div>
         </div>
       </div>
@@ -186,6 +169,23 @@
       <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
            @click="showDrawer">
         <ep-KnifeFork></ep-KnifeFork>
+      </div>
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom">
+        <div v-show="showSetting" class="flex float-item-panel">
+          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+            <el-checkbox v-model="setting.realWave" label="实时" size="small"/>
+          </div>
+          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+            <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
+          </div>
+          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+            <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="refreshChart"/>
+          </div>
+          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+            <el-checkbox v-model="setting.showPeak" label="峰值" size="small" @change="refreshChart"/>
+          </div>
+        </div>
+        <ep-Setting class="hand" @click="triggerSetting"></ep-Setting>
       </div>
       <div class="item flex items-center justify-center border-solid border-1 hand" @click="reload">
         <ep-Refresh></ep-Refresh>
@@ -254,6 +254,7 @@ const lastStatus: any = Tools.getLastStatus('sugar-setting', {
     lastKey: null
   },
   realWave: true,
+  showPeak: true
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
@@ -267,6 +268,7 @@ const state: any = reactive({
     data: null,
     myData: null,
   },
+  showSetting: false,
   orgMyData: {},
   myData: {},
   forecast: {},
@@ -295,7 +297,7 @@ const state: any = reactive({
   drawer: false
 })
 
-const {data, time, updateDatetime, status, showNotificationDialog, nextStartTime, drawer} = toRefs(state)
+const {data, time, updateDatetime, status, showNotificationDialog, nextStartTime, drawer, showSetting} = toRefs(state)
 
 onBeforeMount(() => {
   initSetting()
@@ -328,6 +330,10 @@ function initSetting() {
       selected: legendOptions
     }
   }
+}
+
+function triggerSetting() {
+  state.showSetting = !state.showSetting
 }
 
 function fromNow(time: any) {
@@ -517,7 +523,7 @@ function switchAR2() {
   }
 }
 
-function switchYesterday() {
+function switchRefreshChart() {
   refreshChart()
 }
 
@@ -566,6 +572,10 @@ const trendObj = computed(() => {
 //计算最大和最小值
 const minMaxSG = computed(() => {
   return sugarCalc.minMaxSG(state.data.sgs, setting)
+})
+
+const gridRight = computed(() => {
+  return sugarCalc.getStartPercent(setting.startPercent).right
 })
 
 //画图的参数
@@ -630,7 +640,7 @@ const charOption = computed(() => {
     grid: {
       left: '1%',
       top: '60',
-      right: '0',
+      right: gridRight.value,
       containLabel: true
     },
     xAxis: {
@@ -850,6 +860,9 @@ const charOption = computed(() => {
           borderColor: COLORS[2],
           color: sugarCalc.showInsulin
         },
+        markArea: {
+          data: sugarCalc.showInsulinPeak(state.data.markers, setting),
+        },
         data: sugarCalc.loadInsulinData(state.data.markers, setting)
       },
       {
@@ -911,7 +924,7 @@ function drawLine() {
 <style lang="scss" scoped>
 .menu-panel {
   position: absolute;
-  right: 20px;
+  right: 5px;
 
   svg {
     width: 30px;
@@ -950,12 +963,27 @@ function drawLine() {
 .float-panel {
   right: 5px;
   position: absolute;
-  bottom: 60px;
+  bottom: 30px;
   background: white;
+
+  .float-item-panel {
+    background: white;
+    position: absolute;
+    right: 35px;
+
+    .float-item {
+      height: 35px;
+      padding: 0 5px;
+    }
+  }
 
   .item {
     width: 35px;
     height: 35px;
+  }
+
+  .no-right {
+    border-right: none;
   }
 
   .no-bottom {

@@ -205,27 +205,32 @@ export const TIME_RANGE_CONFIG = [
   {
     label: '2',
     value: 10,
-    offset: 30
+    offset: 50,
+    right: 25
   },
   {
     label: '3',
     value: 13,
-    offset: 40
+    offset: 60,
+    right: 10
   },
   {
     label: '4',
     value: 17,
-    offset: 50
+    offset: 70,
+    right: 0
   },
   {
     label: '6',
     value: 25,
-    offset: 60
+    offset: 80,
+    right: 0
   },
   {
     label: '12',
     value: 52,
-    offset: 80
+    offset: 100,
+    right: -20
   }
 ]
 
