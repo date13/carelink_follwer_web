@@ -122,7 +122,7 @@
           <div class="flex items-center justify-around align-center info-panel">
             <el-tag class="mb-1 mr-1" size="small" type="warning">
               泵:
-              {{ data.reservoirRemainingUnits }}
+              {{ data.reservoirRemainingUnits }}U
               {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
               探头:
               {{
@@ -170,24 +170,27 @@
            @click="showDrawer">
         <ep-KnifeFork></ep-KnifeFork>
       </div>
-      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom">
-        <div v-show="showSetting" class="flex float-item-panel">
-          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+      <div :class="{'only-right':showSetting}"
+           class="item flex items-center justify-center border-solid border-1 hand no-bottom">
+        <div v-show="showSetting"
+             class="flex float-item-panel items-center justify-between border-solid border-1 no-right">
+          <div class="float-item ">
             <el-checkbox v-model="setting.realWave" label="实时" size="small"/>
           </div>
-          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+          <div class="float-item">
             <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
           </div>
-          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+          <div class="float-item">
             <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="refreshChart"/>
           </div>
-          <div class="float-item flex items-center justify-center border-solid border-1 hand no-right">
+          <div class="float-item">
             <el-checkbox v-model="setting.showPeak" label="峰值" size="small" @change="refreshChart"/>
           </div>
         </div>
         <ep-Setting class="hand" @click="triggerSetting"></ep-Setting>
       </div>
-      <div class="item flex items-center justify-center border-solid border-1 hand" @click="reload">
+      <div :class="{'no-top':showSetting}" class="item flex items-center justify-center border-solid border-1 hand"
+           @click="reload">
         <ep-Refresh></ep-Refresh>
       </div>
     </div>
@@ -974,6 +977,8 @@ function drawLine() {
     .float-item {
       height: 35px;
       padding: 0 5px;
+      display: flex;
+      align-items: center;
     }
   }
 
@@ -984,6 +989,16 @@ function drawLine() {
 
   .no-right {
     border-right: none;
+  }
+
+  .no-top {
+    border-top: none;
+  }
+
+  .only-right {
+    border-left: none;
+    border-top: none;
+    border-bottom: none;
   }
 
   .no-bottom {
