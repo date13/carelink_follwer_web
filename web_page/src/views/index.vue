@@ -863,7 +863,27 @@ const charOption = computed(() => {
           borderColor: COLORS[2],
           color: sugarCalc.showInsulin
         },
-        markArea: {
+        // markArea: {
+        //   data: sugarCalc.showInsulinPeak(state.data.markers, setting),
+        // },
+        markLine: {
+          symbol: ['none', 'none'],
+          animation: false,
+          label: {
+            show: false,
+          },
+          emphasis: {
+            label: {
+              show: true,
+              position: 'end',
+              formatter: (item) => {
+                return `${item.name}:${dayjs(item.value).format("HH:mm")}`
+              },
+            },
+            lineStyle: {
+              width: 1,	// hover时的折线宽度
+            }
+          },
           data: sugarCalc.showInsulinPeak(state.data.markers, setting),
         },
         data: sugarCalc.loadInsulinData(state.data.markers, setting)
@@ -892,9 +912,11 @@ const charOption = computed(() => {
         yAxisIndex: 3,
         symbolSize: 10,
         label: {
+          color: COLORS[4],
           formatter: (item) => {
             return item.data[3]
           },
+          fontSize: 10,
           position: 'top',
           show: true,
         },

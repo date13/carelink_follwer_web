@@ -176,26 +176,43 @@ export default function () {
   function showInsulinPeak(list, setting) {
     const result: any = []
     if (setting.showPeak) {
-      list.forEach(item => {
-        if (item.type === 'INSULIN' && (item.activationType === 'RECOMMENDED' || item.activationType === 'MANUAL')) {
-          const start = cleanTime(item.dateTime)
-          result.push([
-            {
+      const newList = list.filter(item => {
+        return item.type === 'INSULIN' && (item.activationType === 'RECOMMENDED' || item.activationType === 'MANUAL')
+      })
+      newList.splice(newList.length > 3 ? -3 : 0).forEach(item => {
+        const start = cleanTime(item.dateTime)
+        result.push({
+              name: '开始',
               xAxis: start,
-              itemStyle: {
-                color: 'transparent',
-                borderType: 'dashed',
-                borderCap: 'round',
-                borderWidth: 0.7,
-                borderColor: COLORS[2],
-                opacity: 0.5
+              lineStyle: {
+                color: COLORS[2],
+                width: 0.5
               }
             },
             {
-              xAxis: dayjs(start).add(40, 'minutes').valueOf()
+              name: '峰值',
+              xAxis: dayjs(start).add(40, 'minutes').valueOf(),
+              lineStyle: {
+                color: COLORS[5],
+                width: 0.5
+              }
+            })
+        /*result.push([
+          {
+            xAxis: start,
+            itemStyle: {
+              color: 'transparent',
+              borderType: 'dashed',
+              borderCap: 'round',
+              borderWidth: 0.7,
+              borderColor: COLORS[5],
+              opacity: 0.4
             }
-          ])
-        }
+          },
+          {
+            xAxis: dayjs(start).add(40, 'minutes').valueOf()
+          }
+        ])*/
       })
     }
     return result
