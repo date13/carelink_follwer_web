@@ -204,7 +204,7 @@ def refreshCarelinkToken():
 yesterdayKey = "yesterday"
 datetimeFormat = "%Y-%m-%d %H:%M:%S"
 dateFormat = "%Y-%m-%d"
-hourOffset = 23
+# hourOffset = 23
 luckLimit = 90
 
 
@@ -275,7 +275,7 @@ def updateLuckData(localtime):
     my_logger.info("刷新luck数据成功")
 
 
-async def refreshCarelinkTokenInterval():
+def refreshCarelinkTokenInterval():
     # while True:
     my_logger.info("==============开始carelinkUserToken刷新任务==============")
     try:
@@ -288,7 +288,7 @@ async def refreshCarelinkTokenInterval():
     # await asyncio.sleep(config.CARELINK_TOKEN_REFRESH_INTERVAL)
 
 
-async def refreshCarelinkDataInterval():
+def refreshCarelinkDataInterval():
     # while True:
     my_logger.info("==============开始carelinkData刷新任务==============")
     try:
@@ -301,7 +301,7 @@ async def refreshCarelinkDataInterval():
     # await asyncio.sleep(config.CARELINK_DATA_REFRESH_INTERVAL)
 
 
-async def refreshCarelinkTaskIntervalMinutes():
+def refreshCarelinkTaskIntervalMinutes():
     # my_logger.info("==============开始refreshCarelinkTaskIntervalMinutes刷新任务==============")
     # while True:
     try:
