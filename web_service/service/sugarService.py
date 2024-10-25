@@ -73,6 +73,9 @@ async def getCarelinkToken():
     return rds.get_json(authKey)
 
 
+forcastCount = 30
+
+
 def forcastAR2Sg(list):
     series = pd.Series(list)
 
@@ -81,7 +84,7 @@ def forcastAR2Sg(list):
     model_fit = model.fit()
 
     # 使用模型对未来5个时间点进行预测
-    forecast = model_fit.predict(start=len(series), end=len(series) + 20, dynamic=False)
+    forecast = model_fit.predict(start=len(series), end=len(series) + forcastCount, dynamic=False)
     result = []
     for glucose in enumerate(forecast, start=1):
         result.append(round(glucose[1]))
@@ -211,7 +214,6 @@ def refreshCarelinkYesterdayData(data, localtime):
     # 运行条件
     # 1. 0小时0分
     # 2. 没有数据
-    # 3. 数据间隔大于23小时
     myData = rds.get_json(dictKey["myData"])
     yesterdayData = data["data"]
     sgsData = yesterdayData["sgs"]
@@ -220,8 +222,9 @@ def refreshCarelinkYesterdayData(data, localtime):
         myData[yesterdayKey] = {}
         myData[yesterdayKey]["sgs"] = [sgsData]
         myData[yesterdayKey]["markers"] = [markersData]
-    elif ((localtime - datetime.strptime(myData[yesterdayKey]["update_time"],
-                                         datetimeFormat)).total_seconds() / 3600) > hourOffset:
+    # elif ((localtime - datetime.strptime(myData[yesterdayKey]["update_time"],
+    #                                      datetimeFormat)).total_seconds() / 3600) > hourOffset:
+    else:
         # 先备份一下前一天的数据
         # rds.set_json("carelinkMyData_Backup", myData)
         yesSgsArr = myData[yesterdayKey]["sgs"]
@@ -230,10 +233,9 @@ def refreshCarelinkYesterdayData(data, localtime):
             "刷新carelinkYesterdayData数据,sgsArr:" + str(len(yesSgsArr)) + " markersArr:" + str(len(yesMarkersArr)))
         dealYesData(yesSgsArr, sgsData)
         dealYesData(yesMarkersArr, markersData)
-
-    myData[yesterdayKey]["update_time"] = localtime.strftime(datetimeFormat)
-    rds.set_json(dictKey["myData"], myData)
-    my_logger.info("刷新carelinkYesterdayData数据成功")
+        myData[yesterdayKey]["update_time"] = localtime.strftime(datetimeFormat)
+        rds.set_json(dictKey["myData"], myData)
+        my_logger.info("刷新carelinkYesterdayData数据成功")
 
 
 def dealYesData(yesArr, yesData):
@@ -260,61 +262,60 @@ def saveHistoryData(data, localtime):
 
 def updateLuckData(localtime):
     luck = rds.get_json(dictKey["luck"])
-    if ((localtime - datetime.strptime(luck["update_time"], datetimeFormat)).total_seconds() / 3600) > hourOffset:
-        data = rds.get_json(dictKey["data"])
-        sgData = data["data"]
-        tir = sgData["timeInRange"]
-        if tir >= luckLimit:
-            luck["yes"] += 1
-        else:
-            luck["no"] += 1
-        luck["update_time"] = localtime.strftime(datetimeFormat)
-        rds.set_json(dictKey["luck"], luck)
-        my_logger.info("刷新luck数据成功")
+    # if ((localtime - datetime.strptime(luck["update_time"], datetimeFormat)).total_seconds() / 3600) > hourOffset:
+    data = rds.get_json(dictKey["data"])
+    sgData = data["data"]
+    tir = sgData["timeInRange"]
+    if tir >= luckLimit:
+        luck["yes"] += 1
+    else:
+        luck["no"] += 1
+    luck["update_time"] = localtime.strftime(datetimeFormat)
+    rds.set_json(dictKey["luck"], luck)
+    my_logger.info("刷新luck数据成功")
 
 
 async def refreshCarelinkTokenInterval():
-    while True:
-        my_logger.info("==============开始carelinkUserToken刷新任务==============")
-        try:
-            refreshCarelinkToken()
-        except Exception as ex:
-            text = "carelinkUserToken刷新任务错误!!!" + str(ex)
-            my_logger.info(text)
-            sendMail(text)
-        my_logger.info("!!!结束carelinkUserToken刷新任务!!!")
-        await asyncio.sleep(config.CARELINK_TOKEN_REFRESH_INTERVAL)
+    # while True:
+    my_logger.info("==============开始carelinkUserToken刷新任务==============")
+    try:
+        refreshCarelinkToken()
+    except Exception as ex:
+        text = "carelinkUserToken刷新任务错误!!!" + str(ex)
+        my_logger.info(text)
+        sendMail(text)
+    my_logger.info("!!!结束carelinkUserToken刷新任务!!!")
+    # await asyncio.sleep(config.CARELINK_TOKEN_REFRESH_INTERVAL)
 
 
 async def refreshCarelinkDataInterval():
-    while True:
-        my_logger.info("==============开始carelinkData刷新任务==============")
-        try:
-            refreshCarelinkData()
-        except Exception as ex:
-            text = "carelinkData刷新任务错误!!!" + str(ex)
-            my_logger.info(text)
-            sendMail(text)
-        my_logger.info("!!!结束carelinkData刷新任务!!!")
-        await asyncio.sleep(config.CARELINK_DATA_REFRESH_INTERVAL)
+    # while True:
+    my_logger.info("==============开始carelinkData刷新任务==============")
+    try:
+        refreshCarelinkData()
+    except Exception as ex:
+        text = "carelinkData刷新任务错误!!!" + str(ex)
+        my_logger.info(text)
+        sendMail(text)
+    my_logger.info("!!!结束carelinkData刷新任务!!!")
+    # await asyncio.sleep(config.CARELINK_DATA_REFRESH_INTERVAL)
 
 
 async def refreshCarelinkTaskIntervalMinutes():
-    my_logger.info("==============开始refreshCarelinkTaskIntervalMinutes刷新任务==============")
-    while True:
-        try:
-            localtime = datetime.now()
-            if localtime.hour == 0 and localtime.minute == 0:
-                my_logger.info("==============refreshCarelinkTaskIntervalMinutes任务开始==============")
-                data = rds.get_json(dictKey["data"])
-                updateLuckData(localtime)
-                saveHistoryData(data, localtime)
-                refreshCarelinkYesterdayData(data, localtime)
-        except Exception as ex:
-            text = "refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!" + str(ex)
-            my_logger.info(text)
-            sendMail(text)
-        await asyncio.sleep(60)
+    # my_logger.info("==============开始refreshCarelinkTaskIntervalMinutes刷新任务==============")
+    # while True:
+    try:
+        my_logger.info("==============refreshCarelinkTaskIntervalMinutes任务开始==============")
+        localtime = datetime.now()
+        data = rds.get_json(dictKey["data"])
+        updateLuckData(localtime)
+        saveHistoryData(data, localtime)
+        refreshCarelinkYesterdayData(data, localtime)
+    except Exception as ex:
+        text = "refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!" + str(ex)
+        my_logger.info(text)
+        sendMail(text)
+        # await asyncio.sleep(60)
 
 
 def getAllFood():
