@@ -157,7 +157,7 @@
         <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
           {{ lastUpdateTime.conduit || '--' }}
         </el-tag>
-        <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">剂量(昨):
+        <el-tag size="small" type="warning">剂量(昨):
           {{ lastUpdateTime.sumInsulin || '--' }}U
         </el-tag>
       </div>
