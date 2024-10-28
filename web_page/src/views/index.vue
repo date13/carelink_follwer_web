@@ -214,7 +214,6 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
-import isToday from 'dayjs/plugin/isToday'
 import echarts from "@/plugins/echart"
 import useChartResize from "@/composition/useChartResize";
 import {DATE_FORMAT} from "@/model/model-type";
@@ -246,7 +245,6 @@ import Info from "@/views/info.vue"
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
-dayjs.extend(isToday)
 
 const sugarService = new SugarService()
 const dictService = new DictService()
@@ -564,11 +562,15 @@ const lastOffset = computed(() => {
 const lastUpdateTime = computed(() => {
   const lastSgUpdateTime = sugarCalc.cleanTime(state.data.lastSG.datetime)
   let sumInsulin = 0
-  state.myData.yesterday?.markers.forEach(item => {
-    if (item.type === 'INSULIN' && dayjs(item.dateTime).isToday()) {
-      sumInsulin += item.deliveredFastAmount
-    }
-  })
+  if (state.orgMyData.yesterday?.markers) {
+    const len = state.orgMyData.yesterday?.markers.length
+    state.orgMyData.yesterday?.markers[len === 2 ? 1 : 0].forEach(item => {
+      if (item.type === 'INSULIN') {
+        sumInsulin += item.deliveredFastAmount
+      }
+    })
+  }
+
   return {
     sg: toNow(lastSgUpdateTime),
     sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
