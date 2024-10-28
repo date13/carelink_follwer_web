@@ -11,6 +11,26 @@ export const COLORS = [
   '#eeb1c9'//9严重警告区域背景
 ]
 
+export const REFRESH_INTERVAL = {
+  loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
+  loadMyData: 60
+}
+
+export const CONST_VAR = {
+  maxSeriousSg: 12.5,
+  maxWarnSg: 9.5,
+  maxTightWarnSg: 7.8,
+  minWarnSg: 3.9,
+  minSeriousSg: 3.2,
+  minTightWarnSg: 4,
+  exchangeUnit: 18,
+  minSgYValueLimit: 2,
+  maxSgYValueOffset: 5,
+  peakPoint: 3,//显示峰值的大剂量数
+  peakMinutes: 35,//峰值时间
+  isDemo: import.meta.env.VITE_APP_IS_DEMO === 'true'
+}
+
 export const CHART_LEGEND = [
   {name: '血糖', itemStyle: {color: COLORS[0]}},
   {name: '血糖(昨)', itemStyle: {color: COLORS[9]}},
@@ -212,13 +232,13 @@ export const TIME_RANGE_CONFIG = [
     label: '3',
     value: 13,
     offset: 60,
-    right: 10
+    right: 20
   },
   {
     label: '4',
     value: 17,
     offset: 70,
-    right: 0
+    right: 25
   },
   {
     label: '6',
@@ -265,22 +285,6 @@ export const SYSTEM_STATUS_MAP = {
     key: 'SENSOR_DISCONNECTED',
     color: COLORS[5]
   }
-}
-export const REFRESH_INTERVAL = {
-  loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
-  loadMyData: 60
-}
-export const CONST_VAR = {
-  maxSeriousSg: 12.5,
-  maxWarnSg: 9.5,
-  maxTightWarnSg: 7.8,
-  minWarnSg: 3.9,
-  minSeriousSg: 3.2,
-  minTightWarnSg: 4,
-  exchangeUnit: 18,
-  minSgYValueLimit: 2,
-  maxSgYValueOffset: 5,
-  isDemo: import.meta.env.VITE_APP_IS_DEMO === 'true'
 }
 export const INSULIN_TYPE = {
   SG: {

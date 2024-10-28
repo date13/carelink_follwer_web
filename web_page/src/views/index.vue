@@ -12,7 +12,7 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <div class="flex flex-row h-50">
+      <div class="flex flex-row h-40">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
             <template #header>
@@ -138,7 +138,7 @@
       <div class="flex-1 chart-panel">
         <div ref="myChart" class="border-grey border-grey h-full"></div>
       </div>
-      <div class="h-15 px-2 flex items-center justify-around">
+      <div class="h-8 px-2 flex items-center justify-around">
         <el-tag :type="modeObj.mode.type" class="" size="small">
           {{ modeObj.mode.name }}
           <span v-if="modeObj.mode.key===PUMP_STATUS.safe.key">
@@ -156,6 +156,9 @@
         </el-tag>
         <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
           {{ lastUpdateTime.conduit || '--' }}
+        </el-tag>
+        <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">剂量(昨):
+          {{ lastUpdateTime.sumInsulin || '--' }}U
         </el-tag>
       </div>
     </div>
@@ -557,10 +560,17 @@ const lastOffset = computed(() => {
 
 const lastUpdateTime = computed(() => {
   const lastSgUpdateTime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+  let sumInsulin = 0
+  state.myData.yesterday?.markers.forEach(item => {
+    if (item.type === 'INSULIN') {
+      sumInsulin += item.deliveredFastAmount
+    }
+  })
   return {
     sg: toNow(lastSgUpdateTime),
     sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
-    conduit: toNow(state.orgMyData.lastConduitTime)
+    conduit: toNow(state.orgMyData.lastConduitTime),
+    sumInsulin
   }
 })
 
@@ -589,7 +599,7 @@ const charOption = computed(() => {
       itemGap: 5,
       itemWidth: 20,
       data: CHART_LEGEND,
-      selected: setting.legend.selected
+      selected: setting.legend.selected,
     },
     toolbox: {
       show: false,
@@ -601,8 +611,14 @@ const charOption = computed(() => {
         saveAsImage: {show: true}
       }
     },
+    axisPointer: {
+      show: true,
+    },
     tooltip: {
       trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      },
       confine: true,
       position: (point, params, dom, rect, size) => {
         // const isInsulin = params[0].data[2].key === INSULIN_TYPE.INSULIN.key
@@ -642,13 +658,13 @@ const charOption = computed(() => {
     },
     grid: {
       left: '1%',
-      top: '60',
+      top: '40',
       right: gridRight.value,
       containLabel: true
     },
     xAxis: {
       type: 'time',
-      splitLine: {show: true},
+      splitLine: {show: false},
       boundaryGap: false,
       axisLabel: {
         formatter: function (value, index) {
@@ -658,10 +674,12 @@ const charOption = computed(() => {
     },
     yAxis: [
       {
-        name: 'mmol/L',
+        // name: 'mmol/L',
         type: 'value',
         ...sugarCalc.calcSgYValueLimit(),
-        splitLine: {show: true}
+        splitLine: {show: false},
+        axisTick: {show: true},
+        axisLine: {show: false},
       },
       {
         name: '校准',
@@ -704,6 +722,7 @@ const charOption = computed(() => {
       type: 'piecewise',
       precision: 1,
       seriesIndex: 0,
+      hoverLink: false,
       pieces: [
         {
           lte: CONST_VAR.minSeriousSg,
@@ -741,13 +760,18 @@ const charOption = computed(() => {
         symbol: (value: any, params: Object) => {
           return value[2].symbol
         },
-        symbolSize: 6,
+        symbolSize: (rawValue, params) => {
+          return params.value.length === 3 ? 6 : 10
+        },
         label: {
           show: false,
           position: 'bottom'
         },
         labelLine: {
           smooth: true,
+        },
+        emphasis: {
+          disabled: true
         },
         markArea: {
           emphasis: {disabled: true},
