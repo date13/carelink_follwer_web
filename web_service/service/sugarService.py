@@ -1,6 +1,4 @@
-import asyncio
 import json
-import time
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -233,7 +231,7 @@ def refreshCarelinkYesterdayData(data, localtime):
             "刷新carelinkYesterdayData数据,sgsArr:" + str(len(yesSgsArr)) + " markersArr:" + str(len(yesMarkersArr)))
         dealYesData(yesSgsArr, sgsData)
         dealYesData(yesMarkersArr, markersData)
-        myData[yesterdayKey]["update_time"] = localtime.strftime(datetimeFormat)
+        myData["update_time"] = localtime.strftime(datetimeFormat)
         rds.set_json(dictKey["myData"], myData)
         my_logger.info("刷新carelinkYesterdayData数据成功")
 
@@ -275,6 +273,19 @@ def updateLuckData(localtime):
     my_logger.info("刷新luck数据成功")
 
 
+def updateGMI(data):
+    historyData = rds.get_all_hash_kv(dictKey["history"])
+    # print(historyData)
+    sum = 0
+    for val in historyData.values():
+        item = json.loads(val)
+        sum += item["averageSGFloat"]
+    avgSg = sum / len(historyData)
+    data["GMI"] = '{:.2f}'.format(3.31 + 0.02392 * avgSg)
+    updateCarelinkDataToRedis(data)
+    my_logger.info("刷新GMI数据成功")
+
+
 def refreshCarelinkTokenInterval():
     # while True:
     my_logger.info("==============开始carelinkUserToken刷新任务==============")
@@ -310,6 +321,7 @@ def refreshCarelinkTaskIntervalMinutes():
         data = rds.get_json(dictKey["data"])
         updateLuckData(localtime)
         saveHistoryData(data, localtime)
+        updateGMI(data)
         refreshCarelinkYesterdayData(data, localtime)
     except Exception as ex:
         text = "refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!" + str(ex)
@@ -342,5 +354,10 @@ def delFood(key):
 # data = rds.get_json(dictKey["data"])
 # saveHistoryData(data)
 # localtime = datetime.now()
+# data = rds.get_json(dictKey["data"])
+# updateGMI(data)
+# updateLuckData(localtime)
+# saveHistoryData(data, localtime)
+# refreshCarelinkYesterdayData(data, localtime)
 # print((localtime - timedelta(days=1)).strftime("%Y-%m-%d"))
 # print(localtime.strftime(datetimeFormat))
