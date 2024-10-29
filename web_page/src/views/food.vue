@@ -11,12 +11,11 @@
               :prefix-icon="Search"
               class="w-full"
               clearable
-              size="small"
               placeholder="输入搜索关键字"
           >
           </el-input>
           <div class="flex justify-between items-center px-2">
-            <el-button :icon="CirclePlus" size="small" type="primary" @click="add">添加</el-button>
+            <el-button :icon="CirclePlus" type="primary" @click="add">添加</el-button>
             <ep-Refresh class="ml-4 hand" @click="load"></ep-Refresh>
           </div>
         </div>
@@ -34,7 +33,7 @@
                  @click="checkFood(item)">{{ item.val }}
             </div>
             <div class="flex flex-1 justify-end pr-4 items-center">
-              <ep-Edit class="hand mr-2 text-blue" @click="edit(item,i)"></ep-Edit>
+              <ep-Edit class="hand mr-2 text-blue" @click="edit(item)"></ep-Edit>
               <ep-Close class="hand text-red" @click="del(item)"></ep-Close>
             </div>
           </div>
@@ -131,11 +130,11 @@ const foodList = computed(() => {
   return state.list.filter(item => item.key.indexOf(state.searchText) !== -1)
 })
 
-function edit(item, i) {
+function edit(item) {
   item.val = parseFloat(item.val)
   Object.assign(state.curFood, item)
   state.show = true
-  state.curIndex = i
+  state.curIndex = state.list.findIndex(item => item.key === state.curFood.key)
 }
 
 function add() {
