@@ -12,7 +12,7 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <div class="flex flex-row h-40">
+      <div class="flex flex-row h-45">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
             <template #header>
@@ -26,10 +26,14 @@
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 IOB:
                 {{ data.activeInsulin.amount }}&nbsp;
-                Avg:
-                {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;
                 CV:
                 {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
+              </el-tag>
+              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+                Avg:
+                {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;
+                GMI:
+                {{ GMI }}
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 <span class="text-red">Wav:
@@ -49,7 +53,7 @@
                   {{ timeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="" size="small" type="primary">
                 TTIR:
                 {{ tightTimeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -105,12 +109,12 @@
                           <ep-Refresh class="hand" @click="reload"></ep-Refresh>
                         </span>-->
           </div>
-          <div class="flex items-center justify-center time-range">
+          <div class="flex items-center justify-center time-range mt-1">
             <el-radio-group v-model="setting.startPercent" size="small" @change="changeTimeRange">
               <el-radio-button v-for="item in TIME_RANGE_CONFIG" :label="item.label" :value="item.value"/>
             </el-radio-group>
           </div>
-          <div class="flex text-xs items-center justify-between align-center mt-1">
+          <div class="flex text-xs items-center justify-between align-center my-1">
             <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
                 toNow(nextStartTime)
               }}</span>
@@ -120,7 +124,7 @@
             </div>
           </div>
           <div class="flex items-center justify-around align-center info-panel">
-            <el-tag class="mb-1 mr-1" size="small" type="warning">
+            <el-tag class="mb-1 mr-1" size="small" type="primary">
               泵:
               {{ data.reservoirRemainingUnits }}U
               {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
@@ -138,7 +142,7 @@
       <div class="flex-1 chart-panel">
         <div ref="myChart" class="border-grey border-grey h-full"></div>
       </div>
-      <div class="h-8 px-2 flex items-center justify-around">
+      <div class="h-10 px-2 flex items-center justify-around">
         <el-tag :type="modeObj.mode.type" class="" size="small">
           {{ modeObj.mode.name }}
           <span v-if="modeObj.mode.key===PUMP_STATUS.safe.key">
@@ -157,7 +161,7 @@
         <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
           {{ lastUpdateTime.conduit || '--' }}
         </el-tag>
-        <el-tag size="small" type="warning">剂量(昨):
+        <el-tag size="small" type="primary">剂量(昨):
           {{ lastUpdateTime.sumInsulin || '--' }}U
         </el-tag>
       </div>
@@ -279,6 +283,7 @@ const state: any = reactive({
   orgMyData: {},
   myData: {},
   forecast: {},
+  GMI: 0,
   nextStartTime: -1,
   data: {
     lastSG: {
@@ -304,7 +309,17 @@ const state: any = reactive({
   drawer: false
 })
 
-const {data, time, updateDatetime, status, showNotificationDialog, nextStartTime, drawer, showSetting} = toRefs(state)
+const {
+  data,
+  time,
+  updateDatetime,
+  status,
+  showNotificationDialog,
+  nextStartTime,
+  drawer,
+  showSetting,
+  GMI
+} = toRefs(state)
 
 onBeforeMount(() => {
   initSetting()
@@ -434,6 +449,7 @@ async function loadCarelinkData(mask = true) {
       state.data = result.data
       state.status = result.status
       state.forecast = result.forecast || {ar2: []}
+      state.GMI = result.GMI
       state.nextStartTime = result.nextStartTime
       state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
       // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
@@ -663,7 +679,7 @@ const charOption = computed(() => {
     },
     grid: {
       left: '1%',
-      top: '40',
+      top: '60',
       right: gridRight.value,
       containLabel: true
     },
