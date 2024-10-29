@@ -7,6 +7,7 @@ from models.result import SysUserForm
 
 class UpdateSysDictForm(BaseModel):
     key: str = ""
+    subKey: str | None
     val: str | None
 
 
@@ -29,7 +30,10 @@ def updateSysDict(updateForm: UpdateSysDictForm):
     # else:
     #     return await async_db.execute(SysDict.update(val=updateForm.val).where(
     #         SysDict.key == updateForm.key))
-    return rds.set_value(updateForm.key, updateForm.val)
+    if updateForm.subKey is None:
+        return rds.set_value(updateForm.key, updateForm.val)
+    else:
+        return rds.set_hash_kv(updateForm.key, updateForm.subKey, updateForm.val)
 
 
 def login(loginForm: SysUserForm):
@@ -41,7 +45,6 @@ def login(loginForm: SysUserForm):
         }
     else:
         return None
-
 
 # form = SysUserForm(name='alex', password='201205')
 # print(login(form))
