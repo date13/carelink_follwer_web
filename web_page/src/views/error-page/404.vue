@@ -13,7 +13,7 @@
         <div class="bullshit__info">Please check that the URL you entered is correct, or click the button below to
           return to the homepage.
         </div>
-        <a class="bullshit__return-home" href="/dashboard">Back to home</a>
+        <a class="bullshit__return-home" href="/">Back to home</a>
       </div>
     </div>
   </div>

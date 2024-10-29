@@ -13,17 +13,27 @@
         </template>
         <el-form ref="formRef" :model="params" :rules="rules" class="dict-form"
                  label-position="left" label-width="80px">
-          <el-form-item label="KEY" prop="key">
-            <el-select v-model="params.key" size="small" @change="loadDict">
-              <el-option v-for="(item,i) in keys" :key="i"
-                         :value="item">
-              </el-option>
-            </el-select>
+          <el-form-item label="Key" prop="key">
+            <div class="flex w-full justify-center items-center">
+              <el-select v-model="params.key" class="flex-1" size="small" @change="loadDict">
+                <el-option v-for="(item,i) in keys" :key="i"
+                           :label="item.key" :value="item.key">
+                </el-option>
+              </el-select>
+              <div v-if="curKeyObj.type" class="flex ml-2 flex-1  justify-center items-center">
+                <span class="mr-2">SubKeys</span>
+                <el-select v-model="params.subKey" size="small" @change="loadSubDict">
+                  <el-option v-for="(item,i) in hashObj.keys" :key="i"
+                             :label="item" :value="item">
+                  </el-option>
+                </el-select>
+              </div>
+            </div>
           </el-form-item>
-          <el-form-item label="更新时间" prop="update_time">
+          <el-form-item v-if="!curKeyObj.type" label="更新时间" prop="update_time">
             {{ params.value.update_time }}
           </el-form-item>
-          <el-form-item class="json-editor-item" label="value" prop="value">
+          <el-form-item class="json-editor-item" label="Value" prop="value">
             <vue-jsoneditor v-if="load"
                             v-model:json="params.value"
                             class="json-editor"
@@ -46,22 +56,52 @@ import Title from "@/components/Title.vue"
 import {DictService} from "@/service/dict-service";
 import {ElForm} from "element-plus";
 import {RegFunc} from "@/utils/validator";
-import {Msg} from "@/utils/tools";
+import {Msg, Tools} from "@/utils/tools";
 import VueJsoneditor from 'vue3-ts-jsoneditor';
 import {Refresh} from "@element-plus/icons-vue";
 
 const service = new DictService()
-const keys = ['carelinkAuth', 'carelinkData', 'carelinkMyData', "luck"]
-const state = reactive({
+const keys = [
+  {
+    key: 'carelinkAuth',
+  }, {
+    key: 'carelinkData',
+  },
+  {
+    key: 'carelinkMyData'
+  }, {
+    key: "history",
+    type: 'hash',
+    isJson: true
+  }, {
+    key: 'food',
+    type: 'hash',
+    isJson: false
+  }, {
+    key: "luck"
+  }, {
+    key: "user",
+    type: 'hash',
+    isJson: false
+  }]
+const keysMap = Tools.arrToObj(keys, 'key')
+const state: any = reactive({
   params: {
-    key: keys[0],
+    key: keys[0].key,
+    subKey: '',
     value: {}
   },
+  hashObj: {
+    keys: [],
+    result: {}
+  },
+  curKeyObj: {},
+  isHash: false,
   load: false
 })
 
 const formRef = ref(ElForm);
-const {params, load} = toRefs(state)
+const {params, load, curKeyObj, hashObj} = toRefs(state)
 const rules = {
   key: RegFunc.require('字典Key'),
   value: RegFunc.require('字典值'),
@@ -73,17 +113,30 @@ onMounted(async () => {
 })
 
 async function loadDict() {
-  const result = await service.getDict(state.params.key)
+  state.curKeyObj = keysMap[state.params.key]
+  const result = await service.getDict(state.params.key, true, state.curKeyObj.type)
   state.load = true
   if (result) {
-    try {
-      state.params.value = JSON.parse(result)
-    } catch (e) {
-      console.log(e);
+    if (!state.curKeyObj.type) {
+      try {
+        state.params.subKey = null
+        state.params.value = JSON.parse(result)
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      state.hashObj.keys = Object.keys(result)
+      state.hashObj.result = result
+      state.params.subKey = state.hashObj.keys[0]
+      loadSubDict(state.curKeyObj.isJson)
     }
   } else {
     state.params.value = {}
   }
+}
+
+function loadSubDict(isJson) {
+  state.params.value = isJson ? JSON.parse(state.hashObj.result[state.params.subKey]) : state.hashObj.result[state.params.subKey]
 }
 
 function update() {
@@ -91,7 +144,8 @@ function update() {
     if (valid) {
       const result = await service.updateDict({
         key: state.params.key,
-        val: JSON.stringify(state.params.value)
+        subKey: state.params.subKey,
+        val: (!state.curKeyObj.type || state.curKeyObj.isJson) ? JSON.stringify(state.params.value) : state.params.value
       })
       if (result) {
         Msg.success('字典保存成功')
@@ -101,8 +155,6 @@ function update() {
 }
 </script>
 <style lang="scss" scoped>
-
-
 .dict-panel {
   display: flex;
   flex-flow: column;

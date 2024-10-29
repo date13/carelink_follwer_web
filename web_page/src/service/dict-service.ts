@@ -7,9 +7,9 @@ export class DictService extends BaseService {
     super('/system/', '');
   }
 
-  async getDict(key: string, mask = true) {
+  async getDict(key: string, mask = true, type = '') {
     if (!CONST_VAR.isDemo) {
-      return HttpClient.get(`${this.apiContext}dict/${key}`, {
+      return HttpClient.get(`${this.apiContext}${!type ? 'dict' : 'dict_hash'}/${key}`, {
         mask
       })
     } else {
