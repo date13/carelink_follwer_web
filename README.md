@@ -15,6 +15,8 @@
     
     
     4.有一定开发能力的,正好有身边有糖的,又正好用美敦力 carelink 的朋友(好像这样的人也不多)可以自己改改用用
+    
+![image](https://github.com/user-attachments/assets/91bd58fe-dcd7-4702-bf65-728950cd38ab)
 
 
 ## 技术栈
