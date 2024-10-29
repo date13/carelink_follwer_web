@@ -17,6 +17,10 @@ def getSysDict(key: str):
     return rds.get_value(key)
 
 
+def getSysDictHash(key: str):
+    return rds.get_all_hash_kv(key)
+
+
 def updateSysDict(updateForm: UpdateSysDictForm):
     # dictObj = await getSysDict(updateForm.key)
     # if dictObj is None:
@@ -42,3 +46,4 @@ def login(loginForm: SysUserForm):
 # form = SysUserForm(name='alex', password='201205')
 # print(login(form))
 # print(Auth().decode_token('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzA0Mzk4MDgsImlhdCI6MTcyOTU3NTgwOCwic2NvcGUiOiJhY2Nlc3NfdG9rZW4iLCJzdWIiOiJhbGV4In0.G-HS6OI7v9l2tDc069l6chI58I5vT2Q6pSkIhkQgSdc'))
+# print(rds.get_all_hash_kv("history"))

@@ -3,17 +3,20 @@
 from fastapi import APIRouter
 from core.route_log import LogRoute
 from models.result import Result
-from service.sysService import getSysDict, UpdateSysDictForm, updateSysDict
+from service.sysService import getSysDict, UpdateSysDictForm, updateSysDict, getSysDictHash
 
 router = APIRouter(route_class=LogRoute)
 
 
 @router.get("/dict/{key}")
 def getDict(key: str):
-    # 从文件中加载对象
     res = getSysDict(key)
     return Result.success(data=res if res is not None else None)
 
+@router.get("/dict_hash/{key}")
+def getDictHash(key: str):
+    res = getSysDictHash(key)
+    return Result.success(data=res if res is not None else None)
 
 @router.post("/dict")
 def upadteDict(updateForm: UpdateSysDictForm):
