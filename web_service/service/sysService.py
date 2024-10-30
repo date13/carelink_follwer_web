@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 from core.auth import Auth
@@ -7,7 +9,7 @@ from models.result import SysUserForm
 
 class UpdateSysDictForm(BaseModel):
     key: str = ""
-    subKey: str | None
+    subKey: Optional[str] = None
     val: str | None
 
 
