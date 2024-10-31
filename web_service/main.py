@@ -90,8 +90,10 @@ def startTask():
     scheduler = BackgroundScheduler(executors=executors)
     refreshCarelinkTokenInterval()
     refreshCarelinkDataInterval()
-    scheduler.add_job(refreshCarelinkTokenInterval, 'interval', seconds=config.CARELINK_TOKEN_REFRESH_INTERVAL)
-    scheduler.add_job(refreshCarelinkDataInterval, 'interval', seconds=config.CARELINK_DATA_REFRESH_INTERVAL)
+    scheduler.add_job(refreshCarelinkTokenInterval, 'interval', max_instances=3,
+                      seconds=config.CARELINK_TOKEN_REFRESH_INTERVAL)
+    scheduler.add_job(refreshCarelinkDataInterval, 'interval', max_instances=3,
+                      seconds=config.CARELINK_DATA_REFRESH_INTERVAL)
     scheduler.add_job(refreshCarelinkTaskIntervalMinutes, 'cron', hour=0, minute=0)
     # scheduler.add_job(test, 'interval', seconds=5)
     # scheduler.add_job(test, 'cron', hour=9,minute=20)
