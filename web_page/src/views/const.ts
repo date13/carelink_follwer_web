@@ -82,6 +82,10 @@ export const SENSOR_STATUS = {
   DO_NOT_CALIBRATE: {
     key: 'DO_NOT_CALIBRATE',
     name: '无需校准'
+  },
+  CALIBRATING: {
+    key: 'CALIBRATING',
+    name: '校准中'
   }
 }
 export const PUMP_STATUS = {
