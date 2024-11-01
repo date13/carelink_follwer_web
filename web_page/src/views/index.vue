@@ -608,8 +608,12 @@ const minMaxSG = computed(() => {
   return sugarCalc.minMaxSG(state.data.sgs, setting)
 })
 
-const gridRight = computed(() => {
-  return sugarCalc.getStartPercent(setting.startPercent).right
+const chartTimeOption: any = computed(() => {
+  const {right, interval} = sugarCalc.getStartPercent(setting.startPercent)
+  return {
+    right,
+    interval
+  }
 })
 
 //画图的参数
@@ -680,17 +684,18 @@ const charOption = computed(() => {
     grid: {
       left: '1%',
       top: '60',
-      right: gridRight.value,
+      right: chartTimeOption.value.right,
       containLabel: true
     },
     xAxis: {
       type: 'time',
       splitLine: {show: false},
       boundaryGap: false,
+      interval: chartTimeOption.value.interval,
       axisLabel: {
         formatter: function (value, index) {
           return dayjs(value).format('HH:mm');
-        }
+        },
       }
     },
     yAxis: [
