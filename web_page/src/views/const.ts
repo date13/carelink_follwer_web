@@ -86,6 +86,10 @@ export const SENSOR_STATUS = {
   CALIBRATING: {
     key: 'CALIBRATING',
     name: '校准中'
+  },
+  NO_DATA_FROM_PUMP: {
+    key: 'NO_DATA_FROM_PUMP',
+    name: '泵无数据'
   }
 }
 export const PUMP_STATUS = {
