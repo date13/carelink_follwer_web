@@ -68,6 +68,7 @@ def login(loginForm: SysUserForm):
         return {
             "name": loginForm.name,
             "admin": user["admin"],
+            "cgm": user["cgm"],
             "token": Auth().encode_token(loginForm.name)
         }
     else:
