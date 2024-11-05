@@ -28,6 +28,12 @@ mailBody = {
 session = HttpUtils().getSession()
 mailObj = MailObject()
 rds = RedisTool()
+userConfig = {}
+forcastCount = 30
+
+
+def addUserCofig(user, config):
+    userConfig[user] = config
 
 
 def sendMail(text):
@@ -35,12 +41,13 @@ def sendMail(text):
     mailObj.send(mailBody)
 
 
-def loadCarelinkData(token):
+def loadCarelinkData(user, token):
     # session.keep_alive = False
+    options = userConfig[user]
     params = {
-        "patientId": config.CARELINK_PATIENTID,
-        "username": config.CARELINK_USERNAME,
-        "role": config.CARELINK_ROLE
+        "patientId": options["patientId"],
+        "username": options["username"],
+        "role": options["role"],
     }
     headers = {
         "Content-Type": "application/json",
@@ -52,26 +59,23 @@ def loadCarelinkData(token):
         if response.status_code == 200:
             result = json.loads(response.text)
             # response.close()
-            my_logger.info("读取 carelinkData 数据成功!!!")
+            my_logger.info("用户:%s 读取 carelinkData 数据成功!!!" % user)
             # print(result)
             return response.status_code, result
-        text = "读取 carelinkData 数据失败!!!" + str(response.status_code)
+        text = "用户:%s 读取 carelinkData 数据失败!!!:%s" % (user, str(response.status_code))
         my_logger.info(text)
         sendMail(text)
         return response.status_code, None
     except requests.exceptions.RequestException as e:
-        text = "读取 carelinkData 数据异常!!!" + str(e)
+        text = "用户:%s 读取 carelinkData 数据异常!!!:%s" % (user, str(e))
         my_logger.info(text)
         # sendMail(text)
         return None, None
 
 
-async def getCarelinkToken():
-    authKey = dictKey["auth"]
+async def getCarelinkToken(user):
+    authKey = "%s:%s" % (user, dictKey["auth"])
     return rds.get_json(authKey)
-
-
-forcastCount = 30
 
 
 def forcastAR2Sg(list):
@@ -91,9 +95,10 @@ def forcastAR2Sg(list):
     return result
 
 
-def refreshCarelinkData():
-    dataKey = dictKey["data"]
-    authKey = dictKey["auth"]
+def refreshCarelinkDataForUser(user):
+    dataKey = "%s:%s" % (user, dictKey["data"])
+    authKey = "%s:%s" % (user, dictKey["auth"])
+
     tokenObj = rds.get_json(authKey)
     dataObj = rds.get_json(dataKey)
     token = tokenObj["token"]
@@ -101,13 +106,13 @@ def refreshCarelinkData():
     if status != 200:
         if dataObj["status"] != status:
             dataObj["status"] = status
-            text = "refreshCarelinkData token失效,请手动刷新Token,当前状态:" + str(status)
+            text = "用户:%s refreshCarelinkData token失效,请手动刷新Token,当前状态:%s" % (user, str(status))
             my_logger.info(text)
             sendMail(text)
-            updateCarelinkDataToRedis(dataObj)
+            updateCarelinkDataToRedis(user, dataObj)
             # await updateCarelinkDataToDB(dataObj)
     else:
-        status, data = loadCarelinkData(token)
+        status, data = loadCarelinkData(user, token)
         if status is not None:
             dataObj["status"] = status
             if data is not None:
@@ -119,7 +124,7 @@ def refreshCarelinkData():
         else:
             dataObj["status"] = 404
 
-        updateCarelinkDataToRedis(dataObj)
+        updateCarelinkDataToRedis(user, dataObj)
         # await updateCarelinkDataToDB(dataObj)
 
 
@@ -147,23 +152,24 @@ def dealWarmUp(data, dataObj):
 #         sendMail(text)
 
 
-def updateCarelinkDataToRedis(dataObj):
+def updateCarelinkDataToRedis(user, dataObj):
     try:
         dataObj["update_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        rds.set_json(dictKey["data"], dataObj)
-        my_logger.info("carelinkData 更新完成!!!" + str(dataObj["status"]))
+        rds.set_json("%s:%s" % (user, dictKey["data"]), dataObj)
+        my_logger.info("用户:%s carelinkData 更新完成!!!:%s" % (user, str(dataObj["status"])))
     except Exception as e:
-        text = "更新 carelinkData 数据错误!!!" + str(e)
+        text = "用户:%s 更新 carelinkData 数据错误!!!:%s" % (user, str(e))
         my_logger.info(text)
         sendMail(text)
 
 
-def refreshCarelinkToken():
-    tokenObj = rds.get_json(dictKey["auth"])
+def refreshCarelinkTokenForUser(user):
+    authKey = "%s:%s" % (user, dictKey["auth"])
+    tokenObj = rds.get_json(authKey)
     token = tokenObj["token"]
     status = tokenObj["status"]
     if status != 200:
-        my_logger.info("refreshCarelinkToken token失效,请手动刷新Token,当前状态:" + str(status))
+        my_logger.info("用户:%s refreshCarelinkToken token失效,请手动刷新Token,当前状态:%s" % (user, str(status)))
     else:
         headers = {
             "Content-Type": "application/json",
@@ -178,19 +184,19 @@ def refreshCarelinkToken():
             response = session.post(refreshCarelinkTokenUrl, json=params, headers=headers, timeout=HTTP_TIMEOUT)
             tokenObj["status"] = response.status_code
             if response.status_code == 200:
-                my_logger.info("carelinkUserToken刷新成功!!!")
+                my_logger.info("用户:%s carelinkUserToken刷新成功!!!" % user)
                 cookies = response.cookies.get_dict()
                 tokenObj["token"] = cookies["auth_tmp_token"]
             else:
-                text = "carelinkUserToken刷新失败!!!" + str(tokenObj["status"])
+                text = "用户:%s carelinkUserToken刷新失败!!!:%s" % (user, str(tokenObj["status"]))
                 my_logger.info(text)
                 sendMail(text)
             tokenObj["update_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # await updateCarelinkData(dictKey["auth"], tokenObj)
-            rds.set_json(dictKey["auth"], tokenObj)
+            rds.set_json(authKey, tokenObj)
             # response.close()
         except requests.exceptions.RequestException as e:
-            text = "刷新carelinkUserToken错误!!!" + str(e)
+            text = "用户:%s 刷新carelinkUserToken错误!!!:%s" % (user, str(e))
             my_logger.info(text)
             sendMail(text)
 
@@ -206,13 +212,14 @@ dateFormat = "%Y-%m-%d"
 luckLimit = 90
 
 
-def refreshCarelinkYesterdayData(data, localtime):
+def refreshCarelinkYesterdayData(user, data, localtime):
     # yesterdayDatatime = datetime.strptime(myData[yesterdayKey]["time"], dataFormat)
     # print((localtime - yesterdayDatatime).total_seconds()/3600)
     # 运行条件
     # 1. 0小时0分
     # 2. 没有数据
-    myData = rds.get_json(dictKey["myData"])
+    myDataKey = "%s:%s" % (user, dictKey["myData"])
+    myData = rds.get_json(myDataKey)
     yesterdayData = data["data"]
     sgsData = yesterdayData["sgs"]
     markersData = yesterdayData["markers"]
@@ -228,12 +235,13 @@ def refreshCarelinkYesterdayData(data, localtime):
         yesSgsArr = myData[yesterdayKey]["sgs"]
         yesMarkersArr = myData[yesterdayKey]["markers"]
         my_logger.info(
-            "刷新carelinkYesterdayData数据,sgsArr:" + str(len(yesSgsArr)) + " markersArr:" + str(len(yesMarkersArr)))
+            "用户:%s 刷新carelinkYesterdayData数据,sgsArr:%s markersArr:%s" % (
+                user, str(len(yesSgsArr)), str(len(yesMarkersArr))))
         dealYesData(yesSgsArr, sgsData)
         dealYesData(yesMarkersArr, markersData)
         myData["update_time"] = localtime.strftime(datetimeFormat)
-        rds.set_json(dictKey["myData"], myData)
-        my_logger.info("刷新carelinkYesterdayData数据成功")
+        rds.set_json(myDataKey, myData)
+        my_logger.info("用户:%s 刷新carelinkYesterdayData数据成功" % user)
 
 
 def dealYesData(yesArr, yesData):
@@ -244,7 +252,7 @@ def dealYesData(yesArr, yesData):
         yesArr[1] = yesData
 
 
-def saveHistoryData(data, localtime):
+def saveHistoryData(user, data, localtime):
     yesterdayData = data["data"]
     historyData = {
         "averageSG": yesterdayData["averageSG"],
@@ -253,15 +261,16 @@ def saveHistoryData(data, localtime):
         "timeInRange": yesterdayData["timeInRange"],
         "averageSGFloat": yesterdayData["averageSGFloat"]
     }
-    rds.set_hash_kv(dictKey["history"], (localtime - timedelta(days=1)).strftime("%Y-%m-%d"),
+    rds.set_hash_kv("%s:%s" % (user, dictKey["history"]), (localtime - timedelta(days=1)).strftime("%Y-%m-%d"),
                     json.dumps(historyData))
-    my_logger.info("历史数据保存成功")
+    my_logger.info("用户:%s 历史数据保存成功" % user)
 
 
-def updateLuckData(localtime):
-    luck = rds.get_json(dictKey["luck"])
+def updateLuckData(user, localtime):
+    luckKey = "%s:%s" % (user, dictKey["luck"])
+    luck = rds.get_json(luckKey)
     # if ((localtime - datetime.strptime(luck["update_time"], datetimeFormat)).total_seconds() / 3600) > hourOffset:
-    data = rds.get_json(dictKey["data"])
+    data = rds.get_json("%s:%s" % (user, dictKey["data"]))
     sgData = data["data"]
     tir = sgData["timeInRange"]
     if tir >= luckLimit:
@@ -269,12 +278,12 @@ def updateLuckData(localtime):
     else:
         luck["no"] += 1
     luck["update_time"] = localtime.strftime(datetimeFormat)
-    rds.set_json(dictKey["luck"], luck)
-    my_logger.info("刷新luck数据成功")
+    rds.set_json(luckKey, luck)
+    my_logger.info("用户:%s 刷新luck数据成功" % user)
 
 
-def updateGMI(data):
-    historyData = rds.get_all_hash_kv(dictKey["history"])
+def updateGMI(user, data):
+    historyData = rds.get_all_hash_kv("%s:%s" % (user, dictKey["history"]))
     # print(historyData)
     sum = 0
     for val in historyData.values():
@@ -282,64 +291,64 @@ def updateGMI(data):
         sum += item["averageSGFloat"]
     avgSg = sum / len(historyData)
     data["GMI"] = '{:.2f}'.format(3.31 + 0.02392 * avgSg)
-    updateCarelinkDataToRedis(data)
-    my_logger.info("刷新GMI数据成功")
+    updateCarelinkDataToRedis(user, data)
+    my_logger.info("用户:%s 刷新GMI数据成功" % user)
 
 
-def refreshCarelinkTokenInterval():
+def refreshCarelinkTokenIntervalForUser(user):
     # while True:
-    my_logger.info("==============开始carelinkUserToken刷新任务==============")
+    my_logger.info("==============开始用户:%s carelinkUserToken刷新任务==============" % user)
     try:
-        refreshCarelinkToken()
+        refreshCarelinkTokenForUser(user)
     except Exception as ex:
-        text = "carelinkUserToken刷新任务错误!!!" + str(ex)
+        text = "用户:%s carelinkUserToken刷新任务错误!!!" % user + str(ex)
         my_logger.info(text)
         sendMail(text)
-    my_logger.info("!!!结束carelinkUserToken刷新任务!!!")
+    my_logger.info("!!!结束用户:%s carelinkUserToken刷新任务!!!" % user)
     # await asyncio.sleep(config.CARELINK_TOKEN_REFRESH_INTERVAL)
 
 
-def refreshCarelinkDataInterval():
+def refreshCarelinkDataIntervalForUser(user):
     # while True:
-    my_logger.info("==============开始carelinkData刷新任务==============")
+    my_logger.info("==============开始用户:%s carelinkData刷新任务==============" % user)
     try:
-        refreshCarelinkData()
+        refreshCarelinkDataForUser(user)
     except Exception as ex:
-        text = "carelinkData刷新任务错误!!!" + str(ex)
+        text = "用户:%s carelinkData刷新任务错误!!!:%s" % (user, str(ex))
         my_logger.info(text)
         sendMail(text)
-    my_logger.info("!!!结束carelinkData刷新任务!!!")
+    my_logger.info("用户:%s !!!结束carelinkData刷新任务!!!" % user)
     # await asyncio.sleep(config.CARELINK_DATA_REFRESH_INTERVAL)
 
 
-def refreshCarelinkTaskIntervalMinutes():
+def refreshCarelinkTaskIntervalMinutesForUser(user):
     # my_logger.info("==============开始refreshCarelinkTaskIntervalMinutes刷新任务==============")
     # while True:
     try:
-        my_logger.info("==============refreshCarelinkTaskIntervalMinutes任务开始==============")
+        my_logger.info("==============开始用户:%s refreshCarelinkTaskIntervalMinutes任务开始==============" % user)
         localtime = datetime.now()
-        data = rds.get_json(dictKey["data"])
-        updateLuckData(localtime)
-        saveHistoryData(data, localtime)
-        updateGMI(data)
-        refreshCarelinkYesterdayData(data, localtime)
+        data = rds.get_json("%s:%s" % (user, dictKey["data"]))
+        updateLuckData(user, localtime)
+        saveHistoryData(user, data, localtime)
+        updateGMI(user, data)
+        refreshCarelinkYesterdayData(user, data, localtime)
     except Exception as ex:
-        text = "refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!" + str(ex)
+        text = "用户:%s refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!%s" % (user, str(ex))
         my_logger.info(text)
         sendMail(text)
         # await asyncio.sleep(60)
 
 
-def getAllFood():
-    return rds.get_all_hash_kv('food')
+def getAllFood(user):
+    return rds.get_all_hash_kv("%s:food" % user)
 
 
-def updateFood(hashObj: RedisHashObj):
-    return rds.set_hash_kv('food', hashObj.key, hashObj.val)
+def updateFood(user, hashObj: RedisHashObj):
+    return rds.set_hash_kv("%s:food" % user, hashObj.key, hashObj.val)
 
 
-def delFood(key):
-    return rds.del_hash_kv('food', key)
+def delFood(user, key):
+    return rds.del_hash_kv("%s:food" % user, key)
 
 # asyncio.run(refreshCarelinkToken())
 # asyncio.run(refreshCarelinkData())
@@ -361,3 +370,4 @@ def delFood(key):
 # refreshCarelinkYesterdayData(data, localtime)
 # print((localtime - timedelta(days=1)).strftime("%Y-%m-%d"))
 # print(localtime.strftime(datetimeFormat))
+# refreshCarelinkDataIntervalForUser('alex')
