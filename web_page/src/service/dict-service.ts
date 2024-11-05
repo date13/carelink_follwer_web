@@ -1,15 +1,17 @@
 import {BaseService} from './base-service'
 import {HttpClient} from "@/utils/http-client";
 import {CARELINK_DICT_KEY, CONST_VAR} from "@/views/const";
+import {Tools} from "@/utils/tools";
 
 export class DictService extends BaseService {
   constructor() {
     super('/system/', '');
   }
 
-  async getDict(key: string, mask = true, type = '') {
+  async getDict(key: string, mask = true, option) {
     if (!CONST_VAR.isDemo) {
-      return HttpClient.get(`${this.apiContext}${!type ? 'dict' : 'dict_hash'}/${key}`, {
+      const user = Tools.getUser()
+      return HttpClient.get(`${this.apiContext}${!option.type ? 'dict' : 'dict_hash'}${option.user ? '/' + user?.name : ''}/${key}`, {
         mask
       })
     } else {
@@ -23,8 +25,9 @@ export class DictService extends BaseService {
     }
   }
 
-  updateDict(params: any) {
-    return HttpClient.postBody(`${this.apiContext}dict`, {
+  updateDict(params: any, option) {
+    const user = Tools.getUser()
+    return HttpClient.postBody(`${this.apiContext}dict${option.user ? '/' + user?.name : ''}`, {
       body: params
     })
   }

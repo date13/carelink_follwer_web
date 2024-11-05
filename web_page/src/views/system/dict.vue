@@ -64,25 +64,32 @@ const service = new DictService()
 const keys = [
   {
     key: 'carelinkAuth',
+    user: true
   }, {
     key: 'carelinkData',
+    user: true
   },
   {
-    key: 'carelinkMyData'
+    key: 'carelinkMyData',
+    user: true
   }, {
     key: "history",
     type: 'hash',
-    isJson: true
+    isJson: true,
+    user: true
   }, {
     key: 'food',
     type: 'hash',
-    isJson: false
+    isJson: false,
+    user: true
   }, {
-    key: "luck"
+    key: "luck",
+    user: true
   }, {
     key: "user",
     type: 'hash',
-    isJson: false
+    isJson: true,
+    user: false
   }]
 const keysMap = Tools.arrToObj(keys, 'key')
 const state: any = reactive({
@@ -114,7 +121,7 @@ onMounted(async () => {
 
 async function loadDict() {
   state.curKeyObj = keysMap[state.params.key]
-  const result = await service.getDict(state.params.key, true, state.curKeyObj.type)
+  const result = await service.getDict(state.params.key, true, state.curKeyObj)
   state.load = true
   if (result) {
     if (!state.curKeyObj.type) {
@@ -146,7 +153,7 @@ function update() {
         key: state.params.key,
         subKey: state.params.subKey,
         val: (!state.curKeyObj.type || state.curKeyObj.isJson) ? JSON.stringify(state.params.value) : state.params.value
-      })
+      }, state.curKeyObj)
       if (result) {
         Msg.success('字典保存成功')
       }

@@ -139,7 +139,8 @@
             <div class="flex-1 flex justify-start items-center">{{ item.key }}</div>
             <div class="flex-1 flex justify-center items-center">{{ item.val }}</div>
             <div class="flex-1 flex justify-center items-center">
-              <el-input-number v-model="item.weight" :min="1" clearable size="small"></el-input-number>
+              <el-input-number v-model="item.weight" :min="1" clearable size="small"
+                               @focus="getInputFocus($event)"></el-input-number>
             </div>
           </div>
         </div>
@@ -212,12 +213,16 @@ function toISF(c) {
   return (c / 4).toFixed(2)
 }
 
+function getInputFocus(event) {
+  event.target.select();
+}
+
 async function push(isLuck) {
   state.luck[isLuck ? 'yes' : 'no']++
   const result = await service.updateDict({
     key: 'luck',
     val: JSON.stringify(state.luck)
-  })
+  }, {user: true})
   if (!result) {
     Msg.error('更新失败')
     state.luck[isLuck ? 'yes' : 'no']--
@@ -227,7 +232,7 @@ async function push(isLuck) {
 }
 
 onMounted(async () => {
-  const result = await service.getDict("luck")
+  const result = await service.getDict("luck", true, {user: true})
   if (result) {
     Object.assign(state.luck, JSON.parse(result))
   }
@@ -249,7 +254,7 @@ async function updateICR() {
   const result = await service.updateDict({
     key: 'luck',
     val: JSON.stringify(state.luck)
-  })
+  }, {user: true})
   if (result) {
     Msg.successMsg('数据保存成功')
     calcCurICR()
