@@ -374,7 +374,7 @@ function updateConduitTime() {
     const result = await dictService.updateDict({
       key: CARELINK_DICT_KEY.carelinkMyData,
       val: JSON.stringify(state.orgMyData)
-    })
+    }, {user: true})
     if (result) {
       Msg.successMsg('更新管路更换时间成功')
     }
