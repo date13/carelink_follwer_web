@@ -55,6 +55,10 @@ export const SG_STATUS = {
   WARM_UP: {
     key: 'WARM_UP',
     name: '--'
+  },
+  CHANGE_SENSOR: {
+    key: 'CHANGE_SENSOR',
+    name: '--'
   }
 }
 
@@ -81,7 +85,7 @@ export const SENSOR_STATUS = {
   },
   DO_NOT_CALIBRATE: {
     key: 'DO_NOT_CALIBRATE',
-    name: '无需校准'
+    name: '不要校准'
   },
   CALIBRATING: {
     key: 'CALIBRATING',
@@ -90,6 +94,10 @@ export const SENSOR_STATUS = {
   NO_DATA_FROM_PUMP: {
     key: 'NO_DATA_FROM_PUMP',
     name: '泵无数据'
+  },
+  CHANGE_SENSOR: {
+    key: 'CHANGE_SENSOR',
+    name: '更换探头'
   }
 }
 export const PUMP_STATUS = {
@@ -302,7 +310,17 @@ export const SYSTEM_STATUS_MAP = {
     name: '探头断开',
     key: 'SENSOR_DISCONNECTED',
     color: COLORS[5]
-  }
+  },
+  CHANGE_SENSOR: {
+    name: '更换探头',
+    key: 'CHANGE_SENSOR',
+    color: COLORS[5]
+  },
+  DO_NOT_CALIBRATE: {
+    name: '不要校准',
+    key: 'DO_NOT_CALIBRATE',
+    color: COLORS[4]
+  },
 }
 export const INSULIN_TYPE = {
   SG: {
