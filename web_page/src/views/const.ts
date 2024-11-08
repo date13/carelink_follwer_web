@@ -220,6 +220,11 @@ export const NOTIFICATION_MAP = {
     text: '请选择是否使用新管路或跳过',
     replace: null,
     type: 'warning'
+  },
+  BC_SID_UPDATING_CAN_TAKE_UP_TO_THREE_HOURS: {
+    text: '更新中,预计耗时3小时',
+    replace: null,
+    type: 'warning'
   }
 }
 
