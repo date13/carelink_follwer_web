@@ -161,8 +161,15 @@
         <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
           {{ lastUpdateTime.conduit || '--' }}
         </el-tag>
-        <el-tag size="small" type="primary">剂量(昨):
-          {{ lastUpdateTime.sumInsulin || '--' }}U
+        <el-tag class="pa-8" size="large" type="primary">
+          <div class="flex flex-col ">
+              <span>剂量(昨):
+              {{ lastUpdateTime.sumInsulin || '--' }}U
+              </span>
+            <span>基础(昨):
+              {{ lastUpdateTime.sumBaseDelivery || '--' }}U
+              </span>
+          </div>
         </el-tag>
       </div>
     </div>
@@ -578,11 +585,15 @@ const lastOffset = computed(() => {
 const lastUpdateTime = computed(() => {
   const lastSgUpdateTime = sugarCalc.cleanTime(state.data.lastSG.datetime)
   let sumInsulin = 0
+  let sumBaseDelivery = 0
   if (state.orgMyData.yesterday?.markers) {
     const len = state.orgMyData.yesterday?.markers.length
     state.orgMyData.yesterday?.markers[len === 2 ? 1 : 0].forEach(item => {
       if (item.type === 'INSULIN') {
         sumInsulin += item.deliveredFastAmount
+      }
+      if (item.type === 'AUTO_BASAL_DELIVERY') {
+        sumBaseDelivery += item.bolusAmount
       }
     })
   }
@@ -591,7 +602,8 @@ const lastUpdateTime = computed(() => {
     sg: toNow(lastSgUpdateTime),
     sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
     conduit: toNow(state.orgMyData.lastConduitTime),
-    sumInsulin: sumInsulin.toFixed(2)
+    sumInsulin: sumInsulin.toFixed(2),
+    sumBaseDelivery: sumBaseDelivery.toFixed(2)
   }
 })
 
