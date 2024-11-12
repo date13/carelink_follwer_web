@@ -253,16 +253,34 @@ def dealYesData(yesArr, yesData):
 
 
 def saveHistoryData(user, data, localtime):
-    yesterdayData = data["data"]
-    historyData = {
-        "averageSG": yesterdayData["averageSG"],
-        "belowHypoLimit": yesterdayData["belowHypoLimit"],
-        "aboveHyperLimit": yesterdayData["aboveHyperLimit"],
-        "timeInRange": yesterdayData["timeInRange"],
-        "averageSGFloat": yesterdayData["averageSGFloat"]
+    yesterday_data = data["data"]
+    sum_recommended = 0
+    sum_auto_correction = 0
+    sum_basal = 0
+    for item in yesterday_data["markers"]:
+        if item["type"] == 'INSULIN':
+            if item["activationType"] == 'RECOMMENDED':
+                sum_recommended += item["deliveredFastAmount"]
+            elif item["activationType"] == 'AUTOCORRECTION':
+                sum_auto_correction += item["deliveredFastAmount"]
+        elif item["type"] == 'AUTO_BASAL_DELIVERY':
+            sum_basal += item["bolusAmount"]
+
+    history_data = {
+        "averageSG": yesterday_data["averageSG"],
+        "belowHypoLimit": yesterday_data["belowHypoLimit"],
+        "aboveHyperLimit": yesterday_data["aboveHyperLimit"],
+        "timeInRange": yesterday_data["timeInRange"],
+        "averageSGFloat": yesterday_data["averageSGFloat"],
+        "insulin": {
+            "recommended": sum_recommended,
+            "autoCorrection": sum_auto_correction,
+            "basal": sum_basal
+        }
     }
+    print(history_data)
     rds.set_hash_kv("%s:%s" % (user, dictKey["history"]), (localtime - timedelta(days=1)).strftime("%Y-%m-%d"),
-                    json.dumps(historyData))
+                    json.dumps(history_data))
     my_logger.info("用户:%s 历史数据保存成功" % user)
 
 
@@ -350,6 +368,7 @@ def updateFood(user, hashObj: RedisHashObj):
 def delFood(user, key):
     return rds.del_hash_kv("%s:food" % user, key)
 
+
 # asyncio.run(refreshCarelinkToken())
 # asyncio.run(refreshCarelinkData())
 # result = getToken()
@@ -362,11 +381,12 @@ def delFood(user, key):
 # updateLuckData()
 # data = rds.get_json(dictKey["data"])
 # saveHistoryData(data)
+# user = "alex"
 # localtime = datetime.now()
-# data = rds.get_json(dictKey["data"])
+# data = rds.get_json("%s:%s" % (user, dictKey["data"]))
 # updateGMI(data)
 # updateLuckData(localtime)
-# saveHistoryData(data, localtime)
+# saveHistoryData(user, data, localtime)
 # refreshCarelinkYesterdayData(data, localtime)
 # print((localtime - timedelta(days=1)).strftime("%Y-%m-%d"))
 # print(localtime.strftime(datetimeFormat))
