@@ -247,36 +247,31 @@ export const TIME_RANGE_CONFIG = [
     label: '2',
     value: 10,
     offset: 50,
-    interval: 1200,
-    right: 20
+    interval: 1200
   },
   {
     label: '3',
     value: 13,
     offset: 60,
-    interval: 1800,
-    right: 20
+    interval: 1800
   },
   {
     label: '4',
     value: 17,
     offset: 70,
-    interval: 3600,
-    right: 20
+    interval: 3600
   },
   {
     label: '6',
     value: 25,
     offset: 80,
-    interval: 3600,
-    right: -25
+    interval: 3600
   },
   {
     label: '12',
     value: 52,
     offset: 100,
-    interval: 3600,
-    right: -25
+    interval: 3600
   }
 ]
 

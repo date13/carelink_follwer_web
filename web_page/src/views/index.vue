@@ -139,8 +139,9 @@
           </div>
         </div>
       </div>
-      <div class="flex-1 chart-panel">
-        <div ref="myChart" class="border-grey border-grey h-full"></div>
+      <div class="flex-1 chart-panel flex">
+        <div ref="myChart" class="flex-1 border-grey border-grey h-full"></div>
+        <div class="w-1/28"></div>
       </div>
       <div class="h-10 px-2 flex items-center justify-around">
         <el-tag :type="modeObj.mode.type" class="" size="small">
@@ -696,7 +697,7 @@ const charOption = computed(() => {
     grid: {
       left: '1%',
       top: '60',
-      right: chartTimeOption.value.right,
+      right: 0,
       containLabel: true
     },
     xAxis: {
