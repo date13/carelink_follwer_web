@@ -160,7 +160,7 @@
       </div>
     </template>
     <el-dialog :close-on-press-escape="false" :destroy-on-close="true" :model-value="show"
-               :show-close="false" style="height:70%;" width="80%">
+               :show-close="false" style="height:70%;" width="80%" @close="close">
       <food :callback="foodCallback" :closeDialog="close" :is-dialog="true" :selected="foods"></food>
     </el-dialog>
   </MainPanel>

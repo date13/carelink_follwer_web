@@ -233,6 +233,11 @@ export const NOTIFICATION_MAP = {
     text: '更新中,预计耗时3小时',
     replace: null,
     type: 'warning'
+  },
+  BC_SID_START_NEW_SENSOR: {
+    text: '是否使用新探头',
+    replace: null,
+    type: 'warning'
   }
 }
 
