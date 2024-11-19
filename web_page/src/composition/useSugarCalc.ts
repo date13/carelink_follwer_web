@@ -91,6 +91,7 @@ export default function () {
 
     if (!shouldHaveAR2(data)) return sgList
     const lastSg = sgList[sgList.length - 1]
+    lastSg.push(true)//标记最后一个symbol
     const forcastArr: any = []
     for (let i = 0; i < getStartPercent(setting.startPercent)?.offset / 5; i++) {
       forcastArr.push([
@@ -179,7 +180,7 @@ export default function () {
       const newList = list.filter(item => {
         return item.type === 'INSULIN' && (item.activationType === 'RECOMMENDED' || item.activationType === 'MANUAL')
       })
-      newList.splice(newList.length > 3 ? -3 : 0).forEach(item => {
+      newList.splice(newList.length > CONST_VAR.peakPoint ? -CONST_VAR.peakPoint : 0).forEach(item => {
         const start = cleanTime(item.dateTime)
         result.push({
               name: '开始',
@@ -191,7 +192,7 @@ export default function () {
             },
             {
               name: '峰值',
-              xAxis: dayjs(start).add(40, 'minutes').valueOf(),
+              xAxis: dayjs(start).add(CONST_VAR.peakMinutes, 'minutes').valueOf(),
               lineStyle: {
                 color: COLORS[5],
                 width: 0.5
@@ -298,10 +299,8 @@ export default function () {
         {
           yAxis: CONST_VAR.minSeriousSg
         }
-      ]
-    ]
-    if (shouldHaveAR2(data) && setting.showAR2) {
-      options.push([
+      ],
+      [
         {
           xAxis: dayjs(cleanTime(data.lastSG.datetime)).add(2.5, 'minute').valueOf(),
           itemStyle: {
@@ -312,8 +311,8 @@ export default function () {
         {
           xAxis: dayjs(cleanTime(data.lastSG.datetime)).add(3, 'hour').valueOf()
         }
-      ])
-    }
+      ]
+    ]
     return options
   }
 
@@ -371,7 +370,7 @@ export default function () {
     if (item.data) {
       const percent = Number((item.data[3] / item.data[1]).toFixed(1))
       const color = item.data[2].color2
-      return percent === 1 ? color : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 1, 0, 0, [
+      return percent === 1 ? color : percent === 0 ? 'white' : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
         {
           offset: 1 - percent,
           color: 'white'
