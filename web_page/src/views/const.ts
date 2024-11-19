@@ -46,7 +46,7 @@ export const SG_STATUS = {
   },
   SG_BELOW_40_MGDL: {
     key: 'SG_BELOW_40_MGDL',
-    name: '探头值低于2.2'
+    name: '低于3.2'
   },
   NO_DATA_FROM_PUMP: {
     key: 'NO_DATA_FROM_PUMP',
@@ -98,7 +98,11 @@ export const SENSOR_STATUS = {
   CHANGE_SENSOR: {
     key: 'CHANGE_SENSOR',
     name: '更换探头'
-  }
+  },
+  SG_BELOW_40_MGDL: {
+    key: 'SG_BELOW_40_MGDL',
+    name: '低于3.2'
+  },
 }
 export const PUMP_STATUS = {
   sport: {
@@ -321,6 +325,11 @@ export const SYSTEM_STATUS_MAP = {
     key: 'DO_NOT_CALIBRATE',
     color: COLORS[4]
   },
+  SG_BELOW_40_MGDL: {
+    name: '低探头值',
+    key: 'SG_BELOW_40_MGDL',
+    color: COLORS[5]
+  }
 }
 export const INSULIN_TYPE = {
   SG: {
