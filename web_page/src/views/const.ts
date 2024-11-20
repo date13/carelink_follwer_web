@@ -242,6 +242,11 @@ export const NOTIFICATION_MAP = {
     text: '是否使用新探头',
     replace: null,
     type: 'warning'
+  },
+  BC_MESSAGE_DELIVERY_STOPPED_SG_APPROACHILG_LOW_LIMIT_CHECK_BG: {
+    text: '血糖接近低限值,暂停输注',
+    replace: null,
+    type: 'warning'
   }
 }
 

@@ -11,7 +11,7 @@ import {
 } from "@/views/const";
 import dayjs from "dayjs";
 import {std} from "mathjs";
-import {compact} from "lodash-es";
+import {compact, isNumber} from "lodash-es";
 import echarts from "@/plugins/echart";
 
 export default function () {
@@ -41,9 +41,12 @@ export default function () {
 
   const calcTimeInRange = (list, isTight = false) => {
     const validSgs = list.filter(item => validItem(item))
-    const lt = ((validSgs.filter(item => item.sg < (isTight ? CONST_VAR.minTightWarnSg : CONST_VAR.minWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
-    const gt = ((validSgs.filter(item => item.sg > (isTight ? CONST_VAR.maxTightWarnSg : CONST_VAR.maxWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
-    return [100 - (Number(lt) + Number(gt)), lt, gt]
+    if (validSgs.length > 0) {
+      const lt = ((validSgs.filter(item => item.sg < (isTight ? CONST_VAR.minTightWarnSg : CONST_VAR.minWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
+      const gt = ((validSgs.filter(item => item.sg > (isTight ? CONST_VAR.maxTightWarnSg : CONST_VAR.maxWarnSg) * CONST_VAR.exchangeUnit).length / validSgs.length) * 100).toFixed(1)
+      return [(100 - (Number(lt) + Number(gt))).toFixed(1), lt, gt]
+    }
+    return [0, 0, 0]
   }
 
 
@@ -53,8 +56,8 @@ export default function () {
     return len > 2 ? (calcSG(listDeal[len - 1].sg - listDeal[len - 2].sg, 2)) : 0
   }
 
-  const calcSG = (sg: number, defaultDecision = 1) => {
-    return (sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision)
+  const calcSG = (sg: number, defaultDecision = 1): number => {
+    return (isNumber(sg) && Math.abs(sg) !== Infinity) ? Number((sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision)) : 0
   }
 
   const calcCV = (list, avgSg) => {
@@ -318,7 +321,7 @@ export default function () {
 
   function showNotificationMsg(messageId, sg) {
     const item = NOTIFICATION_MAP[messageId]
-    if (sg) return item.text.replace(item.replace, parseFloat(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
+    if (sg) return item.text.replace(item.replace, calcSG(sg) > 30 ? '无法探测' : calcSG(sg))
     return item.text
   }
 
@@ -342,7 +345,7 @@ export default function () {
   function maxWave(sgs, setting, size = 12) {
     const list = calcSgsLen(sgs, setting)
     if (list.length < size || size <= 0) {
-      return '--'
+      return 0
     }
     const arr = list.filter(item => validItem(item)).map(item => item.sg)
     let maxChange = 0;

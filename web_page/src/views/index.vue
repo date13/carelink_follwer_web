@@ -622,9 +622,8 @@ const minMaxSG = computed(() => {
 })
 
 const chartTimeOption: any = computed(() => {
-  const {right, interval} = sugarCalc.getStartPercent(setting.startPercent)
+  const {interval} = sugarCalc.getStartPercent(setting.startPercent)
   return {
-    right,
     interval
   }
 })
