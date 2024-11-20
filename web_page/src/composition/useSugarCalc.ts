@@ -56,8 +56,8 @@ export default function () {
     return len > 2 ? (calcSG(listDeal[len - 1].sg - listDeal[len - 2].sg, 2)) : 0
   }
 
-  const calcSG = (sg: number, defaultDecision = 1): number => {
-    return (isNumber(sg) && Math.abs(sg) !== Infinity) ? Number((sg / CONST_VAR.exchangeUnit).toFixed(defaultDecision)) : 0
+  const calcSG = (sg: number, defaultDecision = 1) => {
+    return (isNumber(sg) && Math.abs(sg) !== Infinity) ? Number((sg / CONST_VAR.exchangeUnit)).toFixed(defaultDecision) : 0
   }
 
   const calcCV = (list, avgSg) => {
@@ -321,7 +321,7 @@ export default function () {
 
   function showNotificationMsg(messageId, sg) {
     const item = NOTIFICATION_MAP[messageId]
-    if (sg) return item.text.replace(item.replace, calcSG(sg) > 30 ? '无法探测' : calcSG(sg))
+    if (sg) return item.text.replace(item.replace, Number(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
     return item.text
   }
 
