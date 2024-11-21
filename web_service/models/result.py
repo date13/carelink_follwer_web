@@ -12,6 +12,10 @@ class RedisHashObj(BaseModel):
     val: str | float | int
 
 
+class SysUserForm(BaseModel):
+    name: str
+    password: str
+
 class ResultSchema(BaseModel, Generic[T]):
     """ 结果数据模型 """
     code: int

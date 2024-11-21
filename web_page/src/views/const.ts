@@ -11,6 +11,33 @@ export const COLORS = [
   '#eeb1c9'//9严重警告区域背景
 ]
 
+export const REFRESH_INTERVAL = {
+  loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
+  loadMyData: 60
+}
+
+export const CONST_VAR = {
+  maxSeriousSg: 12.5,
+  maxWarnSg: 9.5,
+  maxTightWarnSg: 7.8,
+  minWarnSg: 3.9,
+  minSeriousSg: 3.2,
+  minTightWarnSg: 4,
+  exchangeUnit: 18,
+  minSgYValueLimit: 2,
+  maxSgYValueOffset: 5,
+  peakPoint: 3,//显示峰值的大剂量数
+  peakMinutes: 35,//峰值时间
+  isDemo: import.meta.env.VITE_APP_IS_DEMO === 'true'
+}
+
+export const CHART_LEGEND = [
+  {name: '血糖', itemStyle: {color: COLORS[0]}},
+  {name: '血糖(昨)', itemStyle: {color: COLORS[9]}},
+  {name: '基础', itemStyle: {color: COLORS[1]}},
+  {name: '大剂量', itemStyle: {color: COLORS[2]}},
+  {name: '大剂量(昨)', itemStyle: {color: COLORS[6]}}
+]
 export const NOTIFICATION_HASH_KEY = 'carelink_follower'
 export const SG_STATUS = {
   NO_ERROR_MESSAGE: {
@@ -19,9 +46,97 @@ export const SG_STATUS = {
   },
   SG_BELOW_40_MGDL: {
     key: 'SG_BELOW_40_MGDL',
-    name: '探头值低于2.2'
+    name: '低于3.2'
+  },
+  NO_DATA_FROM_PUMP: {
+    key: 'NO_DATA_FROM_PUMP',
+    name: 'n/a'
+  },
+  WARM_UP: {
+    key: 'WARM_UP',
+    name: '--'
+  },
+  CHANGE_SENSOR: {
+    key: 'CHANGE_SENSOR',
+    name: '--'
   }
 }
+
+export const SENSOR_STATUS = {
+  SENSOR_DISCONNECTED: {
+    key: 'SENSOR_DISCONNECTED',
+    name: '探头断开'
+  },
+  UNKNOWN: {
+    key: 'UNKNOWN',
+    name: '未知'
+  },
+  NO_ERROR_MESSAGE: {
+    key: 'NO_ERROR_MESSAGE',
+    name: '正常'
+  },
+  SEARCHING_FOR_SENSOR_SIGNAL: {
+    key: 'SEARCHING_FOR_SENSOR_SIGNAL',
+    name: '寻找探头'
+  },
+  WARM_UP: {
+    key: 'WARM_UP',
+    name: '预热'
+  },
+  DO_NOT_CALIBRATE: {
+    key: 'DO_NOT_CALIBRATE',
+    name: '不要校准'
+  },
+  CALIBRATING: {
+    key: 'CALIBRATING',
+    name: '校准中'
+  },
+  NO_DATA_FROM_PUMP: {
+    key: 'NO_DATA_FROM_PUMP',
+    name: '泵无数据'
+  },
+  CHANGE_SENSOR: {
+    key: 'CHANGE_SENSOR',
+    name: '更换探头'
+  },
+  SG_BELOW_40_MGDL: {
+    key: 'SG_BELOW_40_MGDL',
+    name: '低于3.2'
+  },
+}
+export const PUMP_STATUS = {
+  sport: {
+    key: "sport",
+    name: '运动模式',
+    type: 'success'
+  },
+  manuel: {
+    key: "manuel",
+    name: '手动模式',
+    type: 'info'
+  },
+  stop: {
+    key: "stop",
+    name: '暂停输注',
+    type: 'danger'
+  },
+  auto: {
+    key: "auto",
+    name: '闭环模式',
+    type: 'success'
+  },
+  safe: {
+    key: "safe",
+    name: '安全模式',
+    type: 'success'
+  },
+  none: {
+    key: "none",
+    name: '状态未知',
+    type: 'info'
+  }
+}
+
 export const NOTIFICATION_MAP = {
   BC_SID_BOLUS_ENTRY_TIMED_OUT: {
     text: `大剂量输入超时`,
@@ -113,6 +228,26 @@ export const NOTIFICATION_MAP = {
     replace: null,
     type: 'error'
   },
+  BC_SID_SELECT_FILL_CANNULA_OR_SKIP: {
+    text: '请选择是否使用新管路或跳过',
+    replace: null,
+    type: 'warning'
+  },
+  BC_SID_UPDATING_CAN_TAKE_UP_TO_THREE_HOURS: {
+    text: '更新中,预计耗时3小时',
+    replace: null,
+    type: 'warning'
+  },
+  BC_SID_START_NEW_SENSOR: {
+    text: '是否使用新探头',
+    replace: null,
+    type: 'warning'
+  },
+  BC_MESSAGE_DELIVERY_STOPPED_SG_APPROACHILG_LOW_LIMIT_CHECK_BG: {
+    text: '血糖接近低限值,暂停输注',
+    replace: null,
+    type: 'warning'
+  }
 }
 
 export const CARELINK_DICT_KEY = {
@@ -121,78 +256,36 @@ export const CARELINK_DICT_KEY = {
   carelinkMyData: "carelinkMyData"
 }
 
-export const SENSOR_STATUS = {
-  SENSOR_DISCONNECTED: {
-    key: 'SENSOR_DISCONNECTED',
-    name: '探头断开'
-  },
-  UNKNOWN: {
-    key: 'UNKNOWN',
-    name: '未知'
-  },
-  NO_ERROR_MESSAGE: {
-    key: 'NO_ERROR_MESSAGE',
-    name: '正常'
-  }
-}
-export const PUMP_STATUS = {
-  sport: {
-    key: "sport",
-    name: '运动模式',
-    type: 'success'
-  },
-  manuel: {
-    key: "manuel",
-    name: '手动模式',
-    type: 'info'
-  },
-  stop: {
-    key: "stop",
-    name: '暂停输注',
-    type: 'danger'
-  },
-  auto: {
-    key: "auto",
-    name: '闭环模式',
-    type: 'success'
-  },
-  safe: {
-    key: "safe",
-    name: '安全模式',
-    type: 'success'
-  },
-  none: {
-    key: "none",
-    name: '状态未知',
-    type: 'info'
-  }
-}
-
 export const TIME_RANGE_CONFIG = [
   {
     label: '2',
     value: 10,
-    offset: 30
+    offset: 50,
+    interval: 1200
   },
   {
     label: '3',
     value: 13,
-    offset: 40
+    offset: 60,
+    interval: 1800
   },
   {
     label: '4',
     value: 17,
-    offset: 50
+    offset: 70,
+    interval: 3600
   },
   {
     label: '6',
     value: 25,
-    offset: 60
+    offset: 80,
+    interval: 3600
   },
   {
     label: '12',
     value: 52,
-    offset: 80
+    offset: 100,
+    interval: 3600
   }
 ]
 
@@ -226,23 +319,22 @@ export const SYSTEM_STATUS_MAP = {
     name: '探头断开',
     key: 'SENSOR_DISCONNECTED',
     color: COLORS[5]
+  },
+  CHANGE_SENSOR: {
+    name: '更换探头',
+    key: 'CHANGE_SENSOR',
+    color: COLORS[5]
+  },
+  DO_NOT_CALIBRATE: {
+    name: '不要校准',
+    key: 'DO_NOT_CALIBRATE',
+    color: COLORS[4]
+  },
+  SG_BELOW_40_MGDL: {
+    name: '低探头值',
+    key: 'SG_BELOW_40_MGDL',
+    color: COLORS[5]
   }
-}
-export const REFRESH_INTERVAL = {
-  loadData: parseInt(import.meta.env.VITE_APP_LOAD_INTERVAL),
-  loadMyData: 60
-}
-export const CONST_VAR = {
-  maxSeriousSg: 12.5,
-  maxWarnSg: 9.5,
-  maxTightWarnSg: 7.8,
-  minWarnSg: 3.9,
-  minSeriousSg: 3.2,
-  minTightWarnSg: 4,
-  exchangeUnit: 18,
-  minSgYValueLimit: 2,
-  maxSgYValueOffset: 5,
-  isDemo: import.meta.env.VITE_APP_IS_DEMO === 'true'
 }
 export const INSULIN_TYPE = {
   SG: {

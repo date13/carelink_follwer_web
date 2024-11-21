@@ -1,23 +1,18 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
-      <el-badge :is-dot="setting.notification.hasNew" class="menu-panel">
-        <el-dropdown placement="bottom-start" trigger="click" @command="handleMenu">
-          <ep-Menu></ep-Menu>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-badge :is-dot="setting.notification.hasNew" :offset="[-13,8]">
-                <el-dropdown-item command="notification">Notification</el-dropdown-item>
-              </el-badge>
-              <el-dropdown-item command="info">Info</el-dropdown-item>
-              <el-dropdown-item command="dict">Dict</el-dropdown-item>
-              <el-dropdown-item command="food">Food</el-dropdown-item>
-              <el-dropdown-item command="login">Login</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-badge>
-      <div class="flex flex-row h-50">
+      <el-dropdown class="menu-panel" placement="bottom-start" trigger="click" @command="handleMenu">
+        <ep-Menu></ep-Menu>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="info">Info</el-dropdown-item>
+            <el-dropdown-item command="dict">Dict</el-dropdown-item>
+            <el-dropdown-item command="food">Food</el-dropdown-item>
+            <el-dropdown-item command="login">Login</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <div class="flex flex-row h-45">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
             <template #header>
@@ -31,10 +26,14 @@
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 IOB:
                 {{ data.activeInsulin.amount }}&nbsp;
-                Avg:
-                {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;
                 CV:
                 {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
+              </el-tag>
+              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+                Avg:
+                {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;
+                GMI:
+                {{ GMI }}
               </el-tag>
               <el-tag class="mb-1 mr-1 " size="small" type="primary">
                 <span class="text-red">Wav:
@@ -54,7 +53,7 @@
                   {{ timeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="" size="small" type="primary">
                 TTIR:
                 {{ tightTimeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -63,19 +62,6 @@
                 <span class="text-rose">H:
                   {{ tightTimeInRange[2] }}%
                 </span>
-              </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="warning">泵:
-                {{ data.reservoirRemainingUnits }}U&nbsp;
-                {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
-              </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="warning">
-                探头:
-                {{
-                  sugarCalc.sensorState(data)
-                }}&nbsp;
-                {{
-                  data.gstBatteryLevel || '--'
-                }}%
               </el-tag>
               <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
                       type="danger">
@@ -112,30 +98,23 @@
               </template>
             </div>
           </div>
-          <div class="flex text-xs items-center justify-between align-center mb-1">
+          <div class="flex text-xs items-center justify-between align-center">
             <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2">
               {{
                 lastUpdateTime.sg
               }}
             </span>
             <span class="mx-2">{{ lastOffset }}</span>
-            <span class="ml-2 text-xs">
-              <ep-Refresh class="hand" @click="reload"></ep-Refresh>
-            </span>
+            <!--            <span class="ml-2 text-xs">
+                          <ep-Refresh class="hand" @click="reload"></ep-Refresh>
+                        </span>-->
           </div>
-          <div class="flex items-center justify-center time-range">
+          <div class="flex items-center justify-center time-range mt-1">
             <el-radio-group v-model="setting.startPercent" size="small" @change="changeTimeRange">
               <el-radio-button v-for="item in TIME_RANGE_CONFIG" :label="item.label" :value="item.value"/>
             </el-radio-group>
-            <!--
-                        <el-segmented v-model="startPercent" :options="TIME_RANGE_CONFIG" size="default" @change="changeTimeRange">
-                          <template #default="{ item }">
-                            <div>{{ item.label }}</div>
-                          </template>
-                        </el-segmented>-->
           </div>
-
-          <div class="flex text-xs items-center justify-between align-center mt-1">
+          <div class="flex text-xs items-center justify-between align-center my-1">
             <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
                 toNow(nextStartTime)
               }}</span>
@@ -144,23 +123,27 @@
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
           </div>
-          <div class="flex text-xs items-center justify-between align-center">
-            <div class="mr-2">
-              <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
-            </div>
-            <div class="mr-2">
-              <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="switchYesterday"/>
-            </div>
-            <div class="mr-2">
-              <el-checkbox v-model="setting.realWave" label="实时" size="small"/>
-            </div>
+          <div class="flex items-center justify-around align-center info-panel">
+            <el-tag class="mb-1 mr-1" size="small" type="primary">
+              泵:
+              {{ data.reservoirRemainingUnits }}U
+              {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
+              探头:
+              {{
+                sugarCalc.sensorState(data)
+              }}
+              {{
+                data.gstBatteryLevel || '--'
+              }}%
+            </el-tag>
           </div>
         </div>
       </div>
-      <div class="flex-1">
-        <div ref="myChart" class="border-grey border-grey h-full"></div>
+      <div class="flex-1 chart-panel flex">
+        <div ref="myChart" class="flex-1 border-grey border-grey h-full"></div>
+        <div class="w-1/28"></div>
       </div>
-      <div class="h-15 px-2 flex items-center justify-around">
+      <div class="h-10 px-2 flex items-center justify-around">
         <el-tag :type="modeObj.mode.type" class="" size="small">
           {{ modeObj.mode.name }}
           <span v-if="modeObj.mode.key===PUMP_STATUS.safe.key">
@@ -179,8 +162,60 @@
         <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
           {{ lastUpdateTime.conduit || '--' }}
         </el-tag>
+        <el-tag size="large" type="primary">
+          <div class="flex flex-col ">
+              <span>剂量(昨):
+              {{ lastUpdateTime.sumInsulin || '--' }}U
+              </span>
+            <span>基础(昨):
+              {{ lastUpdateTime.sumBaseDelivery || '--' }}U
+              </span>
+          </div>
+        </el-tag>
       </div>
     </div>
+    <div class="float-panel flex flex-col items-center justify-center">
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+           @click="handleMenu('notification')">
+        <el-badge :is-dot="setting.notification.hasNew">
+          <ep-Bell></ep-Bell>
+        </el-badge>
+      </div>
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+           @click="showDrawer">
+        <ep-KnifeFork></ep-KnifeFork>
+      </div>
+      <div :class="{'only-right':showSetting}"
+           class="item flex items-center justify-center border-solid border-1 hand no-bottom">
+        <div v-show="showSetting"
+             class="flex float-item-panel items-center justify-between border-solid border-1 no-right">
+          <div class="float-item ">
+            <el-checkbox v-model="setting.realWave" label="实时" size="small"/>
+          </div>
+          <div class="float-item">
+            <el-checkbox v-model="setting.showAR2" label="AR2" size="small" @change="switchAR2"/>
+          </div>
+          <div class="float-item">
+            <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="refreshChart"/>
+          </div>
+          <div class="float-item">
+            <el-checkbox v-model="setting.showPeak" label="峰值" size="small" @change="refreshChart"/>
+          </div>
+        </div>
+        <ep-Setting class="hand" @click="triggerSetting"></ep-Setting>
+      </div>
+      <div :class="{'no-top':showSetting}" class="item flex items-center justify-center border-solid border-1 hand"
+           @click="reload">
+        <ep-Refresh></ep-Refresh>
+      </div>
+    </div>
+    <el-drawer
+        v-model="drawer"
+        direction="rtl"
+        size="80%"
+    >
+      <Info :close-drawer="closeDrawer" :is-dialog="true" title="碳水计算"></Info>
+    </el-drawer>
     <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                         :notificationHistory="data.notificationHistory"></NotificationDialog>
   </MainPanel>
@@ -198,6 +233,7 @@ import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {
   CARELINK_DICT_KEY,
+  CHART_LEGEND,
   COLORS,
   CONST_VAR,
   DIRECTIONS,
@@ -216,10 +252,12 @@ import {DictService} from "@/service/dict-service";
 import CryptoJS from "crypto-js";
 import {cloneDeep, flatten, forEach} from "lodash-es";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
+import Info from "@/views/info.vue"
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
+
 const sugarService = new SugarService()
 const dictService = new DictService()
 
@@ -235,12 +273,13 @@ const lastStatus: any = Tools.getLastStatus('sugar-setting', {
     lastKey: null
   },
   realWave: true,
+  showPeak: true
 })
 const sugarCalc = useSugarCalc()
 const setting = lastStatus.value['sugar-setting']
 const state: any = reactive({
-  tokenData: {},
   status: 200,
+  prepare: false,
   showNotificationDialog: false,
   updateDatetime: '--',//数据更新时间
   interval: {
@@ -248,9 +287,11 @@ const state: any = reactive({
     data: null,
     myData: null,
   },
+  showSetting: false,
   orgMyData: {},
   myData: {},
   forecast: {},
+  GMI: 0,
   nextStartTime: -1,
   data: {
     lastSG: {
@@ -272,18 +313,35 @@ const state: any = reactive({
     gstBatteryLevel: 0,
     sensorDurationMinutes: 0,
   },
-  time: dayjs()//当前系统时间
+  time: dayjs(),//当前系统时间
+  drawer: false
 })
 
-const {data, time, updateDatetime, status, showNotificationDialog, nextStartTime} = toRefs(state)
+const {
+  data,
+  time,
+  updateDatetime,
+  status,
+  showNotificationDialog,
+  nextStartTime,
+  drawer,
+  showSetting,
+  GMI
+} = toRefs(state)
 
 onBeforeMount(() => {
   initSetting()
 })
 
 onMounted(async () => {
-  await onLoadCarelinkData()
+  // await onLoadCarelinkData()
   startInterval()
+  await sugarService.initSugarSSE((res) => {
+    dealCarelinkData(res)
+    if (!chart) {
+      refreshChart()
+    }
+  })
 })
 
 onBeforeUnmount(() => {
@@ -299,6 +357,19 @@ function initSetting() {
       lastKey: null
     }
   }
+  if (!setting.legend) {
+    const legendOptions = {}
+    CHART_LEGEND.forEach(item => {
+      legendOptions[item.name] = true
+    })
+    setting.legend = {
+      selected: legendOptions
+    }
+  }
+}
+
+function triggerSetting() {
+  state.showSetting = !state.showSetting
 }
 
 function fromNow(time: any) {
@@ -317,7 +388,7 @@ function updateConduitTime() {
     const result = await dictService.updateDict({
       key: CARELINK_DICT_KEY.carelinkMyData,
       val: JSON.stringify(state.orgMyData)
-    })
+    }, {user: true})
     if (result) {
       Msg.successMsg('更新管路更换时间成功')
     }
@@ -365,7 +436,7 @@ async function reload() {
 
 function startInterval() {
   startTimeInterval()
-  startDataLoadInterval()
+  // startDataLoadInterval()
 }
 
 function startTimeInterval() {
@@ -387,76 +458,31 @@ function startDataLoadInterval() {
 //获取数据库数据,不是去 carelink 刷新数据
 async function loadCarelinkData(mask = true) {
   try {
-    if (state.tokenData) {
-      const result = await sugarService.loadData(mask)
-      if (result) {
-        state.data = result.data
-        state.status = result.status
-        state.forecast = result.forecast || {ar2: []}
-        state.nextStartTime = result.nextStartTime
-        state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
-        // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
-        dealNewNotification()
-        // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
-        dealMyData(result.myData)
-        /* state.data.therapyAlgorithmState = {
-           "autoModeShieldState": "SAFE_BASAL",
-           "autoModeReadinessState": "NO_ACTION_REQUIRED",
-           "plgmLgsState": "FEATURE_OFF",
-           "safeBasalDuration": 213,
-           "waitToCalibrateDuration": 0
-         }*/
-        document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
-        /* state.data.notificationHistory.activeNotifications = [
-           {
-             "dateTime": "2024-09-27T19:26:58.000-00:00",
-             "GUID": "6F1B0000-3003-0000-823E-A72C00000000",
-             "type": "ALERT",
-             "faultId": 816,
-             "instanceId": 7023,
-             "messageId": "BC_SID_HIGH_SG_CHECK_BG",
-             "sg": 171,
-             "pumpDeliverySuspendState": false,
-             "relativeOffset": -307,
-             "alertSilenced": false
-           }
-         ]*/
-        // state.data.therapyAlgorithmState = null
-        /*state.data.markers.push({
-          "type": "CALIBRATION",
-          "index": 148,
-          "value": 130,
-          "kind": "Marker",
-          "version": 1,
-          "dateTime": "2024-09-11T14:18:00.000-00:00",
-          "relativeOffset": -41836,
-          "calibrationSuccess": true
-        },)*/
-        /* Object.assign(state.data, {
-           "therapyAlgorithmState": {
-             "autoModeShieldState": "FEATURE_OFF",
-             "autoModeReadinessState": "NO_ACTION_REQUIRED",
-             "plgmLgsState": "MONITORING",
-             "safeBasalDuration": 0,
-             "waitToCalibrateDuration": 0
-           },
-           "pumpBannerState": [
-             {
-               "type": "TEMP_BASAL",
-               "timeRemaining": 35
-             }
-           ],
-           "basal": {
-             "basalRate": 0.175,
-             "tempBasalRate": 1,
-             "tempBasalType": "ABSOLUTE",
-             "tempBasalDurationRemaining": 35
-           }
-         })*/
-      }
-    }
+    const result = await sugarService.loadData(mask)
+    dealCarelinkData(result)
   } catch (e) {
     console.log(e);
+  }
+}
+
+function dealCarelinkData(result) {
+  console.log(result);
+  if (result) {
+    state.data = result.data
+    state.status = result.status
+    state.forecast = result.forecast || {ar2: []}
+    state.GMI = result.GMI
+    state.nextStartTime = result.nextStartTime
+    state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
+    // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+    // setting.notification.hasNew = true
+    dealNewNotification()
+    dealMyData(result.myData)
+
+    state.prepare = true
+    document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
+  } else {
+    state.prepare = false
   }
 }
 
@@ -522,16 +548,24 @@ function handleMenu(command) {
   }
 }
 
+function showDrawer() {
+  state.drawer = true
+}
+
+function closeDrawer() {
+  state.drawer = false
+}
+
 function switchAR2() {
   if (!sugarCalc.shouldHaveAR2(state.data) && setting.showAR2) {
     setting.showAR2 = false
-    Msg.warnMsg(`当前系统状态为:${SYSTEM_STATUS_MAP[state.data.systemStatusMessage]?.name},无法预测`)
+    Msg.warnMsg(`当前系统状态为:${SYSTEM_STATUS_MAP[state.data.systemStatusMessage]?.name},最近血糖为:${SG_STATUS[state.data.lastSG.sensorState]?.name}`)
   } else {
     refreshChart()
   }
 }
 
-function switchYesterday() {
+function switchRefreshChart() {
   refreshChart()
 }
 
@@ -541,6 +575,7 @@ function changeTimeRange() {
 }
 
 function refreshChart() {
+  if (!state.prepare) return
   if (!chart) drawLine()
   chart.setOption(charOption.value, true);
 }
@@ -561,10 +596,26 @@ const lastOffset = computed(() => {
 
 const lastUpdateTime = computed(() => {
   const lastSgUpdateTime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+  let sumInsulin = 0
+  let sumBaseDelivery = 0
+  if (state.orgMyData.yesterday?.markers) {
+    const len = state.orgMyData.yesterday?.markers.length
+    state.orgMyData.yesterday?.markers[len === 2 ? 1 : 0].forEach(item => {
+      if (item.type === 'INSULIN') {
+        sumInsulin += item.deliveredFastAmount
+      }
+      if (item.type === 'AUTO_BASAL_DELIVERY') {
+        sumBaseDelivery += item.bolusAmount
+      }
+    })
+  }
+
   return {
     sg: toNow(lastSgUpdateTime),
     sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
-    conduit: toNow(state.orgMyData.lastConduitTime)
+    conduit: toNow(state.orgMyData.lastConduitTime),
+    sumInsulin: sumInsulin.toFixed(2),
+    sumBaseDelivery: sumBaseDelivery.toFixed(2)
   }
 })
 
@@ -581,6 +632,13 @@ const minMaxSG = computed(() => {
   return sugarCalc.minMaxSG(state.data.sgs, setting)
 })
 
+const chartTimeOption: any = computed(() => {
+  const {interval} = sugarCalc.getStartPercent(setting.startPercent)
+  return {
+    interval
+  }
+})
+
 //画图的参数
 const charOption = computed(() => {
   return {
@@ -588,13 +646,8 @@ const charOption = computed(() => {
       icon: 'rect',
       itemGap: 5,
       itemWidth: 20,
-      data: [
-        {name: '血糖', itemStyle: {color: COLORS[0]}},
-        {name: '血糖(昨)', itemStyle: {color: COLORS[9]}},
-        {name: '基础', itemStyle: {color: COLORS[1]}},
-        {name: '大剂量', itemStyle: {color: COLORS[2]}},
-        {name: '大剂量(昨)', itemStyle: {color: COLORS[6]}}
-      ]
+      data: CHART_LEGEND,
+      selected: setting.legend.selected,
     },
     toolbox: {
       show: false,
@@ -606,8 +659,14 @@ const charOption = computed(() => {
         saveAsImage: {show: true}
       }
     },
+    axisPointer: {
+      show: true,
+    },
     tooltip: {
       trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      },
       confine: true,
       position: (point, params, dom, rect, size) => {
         // const isInsulin = params[0].data[2].key === INSULIN_TYPE.INSULIN.key
@@ -648,25 +707,28 @@ const charOption = computed(() => {
     grid: {
       left: '1%',
       top: '60',
-      right: '0',
+      right: 0,
       containLabel: true
     },
     xAxis: {
       type: 'time',
-      splitLine: {show: true},
+      splitLine: {show: false},
       boundaryGap: false,
+      interval: chartTimeOption.value.interval,
       axisLabel: {
         formatter: function (value, index) {
           return dayjs(value).format('HH:mm');
-        }
+        },
       }
     },
     yAxis: [
       {
-        name: 'mmol/L',
+        // name: 'mmol/L',
         type: 'value',
         ...sugarCalc.calcSgYValueLimit(),
-        splitLine: {show: true}
+        splitLine: {show: false},
+        axisTick: {show: true},
+        axisLine: {show: false},
       },
       {
         name: '校准',
@@ -709,6 +771,7 @@ const charOption = computed(() => {
       type: 'piecewise',
       precision: 1,
       seriesIndex: 0,
+      hoverLink: false,
       pieces: [
         {
           lte: CONST_VAR.minSeriousSg,
@@ -746,13 +809,18 @@ const charOption = computed(() => {
         symbol: (value: any, params: Object) => {
           return value[2].symbol
         },
-        symbolSize: 6,
+        symbolSize: (rawValue, params) => {
+          return params.value.length === 3 ? 6 : 10
+        },
         label: {
           show: false,
           position: 'bottom'
         },
         labelLine: {
           smooth: true,
+        },
+        emphasis: {
+          disabled: true
         },
         markArea: {
           emphasis: {disabled: true},
@@ -868,6 +936,29 @@ const charOption = computed(() => {
           borderColor: COLORS[2],
           color: sugarCalc.showInsulin
         },
+        // markArea: {
+        //   data: sugarCalc.showInsulinPeak(state.data.markers, setting),
+        // },
+        markLine: {
+          symbol: ['none', 'none'],
+          animation: false,
+          label: {
+            show: false,
+          },
+          emphasis: {
+            label: {
+              show: true,
+              position: 'end',
+              formatter: (item) => {
+                return `${item.name}:${dayjs(item.value).format("HH:mm")}`
+              },
+            },
+            lineStyle: {
+              width: 1,	// hover时的折线宽度
+            }
+          },
+          data: sugarCalc.showInsulinPeak(state.data.markers, setting),
+        },
         data: sugarCalc.loadInsulinData(state.data.markers, setting)
       },
       {
@@ -894,9 +985,11 @@ const charOption = computed(() => {
         yAxisIndex: 3,
         symbolSize: 10,
         label: {
+          color: COLORS[4],
           formatter: (item) => {
             return item.data[3]
           },
+          fontSize: 10,
           position: 'top',
           show: true,
         },
@@ -919,6 +1012,9 @@ function drawLine() {
   if (!chart) { // 如果不存在，就进行初始化。
     chart = echarts.init(<HTMLElement>myChart.value)
   }
+  chart.on('legendselectchanged', function (params) {
+    Object.assign(setting.legend.selected, params.selected)
+  });
   resizeObj = useChartResize(chart)
   resizeObj.mounted()
 }
@@ -926,7 +1022,7 @@ function drawLine() {
 <style lang="scss" scoped>
 .menu-panel {
   position: absolute;
-  right: 20px;
+  right: 5px;
 
   svg {
     width: 30px;
@@ -959,6 +1055,49 @@ function drawLine() {
     --el-segmented-item-selected-color: white;
     --el-segmented-item-selected-bg-color: var(--el-color-primary-light-3);
     --el-border-radius-base: 16px;
+  }
+}
+
+.float-panel {
+  right: 5px;
+  position: absolute;
+  bottom: 30px;
+  background: white;
+
+  .float-item-panel {
+    background: white;
+    position: absolute;
+    right: 35px;
+
+    .float-item {
+      height: 35px;
+      padding: 0 5px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .item {
+    width: 35px;
+    height: 35px;
+  }
+
+  .no-right {
+    border-right: none;
+  }
+
+  .no-top {
+    border-top: none;
+  }
+
+  .only-right {
+    border-left: none;
+    border-top: none;
+    border-bottom: none;
+  }
+
+  .no-bottom {
+    border-bottom: none;
   }
 }
 </style>

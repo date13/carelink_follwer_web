@@ -1,9 +1,9 @@
 <template>
   <MainPanel :no-top="1">
     <template v-slot:header>
-      <Title :back="true" title="信息"></Title>
+      <Title :back="!isDialog" :title="title"></Title>
     </template>
-    <div class="flex">
+    <div v-if="!isDialog" class="flex">
       <el-card class="info-card">
         <template #header>
           Note
@@ -83,7 +83,7 @@
           </el-tag>
         </div>
       </el-card>
-      <el-card class="info-card">
+      <el-card v-if="!isDialog" class="info-card">
         <template #header>
           ISF
         </template>
@@ -139,7 +139,8 @@
             <div class="flex-1 flex justify-start items-center">{{ item.key }}</div>
             <div class="flex-1 flex justify-center items-center">{{ item.val }}</div>
             <div class="flex-1 flex justify-center items-center">
-              <el-input-number v-model="item.weight" :min="1" clearable size="small"></el-input-number>
+              <el-input-number v-model="item.weight" :min="1" clearable size="small"
+                               @focus="getInputFocus($event)"></el-input-number>
             </div>
           </div>
         </div>
@@ -153,8 +154,13 @@
         </template>
       </el-card>
     </div>
+    <template v-if="isDialog" v-slot:footer>
+      <div class="flex justify-center items-center pa-4">
+        <el-button type="primary" @click="closeDrawer">关闭</el-button>
+      </div>
+    </template>
     <el-dialog :close-on-press-escape="false" :destroy-on-close="true" :model-value="show"
-               :show-close="false" style="height:70%;" width="80%">
+               :show-close="false" style="height:70%;" width="80%" @close="close">
       <food :callback="foodCallback" :closeDialog="close" :is-dialog="true" :selected="foods"></food>
     </el-dialog>
   </MainPanel>
@@ -173,7 +179,19 @@ const illDays = dayjs().diff(dayjs('2023-2-27'), 'days')
 const luckDays = dayjs().diff(dayjs('2023-10-16'), 'days')
 
 const service = new DictService()
-
+const props = defineProps({
+  title: {
+    default: '信息'
+  },
+  isDialog: {
+    default: false,
+    type: Boolean
+  },
+  closeDrawer: {
+    default: () => {
+    }
+  },
+})
 const state: any = reactive({
   luck: {
     yes: 0,
@@ -195,12 +213,16 @@ function toISF(c) {
   return (c / 4).toFixed(2)
 }
 
+function getInputFocus(event) {
+  event.target.select();
+}
+
 async function push(isLuck) {
   state.luck[isLuck ? 'yes' : 'no']++
   const result = await service.updateDict({
     key: 'luck',
     val: JSON.stringify(state.luck)
-  })
+  }, {user: true})
   if (!result) {
     Msg.error('更新失败')
     state.luck[isLuck ? 'yes' : 'no']--
@@ -210,7 +232,7 @@ async function push(isLuck) {
 }
 
 onMounted(async () => {
-  const result = await service.getDict("luck")
+  const result = await service.getDict("luck", true, {user: true})
   if (result) {
     Object.assign(state.luck, JSON.parse(result))
   }
@@ -232,7 +254,7 @@ async function updateICR() {
   const result = await service.updateDict({
     key: 'luck',
     val: JSON.stringify(state.luck)
-  })
+  }, {user: true})
   if (result) {
     Msg.successMsg('数据保存成功')
     calcCurICR()
@@ -258,7 +280,10 @@ function addFood() {
 
 function foodCallback(foods) {
   state.foods = foods
-  state.foods.forEach(item => item.weight = 0)
+  state.foods.forEach(item => {
+        if (!item.weight) item.weight = 1
+      }
+  )
 }
 
 function delFood(i) {

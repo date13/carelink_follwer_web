@@ -1,12 +1,15 @@
-import {hideLoading, Msg, showLoading} from './tools'
+import {hideLoading, Msg, showLoading, Tools} from './tools'
 import axios, {AxiosResponse, Method, ResponseType} from 'axios'
 import qs from 'qs'
 import {CONTENT_TYPE, REQ_HEADERS, RESPONSE_TYPE} from "@/model/model-type";
+import {find} from "lodash-es";
+import router from "@/router";
 
 const ENV = import.meta.env
 const protocol = location.protocol
 export const API_DOMAIN = `${protocol}//${ENV.VITE_APP_API_DOMAIN}`
 export const API_URL = `${API_DOMAIN}/${ENV.VITE_APP_API_CONTEXT}/`
+const EXCLUDE_METHODS = ['/login', '/verificationcode']
 
 // export const API_UPLOAD_URL = `${API_URL}mgr/upload?type=0` + (ENV.DEBUG ? `&${ENV.DEBUG_STR}` : '');
 function checkResponse(response: AxiosResponse): Promise<AxiosResponse<any>> {
@@ -52,7 +55,10 @@ axios.interceptors.response.use(checkResponse, (error) => {
     return Promise.resolve(false)
   } else if (status === 401) {
     const data = error?.response.data
-    Msg.alert(`${data.msg},请重新登录`)
+    Msg.alert(`${data.msg},请重新登录`, () => {
+      const fullpath = location.href.substring(location.href.indexOf(location.pathname))
+      router.push(`/login?redirect?=${fullpath}`)
+    })
   } else {
     const errMsg = `系统错误：${error.request?.responseURL.replace(API_URL, '')},${error.message ? error.message : `Error:${status}`}`
     Msg.errorMsg(errMsg)
@@ -81,6 +87,12 @@ export class HttpClient {
       headers: headers,
       params: {},
       data: {}
+    }
+    if (!find(EXCLUDE_METHODS, item => {
+      return url.indexOf(item) !== -1;
+    })) {
+      const user = Tools.getUser();
+      params.headers['Authorization'] = user ? user.token : '';
     }
     if (method === 'get') {
       params.params = body

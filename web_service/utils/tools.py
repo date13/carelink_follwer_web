@@ -67,7 +67,8 @@ class Tools:
     def parseValidation(errs: list):
         for err in errs:
             del err["input"]
-            del err["url"]
+            if "url" in err:
+                del err["url"]
             if len(err['loc']) > 1:
                 err['field'] = err['loc'][1]
                 del err["loc"]

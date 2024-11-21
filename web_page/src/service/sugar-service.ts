@@ -1,18 +1,20 @@
 import {BaseService} from './base-service'
-import {HttpClient} from "@/utils/http-client";
+import {API_URL, HttpClient} from "@/utils/http-client";
 import {DictService} from "@/service/dict-service";
 import {CONST_VAR} from "@/views/const";
+import {EventStreamContentType, fetchEventSource} from '@microsoft/fetch-event-source';
+import {Tools} from "@/utils/tools";
 
 export class SugarService extends BaseService {
   constructor() {
-    super('/public/', '');
+    super('/sugar/', '');
   }
 
   async loadData(mask) {
     let resultData: any = null
     const dictService = new DictService()
     if (!CONST_VAR.isDemo) {
-      const result: any = await HttpClient.put(`${this.apiContext}sugar`, {
+      const result: any = await HttpClient.put(`${this.apiContext}`, {
         mask
       })
       if (result) {
@@ -33,6 +35,49 @@ export class SugarService extends BaseService {
     }
     console.log(resultData);
     return resultData
+  }
+
+  async initSugarSSE(callback = (res) => {
+  }) {
+    const user = Tools.getUser();
+    await fetchEventSource(`${API_URL}sugar/sse`, {
+      method: 'put',
+      headers: {
+        Authorization: `${user ? user.token : ''}`,
+        'Content-Type': 'application/json',
+      },
+      openWhenHidden: true,
+      async onopen(response) {
+        if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
+          return; // everything's good
+        } else if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          // client-side errors are usually non-retriable:
+          console.error(`sse status err:${response.status}`);
+        } else {
+          console.log(`sse连接打开`, response)
+        }
+      },
+      onmessage(msg) {
+        try {
+          if (msg.data) {
+            const data = JSON.parse(msg.data)
+            callback({
+              ...data.data,
+              myData: data.myData
+            })
+          }
+        } catch (e) {
+          console.log(`sse数据解析错误:${e}`)
+        }
+      },
+      onclose() {
+        // if the server closes the connection unexpectedly, retry:
+        console.log("sse close");
+      },
+      onerror(err) {
+        console.error(`sse err:${err}`);
+      }
+    });
   }
 
   refreshCarelinkToken() {

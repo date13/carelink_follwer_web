@@ -11,6 +11,10 @@ export const constantRoutes: Array<RouteRecordRaw> = [
     component: () => import("@/views/index.vue"),
   },
   {
+    path: "/login",
+    component: () => import("@/views/login.vue"),
+  },
+  {
     path: "/info",
     component: () => import("@/views/info.vue"),
   },

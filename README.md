@@ -1,3 +1,7 @@
+# 最新更新
+    1.v1.10.0及之前的版本是单用户的,之后的版本将支持多用户的
+    2.目前正着手支持更多的cgm,先计划完成liberlinkup和dexcom,但是还没有可用的账号密码
+
 # carelink_follwer_web
 ## 初衷
     1.因为使用的是 780 的泵和闭环系统,要查看血糖就要用 carelink,就要有个iPhone(当然 Andorid 也有 carelink,但是在国内无法使用).
@@ -15,6 +19,8 @@
     
     
     4.有一定开发能力的,正好有身边有糖的,又正好用美敦力 carelink 的朋友(好像这样的人也不多)可以自己改改用用
+    
+![image](https://github.com/user-attachments/assets/91bd58fe-dcd7-4702-bf65-728950cd38ab)
 
 
 ## 技术栈

@@ -25,5 +25,5 @@ async def read_users():
 @router.post("/dict")
 def upadteDict(updateForm: UpdateSysDictForm):
     updateForm.key = 'carelinkAuth'
-    row = updateSysDict(updateForm)
+    row = updateSysDict('alex', updateForm)
     return Result.success(data=row) if row else Result.fail(msg='没有更新任何数据')

@@ -3,6 +3,8 @@ import {DATE_FORMAT, LastStatus, LocalStorageKey,} from '@/model/model-type'
 import dayjs, {Dayjs} from 'dayjs'
 import {ElLoading, ElMessage, ElMessageBox, ElNotification} from "element-plus";
 import {RemovableRef, useStorage} from "@vueuse/core";
+import User from "@/model/classes/User";
+import {localStorage} from './storage'
 
 let loadingInstance: any | null
 let loadingCount = 0
@@ -139,6 +141,13 @@ const assets = import.meta.glob('/src/assets/**/**.*');
 let id$2 = 0;
 
 export class Tools {
+  static setUser(user: User | null) {
+    localStorage.set(LocalStorageKey.user, user)
+  }
+
+  static getUser() {
+    return localStorage.get(LocalStorageKey.user)
+  }
   static maskReplace(str, obj) {
     for (let key in obj) {
       str = str.replace(new RegExp('\\{' + key + '\\}', 'g'), obj[key])
