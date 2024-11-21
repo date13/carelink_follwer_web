@@ -334,8 +334,14 @@ onBeforeMount(() => {
 })
 
 onMounted(async () => {
-  await onLoadCarelinkData()
+  // await onLoadCarelinkData()
   startInterval()
+  await sugarService.initSugarSSE((res) => {
+    dealCarelinkData(res)
+    if (!chart) {
+      refreshChart()
+    }
+  })
 })
 
 onBeforeUnmount(() => {
@@ -430,7 +436,7 @@ async function reload() {
 
 function startInterval() {
   startTimeInterval()
-  startDataLoadInterval()
+  // startDataLoadInterval()
 }
 
 function startTimeInterval() {
@@ -453,25 +459,30 @@ function startDataLoadInterval() {
 async function loadCarelinkData(mask = true) {
   try {
     const result = await sugarService.loadData(mask)
-    if (result) {
-      state.data = result.data
-      state.status = result.status
-      state.forecast = result.forecast || {ar2: []}
-      state.GMI = result.GMI
-      state.nextStartTime = result.nextStartTime
-      state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
-      // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
-      // setting.notification.hasNew = true
-      dealNewNotification()
-      dealMyData(result.myData)
-
-      state.prepare = true
-      document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
-    } else {
-      state.prepare = false
-    }
+    dealCarelinkData(result)
   } catch (e) {
     console.log(e);
+  }
+}
+
+function dealCarelinkData(result) {
+  console.log(result);
+  if (result) {
+    state.data = result.data
+    state.status = result.status
+    state.forecast = result.forecast || {ar2: []}
+    state.GMI = result.GMI
+    state.nextStartTime = result.nextStartTime
+    state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
+    // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
+    // setting.notification.hasNew = true
+    dealNewNotification()
+    dealMyData(result.myData)
+
+    state.prepare = true
+    document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
+  } else {
+    state.prepare = false
   }
 }
 
