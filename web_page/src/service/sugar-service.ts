@@ -3,7 +3,8 @@ import {API_URL, HttpClient} from "@/utils/http-client";
 import {DictService} from "@/service/dict-service";
 import {CONST_VAR} from "@/views/const";
 import {EventStreamContentType, fetchEventSource} from '@microsoft/fetch-event-source';
-import {Tools} from "@/utils/tools";
+import {Msg, Tools} from "@/utils/tools";
+import router from "@/router";
 
 export class SugarService extends BaseService {
   constructor() {
@@ -53,6 +54,12 @@ export class SugarService extends BaseService {
         } else if (response.status >= 400 && response.status < 500 && response.status !== 429) {
           // client-side errors are usually non-retriable:
           console.error(`sse status err:${response.status}`);
+          if (response.status === 401) {
+            Msg.alert(`用户登陆 token 已失效,请重新登录`, () => {
+              const fullpath = location.href.substring(location.href.indexOf(location.pathname))
+              router.push(`/login?redirect?=${fullpath}`)
+            })
+          }
         } else {
           console.log(`sse连接打开`, response)
         }

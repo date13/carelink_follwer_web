@@ -338,9 +338,7 @@ onMounted(async () => {
   startInterval()
   await sugarService.initSugarSSE((res) => {
     dealCarelinkData(res)
-    if (!chart) {
-      refreshChart()
-    }
+    refreshChart()
   })
 })
 
