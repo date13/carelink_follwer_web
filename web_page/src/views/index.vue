@@ -5,6 +5,7 @@
         <ep-Menu></ep-Menu>
         <template #dropdown>
           <el-dropdown-menu>
+            <el-dropdown-item command="big">Big</el-dropdown-item>
             <el-dropdown-item command="info">Info</el-dropdown-item>
             <el-dropdown-item command="dict">Dict</el-dropdown-item>
             <el-dropdown-item command="food">Food</el-dropdown-item>
@@ -253,6 +254,7 @@ import CryptoJS from "crypto-js";
 import {cloneDeep, flatten, forEach} from "lodash-es";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import Info from "@/views/info.vue"
+import CarelinkData from "@/model/classes/CarelinkData";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -293,26 +295,7 @@ const state: any = reactive({
   forecast: {},
   GMI: 0,
   nextStartTime: -1,
-  data: {
-    lastSG: {
-      //最后获取的数据时间
-      datetime: dayjs().format(DATE_FORMAT.datetime),
-      sg: 0
-    },
-    sgs: [],
-    notificationHistory: {
-      activeNotifications: [],
-      clearedNotifications: []
-    },
-    activeInsulin: {
-      amount: 0
-    },
-    basal: {},
-    therapyAlgorithmState: {},
-    markers: [],
-    gstBatteryLevel: 0,
-    sensorDurationMinutes: 0,
-  },
+  data: new CarelinkData(),
   time: dayjs(),//当前系统时间
   drawer: false
 })
