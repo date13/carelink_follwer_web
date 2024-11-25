@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -278,7 +279,6 @@ def saveHistoryData(user, data, localtime):
             "basal": sum_basal
         }
     }
-    print(history_data)
     rds.set_hash_kv("%s:%s" % (user, dictKey["history"]), (localtime - timedelta(days=1)).strftime("%Y-%m-%d"),
                     json.dumps(history_data))
     my_logger.info("用户:%s 历史数据保存成功" % user)
@@ -300,17 +300,85 @@ def updateLuckData(user, localtime):
     my_logger.info("用户:%s 刷新luck数据成功" % user)
 
 
-def updateGMI(user, data):
+def getSumObj():
+    return {
+        "avg": 0,
+        "below": 0,
+        "above": 0,
+        "recommended": 0,
+        "autoCorrection": 0,
+        "basal": 0,
+    }
+
+
+def updateStatistics(user, data):
     historyData = rds.get_all_hash_kv("%s:%s" % (user, dictKey["history"]))
     # print(historyData)
-    sum = 0
-    for val in historyData.values():
-        item = json.loads(val)
-        sum += item["averageSGFloat"]
-    avgSg = sum / len(historyData)
-    data["GMI"] = '{:.2f}'.format(3.31 + 0.02392 * avgSg)
+    sumAvg = 0
+    sumBelow = 0
+    sumAbove = 0
+    day30 = {
+        "sum": getSumObj(),
+        "count": 0,
+        "insulinCount": 0
+    }
+    day90 = {
+        "sum": getSumObj(),
+        "count": 0,
+        "insulinCount": 0
+    }
+    i = 0
+    for key in sorted(historyData, reverse=True):
+        item = json.loads(historyData[key])
+        # keyDate = time.mktime(time.strptime(key.decode(), dateFormat))
+        if i < 30:
+            calcDayObjData(day30, item)
+        if i < 90:
+            calcDayObjData(day90, item)
+
+        sumAvg += item["averageSGFloat"]
+        sumBelow += item["belowHypoLimit"]
+        sumAbove += item["aboveHyperLimit"]
+        i += 1
+
+    totalAvgSg = sumAvg / len(historyData)
+    data["GMI"] = '{:.2f}'.format(3.31 + 0.02392 * totalAvgSg)
+    if "statistics" not in data:
+        data["statistics"] = {
+            "day30": getSumObj(),
+            "day90": getSumObj()
+        }
+
+    data["statistics"]["day30"]["avg"] = '{:.2f}'.format(day30["sum"]["avg"] / day30["count"])
+    data["statistics"]["day30"]["below"] = '{:.2f}'.format(day30["sum"]["below"] / day30["count"])
+    data["statistics"]["day30"]["above"] = '{:.2f}'.format(day30["sum"]["above"] / day30["count"])
+    data["statistics"]["day30"]["recommended"] = '{:.2f}'.format(day30["sum"]["recommended"] / day30["insulinCount"])
+    data["statistics"]["day30"]["autoCorrection"] = '{:.2f}'.format(
+        day30["sum"]["autoCorrection"] / day30["insulinCount"])
+    data["statistics"]["day30"]["basal"] = '{:.2f}'.format(day30["sum"]["basal"] / day30["insulinCount"])
+
+    data["statistics"]["day90"]["avg"] = '{:.2f}'.format(day90["sum"]["avg"] / day90["count"])
+    data["statistics"]["day90"]["below"] = '{:.2f}'.format(day90["sum"]["below"] / day90["count"])
+    data["statistics"]["day90"]["above"] = '{:.2f}'.format(day90["sum"]["above"] / day90["count"])
+    data["statistics"]["day90"]["recommended"] = '{:.2f}'.format(day90["sum"]["recommended"] / day90["insulinCount"])
+    data["statistics"]["day90"]["autoCorrection"] = '{:.2f}'.format(
+        day90["sum"]["autoCorrection"] / day90["insulinCount"])
+    data["statistics"]["day90"]["basal"] = '{:.2f}'.format(day90["sum"]["basal"] / day90["insulinCount"])
+
     updateCarelinkDataToRedis(user, data)
     my_logger.info("用户:%s 刷新GMI数据成功" % user)
+
+
+def calcDayObjData(dayObj, item):
+    dayObj["sum"]["avg"] += item["timeInRange"]
+    dayObj["sum"]["below"] += item["belowHypoLimit"]
+    dayObj["sum"]["above"] += item["aboveHyperLimit"]
+    dayObj["count"] += 1
+    if "insulin" in item:
+        dayObj["sum"]["recommended"] += item["insulin"]["recommended"]
+        dayObj["sum"]["autoCorrection"] += item["insulin"]["autoCorrection"]
+        dayObj["sum"]["basal"] += item["insulin"]["basal"]
+        dayObj["insulinCount"] += 1
 
 
 def refreshCarelinkTokenIntervalForUser(user):
@@ -348,7 +416,7 @@ def refreshCarelinkTaskIntervalMinutesForUser(user):
         data = rds.get_json("%s:%s" % (user, dictKey["data"]))
         updateLuckData(user, localtime)
         saveHistoryData(user, data, localtime)
-        updateGMI(user, data)
+        updateStatistics(user, data)
         refreshCarelinkYesterdayData(user, data, localtime)
     except Exception as ex:
         text = "用户:%s refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!%s" % (user, str(ex))
@@ -384,8 +452,8 @@ def delFood(user, key):
 # user = "alex"
 # localtime = datetime.now()
 # data = rds.get_json("%s:%s" % (user, dictKey["data"]))
-# updateGMI(data)
-# updateLuckData(localtime)
+# updateStatistics(user, data)
+# # updateLuckData(localtime)
 # saveHistoryData(user, data, localtime)
 # refreshCarelinkYesterdayData(data, localtime)
 # print((localtime - timedelta(days=1)).strftime("%Y-%m-%d"))
