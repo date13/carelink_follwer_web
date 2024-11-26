@@ -74,7 +74,7 @@ export class SugarService extends BaseService {
             })
           }
         } catch (e) {
-          console.log(`sse数据解析错误:${e}`)
+          console.log(`sse数据解析错误:`, e)
         }
       },
       onclose() {

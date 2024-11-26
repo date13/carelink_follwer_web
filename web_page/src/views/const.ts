@@ -151,32 +151,50 @@ export const NOTIFICATION_MAP = {
   BC_SID_SG_APPROACH_HIGH_LIMIT_CHECK_BG: {
     text: '高探头值前报警',
     replace: '',
-    type: 'warning'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_LOW_SD_CHECK_BG: {
     text: '低探头值报警: sg',
     replace: 'sg',
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 3
+    }
   },
   BC_SID_HIGH_SG_CHECK_BG: {
     text: '高探头值报警: sg',
     replace: 'sg',
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 3
+    }
   },
   BC_MESSAGE_SG_UNDER_50_MG_DL: {
     text: '探头值低于3: sg',
     replace: 'sg',
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 3
+    }
   },
   BC_SID_REPLACE_BATTERY_SOON: {
     text: '请立即更换电池',
     replace: null,
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_INSERT_NEW_SENSOR: {
-    text: '请更换新探头',
+    text: '插入新探头',
     replace: null,
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_MOVE_PUMP_CLOSER_TO_MINILINK: {
     text: '请将泵靠近MINILINK',
@@ -186,7 +204,10 @@ export const NOTIFICATION_MAP = {
   BC_SID_SG_RISE_RAPID: {
     text: '血糖快速上升',
     replace: null,
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_IF_NEW_SENSR_SELCT_START_NEW_ELSE_REWIND: {
     text: '如果是新探头,请选择开启新探头,否则请选择继续使用',
@@ -211,7 +232,10 @@ export const NOTIFICATION_MAP = {
   BC_SID_SENSOR_RELATED_ISSUE_INSERT_NEW: {
     text: '请更换新探头',
     replace: null,
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_BASAL_STARTED_SMART_GUARD: {
     text: '基础率开启，请继续使用闭环模式',
@@ -226,7 +250,10 @@ export const NOTIFICATION_MAP = {
   BC_SID_DELIVERY_STOPPED_INSERT_NEW_BATTERY: {
     text: '输注暂停,请更换新电池',
     replace: null,
-    type: 'error'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_SELECT_FILL_CANNULA_OR_SKIP: {
     text: '请选择是否使用新管路或跳过',

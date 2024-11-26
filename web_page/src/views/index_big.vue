@@ -18,11 +18,15 @@
           <div :class="{'text-red':status!==200}" class="text-base hand"
                @click="refreshCarelinkToken">状态:{{ status }}
           </div>
+          <div v-if="playing">
+            <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
+          </div>
           <div class="text-4xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</div>
         </div>
         <div class="flex flex-col w-full h-full flex-1">
           <div class="flex w-full items-center justify-center flex-1">
-            <div :style="{color:sugarCalc.sgColor(sugarCalc.getLastSg(data.lastSG))}" class="sg font-bold ">{{
+            <div :style="{color:sugarCalc.sgColor(sugarCalc.getLastSg(data.lastSG))}"
+                 class="sg font-bold ">{{
                 sugarCalc.getLastSg(data.lastSG)
               }}
             </div>
@@ -55,7 +59,7 @@
             <span class="mx-2">{{ lastOffset }}</span>
             <div class="flex items-center justify-between align-center">
               <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
-                  toNow(nextStartTime)
+                  Tools.toNow(nextStartTime)
                 }}</span>
               <span v-else class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
               <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}" class="mr-2">
@@ -192,11 +196,12 @@
             <ep-Bell></ep-Bell>
           </el-badge>
         </div>
-        <div :class="{'no-top':showSetting}" class="item flex items-center justify-center border-solid border-1 hand"
+        <div class="item flex items-center justify-center border-solid border-1 hand"
              @click="reload">
           <ep-Refresh></ep-Refresh>
         </div>
       </div>
+      <audio ref="alarmAudio" autoplay="true" class="hide" src="/alarm.mp3"></audio>
       <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                           :notificationHistory="data.notificationHistory"></NotificationDialog>
     </div>
@@ -209,282 +214,143 @@ import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
-import {DATE_FORMAT} from "@/model/model-type";
 import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {
-  CARELINK_DICT_KEY,
-  COLORS,
-  DIRECTIONS,
-  NOTIFICATION_HASH_KEY,
-  PUMP_STATUS,
-  REFRESH_INTERVAL,
-  SG_STATUS,
-  SYSTEM_STATUS_MAP,
-  TIME_RANGE_CONFIG
-} from "@/views/const";
+import {COLORS, NOTIFICATION_MAP, PUMP_STATUS, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
-import defaultSettings from "@/settings";
-import {DictService} from "@/service/dict-service";
-import CryptoJS from "crypto-js";
-import {cloneDeep, flatten, forEach} from "lodash-es";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
-import CarelinkData from "@/model/classes/CarelinkData";
+import useSugarCommon from "@/composition/useSugarCommon";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
 
 const sugarService = new SugarService()
-const dictService = new DictService()
-
+const alarmAudio: any = ref<HTMLElement>();
 const todayTIRChart = ref<HTMLElement>();
 const todayTTIRChart = ref<HTMLElement>();
 let chartObj: any = {
   todayTIRChart: null,
   todayTTIRChart: null,
 }
-const lastStatus: any = Tools.getLastStatus('sugar-setting', {
-  startPercent: TIME_RANGE_CONFIG[1].value,
-  showAR2: true,
-  showYesterday: true,
-  notification: {
-    hasNew: false,
-    lastKey: null
-  },
-  realWave: true,
-  showPeak: true
-})
 const sugarCalc = useSugarCalc()
-const setting = lastStatus.value['sugar-setting']
-const state: any = reactive({
-  status: 200,
-  prepare: false,
-  showNotificationDialog: false,
-  updateDatetime: '--',//数据更新时间
-  interval: {
-    time: null,
-    data: null,
-    myData: null,
+const sugarCommon = useSugarCommon({
+  refreshChart,
+  dealSelfData: (result) => {
+    state.statistics = result.statistics
   },
-  orgMyData: {},
-  GMI: 0,
-  nextStartTime: -1,
-  data: new CarelinkData(),
-  statistics: {},
-  time: dayjs(),//当前系统时间
+  alarmNotification
 })
 
 const {
+  reload,
+  refreshCarelinkToken,
+  reloadCarelinkData,
+  startTimeInterval,
+  dealCarelinkData,
+  updateConduitTime,
+  handleMenu,
+  setting,
+  timeInRange,
+  tightTimeInRange,
+  lastOffset,
+  lastUpdateTime,
+  modeObj,
+  trendObj,
+} = sugarCommon
+
+const state: any = reactive({
+  playing: false,
+  statistics: {}
+})
+
+const {
+  playing,
+  statistics
+} = toRefs(state)
+
+const {
   data,
-  time,
   updateDatetime,
   status,
   showNotificationDialog,
   nextStartTime,
-  showSetting,
   GMI,
-  statistics
-} = toRefs(state)
+  time
+} = toRefs(sugarCommon.state)
 
 onBeforeMount(() => {
+  initSetting()
 })
 
 onMounted(async () => {
   // await onLoadCarelinkData()
-  startInterval()
-  await sugarService.initSugarSSE((res) => {
-    dealCarelinkData(res)
-    refreshChart()
-  })
+  startTimeInterval()
+  Msg.alert('开启大屏模式', async () => {
+        await sugarService.initSugarSSE((res) => {
+          dealCarelinkData(res)
+          refreshChart()
+        })
+      },
+  )
 })
 
 onBeforeUnmount(() => {
 })
 
-function triggerSetting() {
-  state.showSetting = !state.showSetting
-}
-
-function fromNow(time: any) {
-  if (!time) return
-  return dayjs().from(time)
-}
-
-function toNow(time: any) {
-  if (!time) return
-  return dayjs().to(time)
-}
-
-function updateConduitTime() {
-  Msg.confirm("是否确认更新管路更换时间", async () => {
-    state.orgMyData.lastConduitTime = dayjs().format(DATE_FORMAT.datetime)
-    const result = await dictService.updateDict({
-      key: CARELINK_DICT_KEY.carelinkMyData,
-      val: JSON.stringify(state.orgMyData)
-    }, {user: true})
-    if (result) {
-      Msg.successMsg('更新管路更换时间成功')
+function initSetting() {
+  if (!setting.notification.lastAlarm) {
+    setting.notification.lastAlarm = {
+      key: '',
+      isClear: false
     }
-  })
-}
-
-async function refreshCarelinkToken() {
-  //后端去 carelink 刷新token
-  const result = await sugarService.refreshCarelinkToken()
-  if (result) {
-    Msg.successMsg('远程Token刷新成功')
-    // await loadCarelinkData()
-    // refreshChart()
   }
 }
 
-async function reloadCarelinkData() {
-  //后端去 carelink 刷新数据
-  const result = await sugarService.refreshCarelinkData()
-  if (result) {
-    Msg.successMsg('远程数据刷新成功')
-    await loadCarelinkData()
-    refreshChart()
+function playAlarm(plyCount = 1) {
+  let count = 0;
+
+  function playNext() {
+    if (count < plyCount && !state.playing) {
+      state.playing = true
+      alarmAudio.value.play();
+      count++;
+    } else {
+      stopPlayer()
+      // 清除事件监听器，防止内存泄漏
+      alarmAudio.value.removeEventListener('ended', playNext);
+    }
   }
+
+  // 当音频结束时调用playNext函数
+  alarmAudio.value.addEventListener('ended', playNext);
+  // 开始第一次播放
+  playNext();
 }
 
-async function onLoadCarelinkData(isMask = true) {
-  await loadCarelinkData(isMask)
-  // await loadCarelinkMyData(isMask)
-  refreshChart()
+function stopPlayer() {
+  alarmAudio.value.pause();
+  alarmAudio.value.currentTime = 0;
+  state.playing = false
+  setting.notification.lastAlarm.isClear = true
 }
 
-async function reload() {
-  forEach(state.interval, (v, k) => {
-    clearInterval(v)
-  })
-  try {
-    await onLoadCarelinkData()
-    startInterval()
-    Msg.successMsg('刷新数据成功')
-  } catch (e) {
-    console.log(e);
-  }
-}
-
-function startInterval() {
-  startTimeInterval()
-  // startDataLoadInterval()
-}
-
-function startTimeInterval() {
-  state.interval.time = setInterval(() => {
-    state.time = dayjs()
-    // state.data.lastSG.updateDatetime = state.data.lastSG.updateDatetime.add(1, 'second')
-    // console.log("refresh,", state.time);
-  }, 1000)
-}
-
-function startDataLoadInterval() {
-  state.interval.data = setInterval(async () => {
-    await onLoadCarelinkData(false)
-    // chart.refresh()
-    // chart.setOption(charOption)
-  }, REFRESH_INTERVAL.loadData * 60 * 1000)
-}
-
-//获取数据库数据,不是去 carelink 刷新数据
-async function loadCarelinkData(mask = true) {
-  try {
-    const result = await sugarService.loadData(mask)
-    dealCarelinkData(result)
-  } catch (e) {
-    console.log(e);
-  }
-}
-
-function dealCarelinkData(result) {
-  console.log(result);
-  if (result) {
-    state.data = result.data
-    state.status = result.status
-    state.forecast = result.forecast || {ar2: []}
-    state.GMI = result.GMI
-    state.nextStartTime = result.nextStartTime
-    state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
-    state.statistics = result.statistics
-    // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
-    // setting.notification.hasNew = true
-    dealNewNotification()
-    dealMyData(result.myData)
-
-    state.prepare = true
-    document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${lastOffset.value > 0 ? '+' + lastOffset.value : lastOffset.value}`
-  } else {
-    state.prepare = false
-  }
-}
-
-function dealMyData(myData) {
-  // console.log(myData);
-  state.orgMyData = cloneDeep(myData)
-  state.myData = myData
-  if (state.myData.yesterday) {
-    flattenYesterdayData('sgs', 'datetime', () => {
-      state.myData.yesterday.sgs = state.myData.yesterday.sgs.filter(item => {
-        return item.sensorState === SG_STATUS.NO_ERROR_MESSAGE.key && item.datetime >= dayjs().add(-1, 'day').valueOf()
-      })
-    })
-    flattenYesterdayData('markers', 'dateTime', () => {
-      state.myData.yesterday.markers = state.myData.yesterday.markers.filter(item => {
-        return (item.type === 'INSULIN' || item.type === 'MEAL') && item.dateTime >= dayjs().add(-1, 'day').valueOf()
-      })
-    })
-  }
-}
-
-function flattenYesterdayData(key, timeKey = 'datetime', suffixFunc = () => {
-}) {
-  state.myData.yesterday[key] = flatten(state.myData.yesterday[key])
-  state.myData.yesterday[key].forEach(item => {
-    item[timeKey] = dayjs(sugarCalc.cleanTime(item[timeKey])).add(1, 'day').valueOf()
-  })
-  suffixFunc()
-}
-
-function dealNewNotification() {
-  const {notification} = setting;
-  const len = state.data.notificationHistory.clearedNotifications.length
-  if (state.data.notificationHistory.activeNotifications.length > 0) {
-    notification.hasNew = true;
-  }
-  const notificationKey = CryptoJS.HmacSHA1(JSON.stringify(
-      state.data.notificationHistory.clearedNotifications.map(item => {
-        return {
-          referenceGUID: item.referenceGUID,
-          triggeredDateTime: item.triggeredDateTime
-        }
-      }).sort((a: any, b: any) => {
-        return sugarCalc.cleanTime(b.triggeredDateTime) - sugarCalc.cleanTime(a.triggeredDateTime)
-      }).slice(0, len > 4 ? 4 : len)
-  ), NOTIFICATION_HASH_KEY).toString()
-  // console.log(notificationKey);
-  if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
-    notification.hasNew = true;
-  }
-  setting.notification.lastKey = notificationKey
-  // console.log(setting.notification);
-}
-
-function handleMenu(command) {
-  if (command === 'login') {
-    window.open("https://carelink.minimed.eu/patient/sso/login?country=hk&lang=zh")
-  } else if (command === 'notification') {
-    state.showNotificationDialog = true
-    setting.notification.hasNew = false
-  } else {
-    location.href = `/${command}`
+function alarmNotification(item, notification) {
+  if (!item) return
+  const alarm = NOTIFICATION_MAP[item.messageId]?.alarm
+  if (alarm) {
+    if (!notification.lastAlarm.key || item.referenceGUID !== notification.lastAlarm.key || (item.referenceGUID === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
+      playAlarm(alarm.repeat)
+      notification.lastAlarm.key = item.referenceGUID
+      if (item.referenceGUID !== notification.lastAlarm.key) {
+        notification.lastAlarm.isClear = false
+      }
+    }
   }
 }
 
 function refreshChart() {
-  if (!state.prepare) return
+  if (!sugarCommon.state.prepare) return
   if (!chartObj.todayTIRChart) {
     drawLine()
   }
@@ -492,53 +358,6 @@ function refreshChart() {
   chartObj.todayTIRChart.setOption(charOption.value.todayTIRChart, true);
   chartObj.todayTTIRChart.setOption(charOption.value.todayTTIRChart, true);
 }
-
-//计算入框率
-const timeInRange = computed(() => {
-  return sugarCalc.calcTimeInRange(state.data.sgs)
-})
-
-//计算入框率
-const tightTimeInRange = computed(() => {
-  return sugarCalc.calcTimeInRange(state.data.sgs, true)
-})
-//计算最后的数据升降幅度
-const lastOffset = computed(() => {
-  return sugarCalc.calcLastOffset(state.data.sgs)
-})
-
-const lastUpdateTime = computed(() => {
-  const lastSgUpdateTime = sugarCalc.cleanTime(state.data.lastSG.datetime)
-  let sumInsulin = 0
-  let sumBaseDelivery = 0
-  if (state.orgMyData.yesterday?.markers) {
-    const len = state.orgMyData.yesterday?.markers.length
-    state.orgMyData.yesterday?.markers[len === 2 ? 1 : 0].forEach(item => {
-      if (item.type === 'INSULIN') {
-        sumInsulin += item.deliveredFastAmount
-      }
-      if (item.type === 'AUTO_BASAL_DELIVERY') {
-        sumBaseDelivery += item.bolusAmount
-      }
-    })
-  }
-
-  return {
-    sg: toNow(lastSgUpdateTime),
-    sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
-    conduit: toNow(state.orgMyData.lastConduitTime),
-    sumInsulin: sumInsulin.toFixed(2),
-    sumBaseDelivery: sumBaseDelivery.toFixed(2)
-  }
-})
-
-const modeObj = computed(() => {
-  return sugarCalc.getModeObj(state.data)
-})
-//获取升降趋势
-const trendObj = computed(() => {
-  return state.data?.lastSGTrend && DIRECTIONS[state.data.lastSGTrend]
-})
 
 //画图的参数
 const charOption = computed(() => {

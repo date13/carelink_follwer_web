@@ -141,6 +141,11 @@ const assets = import.meta.glob('/src/assets/**/**.*');
 let id$2 = 0;
 
 export class Tools {
+  static toNow(time: any) {
+    if (!time) return
+    return dayjs().to(time)
+  }
+
   static setUser(user: User | null) {
     localStorage.set(LocalStorageKey.user, user)
   }
@@ -148,6 +153,7 @@ export class Tools {
   static getUser() {
     return localStorage.get(LocalStorageKey.user)
   }
+
   static maskReplace(str, obj) {
     for (let key in obj) {
       str = str.replace(new RegExp('\\{' + key + '\\}', 'g'), obj[key])
