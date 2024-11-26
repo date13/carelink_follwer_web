@@ -51,7 +51,7 @@
             </div>
           </div>
           <div class="h-10 flex items-start justify-center text-base">
-            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2">
+            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm(1)">
               {{
                 lastUpdateTime.sg
               }}
@@ -92,6 +92,23 @@
           <div class="flex w-full h-1/2">
             <div ref="todayTIRChart" class="w-1/2 h-full w-full"></div>
             <div ref="todayTTIRChart" class="w-1/2 h-full w-full"></div>
+          </div>
+          <div class="flex justify-around items-center h-20">
+            <el-tag class="mb-1 mr-1" size="small" type="primary">
+              泵:
+              {{ data.reservoirRemainingUnits }}U
+              {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
+              探头:
+              {{
+                sugarCalc.sensorState(data)
+              }}
+              {{
+                data.gstBatteryLevel || '--'
+              }}%
+            </el-tag>
+            <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
+              {{ lastUpdateTime.conduit || '--' }}
+            </el-tag>
           </div>
           <div class="flex w-full h-1/2 border border-solid border-zinc-300 p-2">
             <div class="flex w-1/2 flex-col h-full justify-around items-center border-r-zinc border-r border-r-solid">
@@ -174,9 +191,7 @@
                 </span>
             </span>
           </el-tag>
-          <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
-            {{ lastUpdateTime.conduit || '--' }}
-          </el-tag>
+
           <el-tag size="large" type="primary">
             <div class="flex flex-col ">
               <span>剂量(昨):
@@ -201,7 +216,7 @@
           <ep-Refresh></ep-Refresh>
         </div>
       </div>
-      <audio ref="alarmAudio" autoplay="true" class="hide" src="/alarm.mp3"></audio>
+      <audio ref="alarmAudio" class="hide" src="/alarm.mp3"></audio>
       <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                           :notificationHistory="data.notificationHistory"></NotificationDialog>
     </div>
@@ -299,6 +314,16 @@ onBeforeUnmount(() => {
 })
 
 function initSetting() {
+  if (!setting.notification) {
+    setting.notification = {
+      hasNew: false,
+      lastKey: null,
+      lastAlarm: {
+        key: '',
+        isClear: false
+      }
+    }
+  }
   if (!setting.notification.lastAlarm) {
     setting.notification.lastAlarm = {
       key: '',
