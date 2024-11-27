@@ -687,6 +687,7 @@ const charOption = computed(() => {
           animation: false,
           label: {
             show: true,
+            color: 'inherit',
             formatter: (item) => {
               return item.data.last ? `${dayjs(item.value).format("HH:mm")}` : ''
             },
