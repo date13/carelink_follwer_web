@@ -686,7 +686,10 @@ const charOption = computed(() => {
           symbol: ['none', 'none'],
           animation: false,
           label: {
-            show: false,
+            show: true,
+            formatter: (item) => {
+              return item.data.last ? `${dayjs(item.value).format("HH:mm")}` : ''
+            },
           },
           emphasis: {
             label: {

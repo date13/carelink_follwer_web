@@ -180,43 +180,32 @@ export default function () {
   function showInsulinPeak(list, setting) {
     const result: any = []
     if (setting.showPeak) {
-      const newList = list.filter(item => {
+      let newList = list.filter(item => {
         return item.type === 'INSULIN' && (item.activationType === 'RECOMMENDED' || item.activationType === 'MANUAL')
       })
-      newList.splice(newList.length > CONST_VAR.peakPoint ? -CONST_VAR.peakPoint : 0).forEach(item => {
+      newList = newList.splice(newList.length > CONST_VAR.peakPoint ? -CONST_VAR.peakPoint : 0)
+      newList.forEach((item, i) => {
         const start = cleanTime(item.dateTime)
         result.push({
               name: '开始',
               xAxis: start,
+              type: 'start',
               lineStyle: {
                 color: COLORS[2],
                 width: 0.5
-              }
+              },
+              last: i === newList.length - 1
             },
             {
               name: '峰值',
+              type: 'end',
               xAxis: dayjs(start).add(CONST_VAR.peakMinutes, 'minutes').valueOf(),
               lineStyle: {
                 color: COLORS[5],
                 width: 0.5
-              }
+              },
+              last: i === newList.length - 1
             })
-        /*result.push([
-          {
-            xAxis: start,
-            itemStyle: {
-              color: 'transparent',
-              borderType: 'dashed',
-              borderCap: 'round',
-              borderWidth: 0.7,
-              borderColor: COLORS[5],
-              opacity: 0.4
-            }
-          },
-          {
-            xAxis: dayjs(start).add(40, 'minutes').valueOf()
-          }
-        ])*/
       })
     }
     return result

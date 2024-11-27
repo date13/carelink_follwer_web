@@ -47,7 +47,7 @@ export class SugarService extends BaseService {
         Authorization: `${user ? user.token : ''}`,
         'Content-Type': 'application/json',
       },
-      openWhenHidden: true,
+      openWhenHidden: false,
       async onopen(response) {
         if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
           return; // everything's good
