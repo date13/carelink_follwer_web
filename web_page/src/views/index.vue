@@ -573,6 +573,7 @@ const charOption = computed(() => {
           symbol: ['none', 'none'],
           animation: false,
           label: {
+            color: "inherit",
             show: true,
             position: 'end',
           },
@@ -593,28 +594,28 @@ const charOption = computed(() => {
               name: '高值警告',
               yAxis: CONST_VAR.maxWarnSg,
               lineStyle: {
-                color: COLORS[0],
+                color: COLORS[6],
               }
             },
             {
               name: '高值严重警告',
               yAxis: CONST_VAR.maxSeriousSg,
               lineStyle: {
-                color: COLORS[6],
+                color: COLORS[5],
               }
             },
             {
               name: '低值警告',
               yAxis: CONST_VAR.minWarnSg,
               lineStyle: {
-                color: COLORS[0],
+                color: COLORS[6],
               }
             },
             {
               name: '低值严重警告',
               yAxis: CONST_VAR.minSeriousSg,
               lineStyle: {
-                color: COLORS[6],
+                color: COLORS[5],
               }
             }
           ],
