@@ -211,6 +211,10 @@
             <ep-Bell></ep-Bell>
           </el-badge>
         </div>
+        <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+             @click="openLogsDialog">
+          <ep-Tickets></ep-Tickets>
+        </div>
         <div class="item flex items-center justify-center border-solid border-1 hand"
              @click="reload">
           <ep-Refresh></ep-Refresh>
@@ -219,6 +223,7 @@
       <audio ref="alarmAudio" class="hide" src="/alarm.mp3"></audio>
       <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                           :notificationHistory="data.notificationHistory"></NotificationDialog>
+      <LogsDialog v-if="showLogsDialog" v-model:show="showLogsDialog" :logs="setting.logs"></LogsDialog>
     </div>
   </MainPanel>
 </template>
@@ -235,6 +240,8 @@ import {COLORS, NOTIFICATION_MAP, PUMP_STATUS, SYSTEM_STATUS_MAP,} from "@/views
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
+import LogsDialog from "@/views/components/logsDialog.vue";
+import {Log} from "@/model/classes/Carelink";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -276,12 +283,14 @@ const {
 
 const state: any = reactive({
   playing: false,
+  showLogsDialog: false,
   statistics: {}
 })
 
 const {
   playing,
-  statistics
+  statistics,
+  showLogsDialog
 } = toRefs(state)
 
 const {
@@ -324,6 +333,9 @@ function initSetting() {
       }
     }
   }
+  if (!setting.logs) {
+    setting.logs = []
+  }
   if (!setting.notification.lastAlarm) {
     setting.notification.lastAlarm = {
       key: '',
@@ -332,7 +344,11 @@ function initSetting() {
   }
 }
 
-function playAlarm(plyCount = 1) {
+function openLogsDialog() {
+  state.showLogsDialog = true
+}
+
+function playAlarm(plyCount = 1, alarmContent = '') {
   let count = 0;
 
   function playNext() {
@@ -340,8 +356,10 @@ function playAlarm(plyCount = 1) {
       state.playing = true
       alarmAudio.value.play();
       count++;
+      setting.logs.push(new Log({content: `第${count}次警告播放:${alarmContent}`,}))
     } else {
       stopPlayer()
+      setting.logs.push(new Log({content: `警告播放结束`,}))
       // 清除事件监听器，防止内存泄漏
       alarmAudio.value.removeEventListener('ended', playNext);
     }
@@ -362,10 +380,10 @@ function stopPlayer() {
 
 function alarmNotification(item, notification) {
   if (!item) return
-  const alarm = NOTIFICATION_MAP[item.messageId]?.alarm
-  if (alarm) {
+  const notifyObj = NOTIFICATION_MAP[item.messageId]
+  if (notifyObj && notifyObj.alarm) {
     if (!notification.lastAlarm.key || item.referenceGUID !== notification.lastAlarm.key || (item.referenceGUID === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
-      playAlarm(alarm.repeat)
+      playAlarm(notifyObj.alarm.repeat, notifyObj.text)
       notification.lastAlarm.key = item.referenceGUID
       if (item.referenceGUID !== notification.lastAlarm.key) {
         notification.lastAlarm.isClear = false

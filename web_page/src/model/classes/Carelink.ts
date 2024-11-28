@@ -31,10 +31,24 @@ export default class Carelink extends Base {
   }
 }
 
+export class Log extends Base {
+  content: string = ''
+  time: number = new Date().getTime()
+  type: "success" | "warning" | "info" | "error" = 'info'
+
+  constructor(obj?: any | undefined) {
+    super(obj)
+    if (obj) {
+      Object.assign(this, obj)
+    }
+  }
+}
+
 export class SugarSetting extends Base {
   startPercent = TIME_RANGE_CONFIG[1].value
   showAR2 = true
   showYesterday = true
+  logs: Log[] = []
   notification = {
     hasNew: false,
     lastKey: null,

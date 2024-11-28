@@ -58,6 +58,8 @@ export default function (funcObj: any = {}) {
     }
   }
 
+  let i = 0
+
   function dealCarelinkData(result) {
     if (result) {
       state.data = result.data
@@ -73,6 +75,7 @@ export default function (funcObj: any = {}) {
 
       state.prepare = true
       document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${Number(lastOffset.value) > 0 ? '+' + lastOffset.value : lastOffset.value}`
+      i++
     } else {
       state.prepare = false
     }
@@ -126,12 +129,10 @@ export default function (funcObj: any = {}) {
     // console.log(notificationKey);
     if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
       notification.hasNew = true;
-      const activeNotifications = state.data.notificationHistory.activeNotifications
-      funcObj.alarmNotification(activeNotifications.length > 0 ? activeNotifications[0] : (clearedNotifications.length > 0 ? clearedNotifications[0] : null), notification)
     }
+    const activeNotifications = state.data.notificationHistory.activeNotifications
+    funcObj.alarmNotification(activeNotifications.length > 0 ? activeNotifications[0] : (clearedNotifications.length > 0 ? clearedNotifications[0] : null), notification)
     setting.notification.lastKey = notificationKey
-    // console.log(setting.notification);
-
   }
 
   async function reload() {

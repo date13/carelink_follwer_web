@@ -274,6 +274,22 @@ export const NOTIFICATION_MAP = {
     text: '血糖接近低限值,暂停输注',
     replace: null,
     type: 'warning'
+  },
+  BC_SID_CALL_FOR_EMERGENCY: {
+    text: '紧急呼叫',
+    replace: null,
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
+  },
+  BC_MESSAGE_DELIVERY_STOPPED_SG_X_CHECK_BG: {
+    text: '输注暂停,请检测血糖值',
+    replace: 'sg',
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   }
 }
 
