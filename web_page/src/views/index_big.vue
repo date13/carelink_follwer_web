@@ -242,6 +242,7 @@ import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
 import LogsDialog from "@/views/components/logsDialog.vue";
 import {Log} from "@/model/classes/Carelink";
+import useChartResize from "@/composition/useChartResize";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -255,6 +256,7 @@ let chartObj: any = {
   todayTIRChart: null,
   todayTTIRChart: null,
 }
+let resizeObj: any = {}
 const sugarCalc = useSugarCalc()
 const sugarCommon = useSugarCommon({
   refreshChart,
@@ -320,6 +322,10 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  if (resizeObj) {
+    resizeObj.chart1.beforeDestroy()
+    resizeObj.chart2.beforeDestroy()
+  }
 })
 
 function initSetting() {
@@ -346,6 +352,20 @@ function initSetting() {
 
 function openLogsDialog() {
   state.showLogsDialog = true
+}
+
+function alarmNotification(item, notification) {
+  if (!item) return
+  const notifyObj = NOTIFICATION_MAP[item.messageId]
+  if (notifyObj && notifyObj.alarm) {
+    if (!notification.lastAlarm.key || item.referenceGUID !== notification.lastAlarm.key || (item.referenceGUID === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
+      playAlarm(notifyObj.alarm.repeat, notifyObj.text)
+      notification.lastAlarm.key = item.referenceGUID
+      if (item.referenceGUID !== notification.lastAlarm.key) {
+        notification.lastAlarm.isClear = false
+      }
+    }
+  }
 }
 
 function playAlarm(plyCount = 1, alarmContent = '') {
@@ -376,20 +396,6 @@ function stopPlayer() {
   alarmAudio.value.currentTime = 0;
   state.playing = false
   setting.notification.lastAlarm.isClear = true
-}
-
-function alarmNotification(item, notification) {
-  if (!item) return
-  const notifyObj = NOTIFICATION_MAP[item.messageId]
-  if (notifyObj && notifyObj.alarm) {
-    if (!notification.lastAlarm.key || item.referenceGUID !== notification.lastAlarm.key || (item.referenceGUID === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
-      playAlarm(notifyObj.alarm.repeat, notifyObj.text)
-      notification.lastAlarm.key = item.referenceGUID
-      if (item.referenceGUID !== notification.lastAlarm.key) {
-        notification.lastAlarm.isClear = false
-      }
-    }
-  }
 }
 
 function refreshChart() {
@@ -468,6 +474,10 @@ function drawLine() {
   if (!chartObj.todayTTIRChart) { // 如果不存在，就进行初始化。
     chartObj.todayTTIRChart = echarts.init(<HTMLElement>todayTTIRChart.value, 'dark')
   }
+  resizeObj.chart1 = useChartResize(chartObj.todayTIRChart)
+  resizeObj.chart2 = useChartResize(chartObj.todayTTIRChart)
+  resizeObj.chart1.mounted()
+  resizeObj.chart2.mounted()
 }
 </script>
 <style lang="scss" scoped>
