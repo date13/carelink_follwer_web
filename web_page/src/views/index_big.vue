@@ -51,7 +51,7 @@
             </div>
           </div>
           <div class="h-10 flex items-start justify-center text-base">
-            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm(1)">
+            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm(3)">
               {{
                 lastUpdateTime.sg
               }}
@@ -89,7 +89,7 @@
       </div>
       <div class="flex chart-panel flex-col w-2/5 h-full">
         <div class="flex-1 flex flex-col">
-          <div class="flex w-full h-1/2">
+          <div class="flex w-full h-3/5">
             <div ref="todayTIRChart" class="w-1/2 h-full w-full"></div>
             <div ref="todayTTIRChart" class="w-1/2 h-full w-full"></div>
           </div>
@@ -110,66 +110,37 @@
               {{ lastUpdateTime.conduit || '--' }}
             </el-tag>
           </div>
-          <div class="flex w-full h-1/2 border border-solid border-zinc-300 p-2">
-            <div class="flex w-1/2 flex-col h-full justify-around items-center border-r-zinc border-r border-r-solid">
-              <div class="text-lg font-bold h-10 flex items-center">30日</div>
-              <div class="w-full flex justify-around">
+          <div class="flex w-full h-2/5 border border-solid border-zinc-300 p-2">
+            <div v-for="(item,i) in statistics"
+                 :class="{'border-r-zinc border-r border-r-solid':i === 'day30'}"
+                 class="flex w-1/2 flex-col h-full justify-around items-center">
+              <div class="text-lg font-bold h-10 flex items-center">{{ i === 'day30' ? 30 : 90 }}日</div>
+              <div class="w-full flex justify-around flex-1">
                 <div class="flex flex-col items-center justify-center w-1/3">
                   <div>TIR</div>
-                  <div class="text-sm">{{ statistics.day30?.avg }}</div>
+                  <div class="text-sm">{{ item.avg }}</div>
                 </div>
                 <div class="flex flex-col items-center justify-center w-1/3">
                   <div>BELOW</div>
-                  <div class="text-sm">{{ statistics.day30?.below }}</div>
+                  <div class="text-sm">{{ item.below }}</div>
                 </div>
                 <div class="flex flex-col items-center justify-center w-1/3">
                   <div>ABOVE</div>
-                  <div class="text-sm">{{ statistics.day30?.above }}</div>
+                  <div class="text-sm">{{ item.above }}</div>
                 </div>
               </div>
-              <div class="w-full flex justify-around">
+              <div class="w-full flex justify-around flex-1">
                 <div class="flex flex-col items-center justify-center w-1/3">
                   <div>大剂量</div>
-                  <div class="text-sm">{{ statistics.day30?.recommended }}</div>
+                  <div class="text-sm">{{ item.recommended }}</div>
                 </div>
                 <div class="flex flex-col items-center justify-center w-1/3">
                   <div>基础</div>
-                  <div class="text-sm">{{ statistics.day30?.basal }}</div>
+                  <div class="text-sm">{{ item.basal }}</div>
                 </div>
                 <div class="flex flex-col items-center justify-center w-1/3">
                   <div>修正</div>
-                  <div class="text-sm">{{ statistics.day30?.autoCorrection }}</div>
-                </div>
-              </div>
-            </div>
-            <div class="flex w-1/2 flex-col h-full justify-around items-center">
-              <div class="text-lg font-bold  h-10 flex items-center">90日</div>
-              <div class="w-full flex justify-around">
-                <div class="flex flex-col items-center justify-center w-1/3">
-                  <div>TIR</div>
-                  <div class="text-sm">{{ statistics.day90?.avg }}</div>
-                </div>
-                <div class="flex flex-col items-center justify-center w-1/3">
-                  <div>BELOW</div>
-                  <div class="text-sm">{{ statistics.day90?.below }}</div>
-                </div>
-                <div class="flex flex-col items-center justify-center w-1/3">
-                  <div>ABOVE</div>
-                  <div class="text-sm">{{ statistics.day90?.above }}</div>
-                </div>
-              </div>
-              <div class="w-full flex justify-around">
-                <div class="flex flex-col items-center justify-center w-1/3">
-                  <div>大剂量</div>
-                  <div class="text-sm">{{ statistics.day90?.recommended }}</div>
-                </div>
-                <div class="flex flex-col items-center justify-center w-1/3">
-                  <div>基础</div>
-                  <div class="text-sm">{{ statistics.day90?.basal }}</div>
-                </div>
-                <div class="flex flex-col items-center justify-center w-1/3">
-                  <div>修正</div>
-                  <div class="text-sm">{{ statistics.day90?.autoCorrection }}</div>
+                  <div class="text-sm">{{ item.autoCorrection }}</div>
                 </div>
               </div>
             </div>
@@ -220,7 +191,7 @@
           <ep-Refresh></ep-Refresh>
         </div>
       </div>
-      <audio ref="alarmAudio" class="hide" src="/alarm.mp3"></audio>
+      <!--      <audio ref="alarmAudio" autoplay class="hide" preload="auto" src="/alarm.mp3"></audio>-->
       <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                           :notificationHistory="data.notificationHistory"></NotificationDialog>
       <LogsDialog v-if="showLogsDialog" v-model:show="showLogsDialog" :logs="setting.logs"></LogsDialog>
@@ -249,7 +220,6 @@ dayjs.extend(relativeTime)
 dayjs.extend(duration)
 
 const sugarService = new SugarService()
-const alarmAudio: any = ref<HTMLElement>();
 const todayTIRChart = ref<HTMLElement>();
 const todayTTIRChart = ref<HTMLElement>();
 let chartObj: any = {
@@ -283,10 +253,11 @@ const {
   trendObj,
 } = sugarCommon
 
+const alarmAudio = new Audio('/alarm.mp3')
 const state: any = reactive({
   playing: false,
   showLogsDialog: false,
-  statistics: {}
+  statistics: {},
 })
 
 const {
@@ -329,6 +300,8 @@ onBeforeUnmount(() => {
 })
 
 function initSetting() {
+  alarmAudio.muted = false
+  // alarmAudio.autoplay = true
   if (!setting.notification) {
     setting.notification = {
       hasNew: false,
@@ -358,44 +331,59 @@ function alarmNotification(item, notification) {
   if (!item) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   if (notifyObj && notifyObj.alarm) {
+    // console.log(item.referenceGUID, notification.lastAlarm.key);
     if (!notification.lastAlarm.key || item.referenceGUID !== notification.lastAlarm.key || (item.referenceGUID === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
-      playAlarm(notifyObj.alarm.repeat, notifyObj.text)
       notification.lastAlarm.key = item.referenceGUID
-      if (item.referenceGUID !== notification.lastAlarm.key) {
-        notification.lastAlarm.isClear = false
-      }
+      playAlarm(notifyObj.alarm.repeat, notifyObj.text)
     }
   }
 }
 
 function playAlarm(plyCount = 1, alarmContent = '') {
-  let count = 0;
+  let count = 1;
+  stopPlayer()
 
   function playNext() {
-    if (count < plyCount && !state.playing) {
+    if (count <= plyCount && !state.playing) {
       state.playing = true
-      alarmAudio.value.play();
-      count++;
-      setting.logs.push(new Log({content: `第${count}次警告播放:${alarmContent}`,}))
-    } else {
-      stopPlayer()
-      setting.logs.push(new Log({content: `警告播放结束`,}))
-      // 清除事件监听器，防止内存泄漏
-      alarmAudio.value.removeEventListener('ended', playNext);
+      alarmAudio.play().then(res => {
+        console.log(`第${count}次警告播放:${alarmContent}`);
+        setting.logs.push(new Log({content: `第${count}次警告播放:${alarmContent}`,}))
+      }).catch(error => {
+        console.log(error);
+        if (error.name === 'NotAllowedError') {
+          Msg.alert('播放失败,请允许播放音频', () => {
+            playNext()
+          })
+        }
+      });
     }
   }
 
-  // 当音频结束时调用playNext函数
-  alarmAudio.value.addEventListener('ended', playNext);
+  // 监听音频播放结束事件
+  alarmAudio.addEventListener('ended', () => {
+    count++;
+    state.playing = false
+    if (count <= plyCount) {
+      setTimeout(playNext, 500); // 每次播放间隔1秒
+    } else {
+      stopPlayer(true)
+      console.log("警告播放结束");
+      setting.logs.push(new Log({content: `警告播放结束`,}))
+      // 清除事件监听器，防止内存泄漏
+      alarmAudio.removeEventListener('ended', playNext);
+    }
+  });
+
   // 开始第一次播放
   playNext();
 }
 
-function stopPlayer() {
-  alarmAudio.value.pause();
-  alarmAudio.value.currentTime = 0;
+function stopPlayer(isClear = false) {
+  alarmAudio.pause();
+  alarmAudio.currentTime = 0;
   state.playing = false
-  setting.notification.lastAlarm.isClear = true
+  setting.notification.lastAlarm.isClear = isClear
 }
 
 function refreshChart() {
