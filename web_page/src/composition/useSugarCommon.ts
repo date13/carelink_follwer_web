@@ -72,7 +72,7 @@ export default function (funcObj: any = {}) {
       // setting.notification.hasNew = true
       dealNewNotification()
       dealMyData(result.myData)
-
+      console.log(result);
       state.prepare = true
       document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${Number(lastOffset.value) > 0 ? '+' + lastOffset.value : lastOffset.value}`
       i++
@@ -115,6 +115,18 @@ export default function (funcObj: any = {}) {
     if (state.data.notificationHistory.activeNotifications.length > 0) {
       notification.hasNew = true;
     }
+    // state.data.notificationHistory.clearedNotifications.push({
+    //   "referenceGUID": new Date().getTime(),
+    //   "dateTime": "2024-11-29T19:50:15.000-00:00",
+    //   "type": "ALERT",
+    //   "faultId": 805,
+    //   "instanceId": 8149,
+    //   "messageId": "BC_SID_LOW_SD_CHECK_BG",
+    //   "pumpDeliverySuspendState": false,
+    //   "relativeOffset": -83697,
+    //   "alertSilenced": false,
+    //   "triggeredDateTime": "2024-12-29T19:50:06.000-00:00"
+    // })
     const clearedNotifications = state.data.notificationHistory.clearedNotifications.sort((a: any, b: any) => {
       return sugarCalc.cleanTime(b.triggeredDateTime)! - sugarCalc.cleanTime(a.triggeredDateTime)!
     })
