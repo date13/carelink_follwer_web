@@ -161,7 +161,7 @@ export const NOTIFICATION_MAP = {
     replace: 'sg',
     type: 'error',
     alarm: {
-      repeat: 3
+      repeat: 1
     }
   },
   BC_SID_HIGH_SG_CHECK_BG: {
@@ -169,7 +169,7 @@ export const NOTIFICATION_MAP = {
     replace: 'sg',
     type: 'error',
     alarm: {
-      repeat: 3
+      repeat: 1
     }
   },
   BC_MESSAGE_SG_UNDER_50_MG_DL: {
@@ -177,7 +177,7 @@ export const NOTIFICATION_MAP = {
     replace: 'sg',
     type: 'error',
     alarm: {
-      repeat: 3
+      repeat: 1
     }
   },
   BC_SID_REPLACE_BATTERY_SOON: {
