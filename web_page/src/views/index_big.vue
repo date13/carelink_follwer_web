@@ -330,7 +330,7 @@ function openLogsDialog() {
 function alarmNotification(item, notification) {
   if (!item) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
-  if (notifyObj && notifyObj.alarm) {
+  if (notifyObj && notifyObj.alarm && !state.playing) {
     // console.log(item.referenceGUID, notification.lastAlarm.key);
     if (!notification.lastAlarm.key || item.referenceGUID !== notification.lastAlarm.key || (item.referenceGUID === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
       notification.lastAlarm.key = item.referenceGUID
@@ -363,7 +363,6 @@ function playAlarm(plyCount = 1, alarmContent = '') {
   // 监听音频播放结束事件
   alarmAudio.addEventListener('ended', () => {
     count++;
-    state.playing = false
     if (count <= plyCount) {
       setTimeout(playNext, 500); // 每次播放间隔1秒
     } else {
