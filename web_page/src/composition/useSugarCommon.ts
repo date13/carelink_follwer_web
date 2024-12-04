@@ -143,7 +143,8 @@ export default function (funcObj: any = {}) {
       notification.hasNew = true;
     }
     const activeNotifications = state.data.notificationHistory.activeNotifications
-    funcObj.alarmNotification(activeNotifications.length > 0 ? activeNotifications[0] : (clearedNotifications.length > 0 ? clearedNotifications[0] : null), notification)
+    const isActive = activeNotifications.length > 0
+    funcObj.alarmNotification(isActive ? activeNotifications[0] : (clearedNotifications.length > 0 ? clearedNotifications[0] : null), notification, isActive)
     setting.notification.lastKey = notificationKey
   }
 

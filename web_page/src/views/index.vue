@@ -131,13 +131,21 @@
               泵:
               {{ data.reservoirRemainingUnits }}U
               {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
-              探头:
-              {{
-                sugarCalc.sensorState(data)
-              }}
-              {{
-                data.gstBatteryLevel || '--'
-              }}%
+              <el-popover
+                  :content="`剩余:${sugarCalc.sensorState(data,false)}小时`"
+                  placement="bottom"
+                  trigger="click"
+              >
+                <template #reference>
+                  探头:
+                  {{
+                    sugarCalc.sensorState(data)
+                  }}
+                  {{
+                    data.gstBatteryLevel || '--'
+                  }}%
+                </template>
+              </el-popover>
             </el-tag>
           </div>
         </div>

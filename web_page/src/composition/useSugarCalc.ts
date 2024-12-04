@@ -375,9 +375,9 @@ export default function () {
     }
   }
 
-  function sensorState(data) {
+  function sensorState(data, isHumanize = true) {
     return data.sensorState === SENSOR_STATUS.NO_ERROR_MESSAGE.key && data.sensorDurationMinutes ?
-        dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) :
+        (isHumanize ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : (data.sensorDurationMinutes / 60).toFixed(1)) :
         SENSOR_STATUS[data.sensorState] ? SENSOR_STATUS[data.sensorState].name : data.sensorState
   }
 

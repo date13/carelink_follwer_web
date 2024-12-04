@@ -54,7 +54,8 @@ export class SugarSetting extends Base {
     lastKey: null,
     lastAlarm: {
       key: '',
-      isClear: false
+      isClear: false,
+      isActive: false
     }
   }
   realWave = true

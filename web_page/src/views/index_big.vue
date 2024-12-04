@@ -98,13 +98,21 @@
               泵:
               {{ data.reservoirRemainingUnits }}U
               {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
-              探头:
-              {{
-                sugarCalc.sensorState(data)
-              }}
-              {{
-                data.gstBatteryLevel || '--'
-              }}%
+              <el-popover
+                  :content="`剩余:${sugarCalc.sensorState(data,false)}小时`"
+                  placement="bottom"
+                  trigger="click"
+              >
+                <template #reference>
+                  探头:
+                  {{
+                    sugarCalc.sensorState(data)
+                  }}
+                  {{
+                    data.gstBatteryLevel || '--'
+                  }}%
+                </template>
+              </el-popover>
             </el-tag>
             <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
               {{ lastUpdateTime.conduit || '--' }}
@@ -318,7 +326,8 @@ function initSetting() {
   if (!setting.notification.lastAlarm) {
     setting.notification.lastAlarm = {
       key: '',
-      isClear: false
+      isClear: false,
+      isActive: false
     }
   }
 }
@@ -327,14 +336,15 @@ function openLogsDialog() {
   state.showLogsDialog = true
 }
 
-function alarmNotification(item, notification) {
+function alarmNotification(item, notification, isActive) {
   if (!item) return
+  setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   if (notifyObj && notifyObj.alarm && !state.playing) {
     // console.log(item.referenceGUID, notification.lastAlarm.key);
-    if (!notification.lastAlarm.key || item.referenceGUID !== notification.lastAlarm.key || (item.referenceGUID === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
-      notification.lastAlarm.key = item.referenceGUID
-      playAlarm(notifyObj.alarm.repeat, `${notifyObj.text} key:${notification.lastAlarm.key}`)
+    const notificationKey = isActive ? item.instanceId : item.referenceGUID
+    if (!notification.lastAlarm.key || notificationKey !== notification.lastAlarm.key || (notificationKey === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
+      playAlarm(notifyObj.alarm.repeat, `${notifyObj.text} key:${notificationKey}`)
     }
   }
 }
@@ -351,6 +361,7 @@ function playAlarm(plyCount = 1, alarmContent = '') {
         setting.logs.push(new Log({content: `第${count}次警告播放:${alarmContent}`,}))
       }).catch(error => {
         console.log(error);
+        setting.logs.push(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
         if (error.name === 'NotAllowedError') {
           Msg.alert('播放失败,请允许播放音频', () => {
             playNext()
@@ -363,6 +374,7 @@ function playAlarm(plyCount = 1, alarmContent = '') {
   // 监听音频播放结束事件
   alarmAudio.addEventListener('ended', () => {
     count++;
+    setting.logs.push(new Log({content: `in ended event:${count}, playerCount:${plyCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
     if (count <= plyCount) {
       setTimeout(playNext, 500); // 每次播放间隔1秒
     } else {
