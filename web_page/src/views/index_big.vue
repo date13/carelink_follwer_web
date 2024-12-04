@@ -344,6 +344,7 @@ function alarmNotification(item, notification, isActive) {
     // console.log(item.referenceGUID, notification.lastAlarm.key);
     const notificationKey = isActive ? item.instanceId : item.referenceGUID
     if (!notification.lastAlarm.key || notificationKey !== notification.lastAlarm.key || (notificationKey === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
+      notification.lastAlarm.key = notificationKey
       playAlarm(notifyObj.alarm.repeat, `${notifyObj.text} key:${notificationKey}`)
     }
   }
