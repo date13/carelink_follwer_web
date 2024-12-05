@@ -1,5 +1,5 @@
 <template>
-  <div :class="{'text-3xl':isHome,'text-6xl':!isHome}" class="flex font-thin arrow">
+  <div :class="isHome?'text-3xl':'text-6xl'" class="flex font-thin arrow">
     <template v-if="trendObj?.direction">
       <template v-if="trendObj.direction === 1">
         <ep-Top v-for="i in trendObj.num"></ep-Top>
