@@ -301,7 +301,7 @@ function alarmNotification(item, notification, isActive) {
     const notificationKey = isActive ? item.GUID : item.referenceGUID
     if (!notification.lastAlarm.key || notificationKey !== notification.lastAlarm.key || (notificationKey === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
       notification.lastAlarm.key = notificationKey
-      setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
+      // setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
       playAlarm(notifyObj.alarm.repeat, `${notifyObj.text} key:${notificationKey}`)
     }
   }
@@ -332,7 +332,7 @@ function playAlarm(plyCount = 1, alarmContent = '') {
   // 监听音频播放结束事件
   alarmAudio.addEventListener('ended', () => {
     count++;
-    setting.logs.push(new Log({content: `in ended event:${count}, playerCount:${plyCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
+    // setting.logs.push(new Log({content: `in ended event:${count}, playerCount:${plyCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
     if (count <= plyCount) {
       setTimeout(playNext, 500); // 每次播放间隔1秒
     } else {
