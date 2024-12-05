@@ -1,18 +1,7 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
-      <el-dropdown class="menu-panel" placement="bottom-start" trigger="click" @command="handleMenu">
-        <ep-Menu></ep-Menu>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="big">Big</el-dropdown-item>
-            <el-dropdown-item command="info">Info</el-dropdown-item>
-            <el-dropdown-item command="dict">Dict</el-dropdown-item>
-            <el-dropdown-item command="food">Food</el-dropdown-item>
-            <el-dropdown-item command="login">Login</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+      <Menus @handler="handleMenu"></Menus>
       <div class="flex flex-row h-45">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
@@ -81,25 +70,7 @@
                 sugarCalc.getLastSg(data.lastSG)
               }}
             </div>
-            <div class="text-3xl flex font-thin arrow">
-              <template v-if="trendObj?.direction">
-                <template v-if="trendObj.direction === 1">
-                  <ep-Top v-for="i in trendObj.num"></ep-Top>
-                </template>
-                <template v-if="trendObj.direction === 2">
-                  <ep-Top-Right></ep-Top-Right>
-                </template>
-                <template v-if="trendObj.direction === 3">
-                  <ep-Right></ep-Right>
-                </template>
-                <template v-if="trendObj.direction === 4">
-                  <ep-Bottom-Right></ep-Bottom-Right>
-                </template>
-                <template v-if="trendObj.direction === 5">
-                  <ep-Bottom v-for="i in trendObj.num"></ep-Bottom>
-                </template>
-              </template>
-            </div>
+            <Trend :trend-obj="trendObj"></Trend>
           </div>
           <div class="flex text-xs items-center justify-between align-center">
             <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2">
@@ -118,35 +89,32 @@
             </el-radio-group>
           </div>
           <div class="flex text-xs items-center justify-between align-center my-1">
-            <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
-                Tools.toNow(nextStartTime)
-              }}</span>
+            <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">
+               <el-popover
+                   :content="`启动:${nextStartTime}`"
+                   placement="bottom"
+                   trigger="click"
+               >
+                <template #reference>
+                  预计启动:&nbsp;{{
+                    Tools.toNow(nextStartTime)
+                  }}
+                </template>
+               </el-popover>
+            </span>
             <span v-else class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
             <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}" class="mr-2">
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
           </div>
           <div class="flex items-center justify-around align-center info-panel">
-            <el-tag class="mb-1 mr-1" size="small" type="primary">
-              泵:
-              {{ data.reservoirRemainingUnits }}U
-              {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
-              <el-popover
-                  :content="`剩余:${sugarCalc.sensorState(data,false)}小时`"
-                  placement="bottom"
-                  trigger="click"
-              >
-                <template #reference>
-                  探头:
-                  {{
-                    sugarCalc.sensorState(data)
-                  }}
-                  {{
-                    data.gstBatteryLevel || '--'
-                  }}%
-                </template>
-              </el-popover>
-            </el-tag>
+            <Device :data="{
+              reservoirRemainingUnits: data.reservoirRemainingUnits,
+              medicalDeviceBatteryLevelPercent: data.medicalDeviceBatteryLevelPercent,
+              sensorLastDatetime: sugarCalc.sensorState(data,false),
+              sensorLastDatetimeHumanize:  sugarCalc.sensorState(data),
+              gstBatteryLevel:data.gstBatteryLevel || '--'
+            }"></Device>
           </div>
         </div>
       </div>
@@ -155,24 +123,8 @@
         <div class="w-1/28"></div>
       </div>
       <div class="h-10 px-2 flex items-center justify-around">
-        <el-tag :type="modeObj.mode.type" class="" size="small">
-          {{ modeObj.mode.name }}
-          <span v-if="modeObj.mode.key===PUMP_STATUS.safe.key">
-            ,闭环退出:{{ modeObj.timeRemaining }}
-            </span>
-          <span v-if="modeObj.mode.key===PUMP_STATUS.sport.key">
-            剩余:{{ modeObj.timeRemaining }}
-            </span>
-          <span v-if="modeObj.mode.key===PUMP_STATUS.manuel.key">
-              ,基础:{{ modeObj.basalRate }}
-              <span v-if="modeObj.isTemp">
-                ,剩余:{{ modeObj.timeRemaining }}
-                </span>
-            </span>
-        </el-tag>
-        <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
-          {{ lastUpdateTime.conduit || '--' }}
-        </el-tag>
+        <Modes :mode-obj="modeObj"></Modes>
+        <Conduit :last-update-time="lastUpdateTime" @updateConduitDatetime="updateConduitTime"></Conduit>
         <el-tag size="large" type="primary">
           <div class="flex flex-col ">
               <span>剂量(昨):
@@ -247,7 +199,6 @@ import {
   CONST_VAR,
   INSULIN_TYPE,
   NOTIFICATION_MAP,
-  PUMP_STATUS,
   SG_STATUS,
   SYSTEM_STATUS_MAP,
   TIME_RANGE_CONFIG
@@ -256,6 +207,11 @@ import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import Info from "@/views/info.vue"
 import useSugarCommon from "@/composition/useSugarCommon";
+import Menus from "@/views/components/menus.vue";
+import Trend from "@/views/components/trend.vue";
+import Device from "@/views/components/device.vue";
+import Conduit from "@/views/components/conduit.vue";
+import Modes from "@/views/components/modes.vue";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -774,15 +730,6 @@ function drawLine() {
 }
 </script>
 <style lang="scss" scoped>
-.menu-panel {
-  position: absolute;
-  right: 5px;
-
-  svg {
-    width: 30px;
-    height: 30px;
-  }
-}
 
 .info-panel {
   :deep(.el-card__header) {

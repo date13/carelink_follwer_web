@@ -7,7 +7,7 @@
         <el-alert v-for="{messageId,sg,triggeredDateTime} in notificationHistory.activeNotifications.sort((a:any,b:any)=>{
           return sugarCalc.cleanTime(b.triggeredDateTime) - sugarCalc.cleanTime(a.triggeredDateTime)
         })" :closable="false"
-                  :description="dayjs(sugarCalc.cleanTime(triggeredDateTime)).format('MM-DD HH:mm')"
+                  :description="dayjs(sugarCalc.cleanTime(triggeredDateTime)).format(DATE_FORMAT.datetime2)"
                   :title="NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(messageId,sg):messageId"
                   :type="NOTIFICATION_MAP[messageId]?NOTIFICATION_MAP[messageId].type:'warning'"
                   class="item" show-icon/>
@@ -18,7 +18,7 @@
         <el-alert v-for="{messageId,sg,triggeredDateTime} in notificationHistory.clearedNotifications.sort((a:any,b:any)=>{
           return sugarCalc.cleanTime(b.triggeredDateTime) - sugarCalc.cleanTime(a.triggeredDateTime)
         })" :closable="false"
-                  :description="dayjs(sugarCalc.cleanTime(triggeredDateTime)).format('MM-DD HH:mm')"
+                  :description="dayjs(sugarCalc.cleanTime(triggeredDateTime)).format(DATE_FORMAT.datetime2)"
                   :title="NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(messageId,sg):messageId"
                   :type="NOTIFICATION_MAP[messageId]?NOTIFICATION_MAP[messageId].type:'warning'"
                   class="item" show-icon/>
@@ -36,6 +36,7 @@ import {Close} from "@element-plus/icons-vue";
 import {NOTIFICATION_MAP} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import dayjs from "dayjs";
+import {DATE_FORMAT} from "@/model/model-type";
 
 const props = defineProps({
   show: {

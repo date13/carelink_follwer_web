@@ -1,18 +1,7 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex h-full bg-black overflow-x-hidden text-white p-4">
-      <el-dropdown class="menu-panel" placement="bottom-start" trigger="click" @command="handleMenu">
-        <ep-Menu class="text-white"></ep-Menu>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="">Home</el-dropdown-item>
-            <el-dropdown-item command="info">Info</el-dropdown-item>
-            <el-dropdown-item command="dict">Dict</el-dropdown-item>
-            <el-dropdown-item command="food">Food</el-dropdown-item>
-            <el-dropdown-item command="login">Login</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+      <Menus :is-home="false" @handler="handleMenu"></Menus>
       <div class="flex flex-col w-3/5  big-panel mr-4">
         <div class="h-10 flex w-full justify-between items-center px-4">
           <div :class="{'text-red':status!==200}" class="text-base hand"
@@ -30,25 +19,7 @@
                 sugarCalc.getLastSg(data.lastSG)
               }}
             </div>
-            <div class="text-6xl flex font-thin arrow">
-              <template v-if="trendObj?.direction">
-                <template v-if="trendObj.direction === 1">
-                  <ep-Top v-for="i in trendObj.num"></ep-Top>
-                </template>
-                <template v-if="trendObj.direction === 2">
-                  <ep-Top-Right></ep-Top-Right>
-                </template>
-                <template v-if="trendObj.direction === 3">
-                  <ep-Right></ep-Right>
-                </template>
-                <template v-if="trendObj.direction === 4">
-                  <ep-Bottom-Right></ep-Bottom-Right>
-                </template>
-                <template v-if="trendObj.direction === 5">
-                  <ep-Bottom v-for="i in trendObj.num"></ep-Bottom>
-                </template>
-              </template>
-            </div>
+            <Trend :is-home="false" :trend-obj="trendObj"></Trend>
           </div>
           <div class="h-10 flex items-start justify-center text-base">
             <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm(3)">
@@ -58,9 +29,19 @@
             </span>
             <span class="mx-2">{{ lastOffset }}</span>
             <div class="flex items-center justify-between align-center">
-              <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">预计启动:&nbsp;{{
-                  Tools.toNow(nextStartTime)
-                }}</span>
+              <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">
+                 <el-popover
+                     :content="`启动:${nextStartTime}`"
+                     placement="bottom"
+                     trigger="click"
+                 >
+                  <template #reference>
+                    预计启动:&nbsp;{{
+                      Tools.toNow(nextStartTime)
+                    }}
+                  </template>
+                </el-popover>
+              </span>
               <span v-else class="mx-2">更新:&nbsp;{{ updateDatetime }}</span>
               <div :style="{color: SYSTEM_STATUS_MAP[data.systemStatusMessage]?.color}" class="mr-2">
                 {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
@@ -94,29 +75,14 @@
             <div ref="todayTTIRChart" class="w-1/2 h-full w-full"></div>
           </div>
           <div class="flex justify-around items-center h-20">
-            <el-tag class="mb-1 mr-1" size="small" type="primary">
-              泵:
-              {{ data.reservoirRemainingUnits }}U
-              {{ data.medicalDeviceBatteryLevelPercent }}%&nbsp;
-              <el-popover
-                  :content="`剩余:${sugarCalc.sensorState(data,false)}小时`"
-                  placement="bottom"
-                  trigger="click"
-              >
-                <template #reference>
-                  探头:
-                  {{
-                    sugarCalc.sensorState(data)
-                  }}
-                  {{
-                    data.gstBatteryLevel || '--'
-                  }}%
-                </template>
-              </el-popover>
-            </el-tag>
-            <el-tag class="hand" size="small" type="warning" @click="updateConduitTime">管路:
-              {{ lastUpdateTime.conduit || '--' }}
-            </el-tag>
+            <Device :data="{
+              reservoirRemainingUnits: data.reservoirRemainingUnits,
+              medicalDeviceBatteryLevelPercent: data.medicalDeviceBatteryLevelPercent,
+              sensorLastDatetime: sugarCalc.sensorState(data,false),
+              sensorLastDatetimeHumanize:  sugarCalc.sensorState(data),
+              gstBatteryLevel:data.gstBatteryLevel || '--'
+            }"></Device>
+            <Conduit :last-update-time="lastUpdateTime" @updateConduitDatetime="updateConduitTime"></Conduit>
           </div>
           <div class="flex w-full h-2/5 border border-solid border-zinc-300 p-2">
             <div v-for="(item,i) in statistics"
@@ -155,21 +121,7 @@
           </div>
         </div>
         <div class="h-20 px-2 flex items-center justify-around">
-          <el-tag :type="modeObj.mode.type" class="" size="small">
-            {{ modeObj.mode.name }}
-            <span v-if="modeObj.mode.key===PUMP_STATUS.safe.key">
-            ,闭环退出:{{ modeObj.timeRemaining }}
-            </span>
-            <span v-if="modeObj.mode.key===PUMP_STATUS.sport.key">
-            剩余:{{ modeObj.timeRemaining }}
-            </span>
-            <span v-if="modeObj.mode.key===PUMP_STATUS.manuel.key">
-              ,基础:{{ modeObj.basalRate }}
-              <span v-if="modeObj.isTemp">
-                ,剩余:{{ modeObj.timeRemaining }}
-                </span>
-            </span>
-          </el-tag>
+          <Modes :mode-obj="modeObj"></Modes>
 
           <el-tag size="large" type="primary">
             <div class="flex flex-col ">
@@ -215,13 +167,18 @@ import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {COLORS, NOTIFICATION_MAP, PUMP_STATUS, SYSTEM_STATUS_MAP,} from "@/views/const";
+import {COLORS, NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
 import LogsDialog from "@/views/components/logsDialog.vue";
 import {Log} from "@/model/classes/Carelink";
 import useChartResize from "@/composition/useChartResize";
+import Menus from "@/views/components/menus.vue";
+import Trend from "@/views/components/trend.vue";
+import Device from "@/views/components/device.vue";
+import Conduit from "@/views/components/conduit.vue";
+import Modes from "@/views/components/modes.vue";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -338,13 +295,13 @@ function openLogsDialog() {
 
 function alarmNotification(item, notification, isActive) {
   if (!item) return
-  setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   if (notifyObj && notifyObj.alarm && !state.playing) {
     // console.log(item.referenceGUID, notification.lastAlarm.key);
-    const notificationKey = isActive ? item.instanceId : item.referenceGUID
+    const notificationKey = isActive ? item.GUID : item.referenceGUID
     if (!notification.lastAlarm.key || notificationKey !== notification.lastAlarm.key || (notificationKey === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
       notification.lastAlarm.key = notificationKey
+      setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
       playAlarm(notifyObj.alarm.repeat, `${notifyObj.text} key:${notificationKey}`)
     }
   }
@@ -481,17 +438,6 @@ function drawLine() {
 }
 </script>
 <style lang="scss" scoped>
-.menu-panel {
-  position: absolute;
-  right: 5px;
-  z-index: 999;
-
-  svg {
-    width: 30px;
-    height: 30px;
-  }
-}
-
 .big-panel {
   .sg {
     font-size: 16em;

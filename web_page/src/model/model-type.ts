@@ -57,6 +57,7 @@ export const REQ_HEADERS = {
 
 export const enum DATE_FORMAT {
   datetime = "YYYY-MM-DD HH:mm:ss",
+  datetime2 = "MM-DD HH:mm",
   dateminutes = "YYYY-MM-DD HH:mm",
   date = "YYYY-MM-DD",
   time = "HH:mm:ss"

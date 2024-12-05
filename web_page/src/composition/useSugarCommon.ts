@@ -227,6 +227,7 @@ export default function (funcObj: any = {}) {
       sg: Tools.toNow(lastSgUpdateTime),
       sgDiff: dayjs().diff(lastSgUpdateTime, 'minute'),
       conduit: Tools.toNow(state.orgMyData.lastConduitTime),
+      conduitDatetime: state.orgMyData.lastConduitTime,
       sumInsulin: sumInsulin.toFixed(2),
       sumBaseDelivery: sumBaseDelivery.toFixed(2)
     }
