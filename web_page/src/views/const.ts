@@ -146,7 +146,10 @@ export const NOTIFICATION_MAP = {
   BC_SID_SG_APPROACH_LOW_LIMIT_CHECK_BG: {
     text: `低探头值前报警`,
     replace: '',
-    type: 'warning'
+    type: 'warning',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_SG_APPROACH_HIGH_LIMIT_CHECK_BG: {
     text: '高探头值前报警',
@@ -161,7 +164,7 @@ export const NOTIFICATION_MAP = {
     replace: 'sg',
     type: 'error',
     alarm: {
-      repeat: 1
+      repeat: 3
     }
   },
   BC_SID_HIGH_SG_CHECK_BG: {
@@ -169,7 +172,7 @@ export const NOTIFICATION_MAP = {
     replace: 'sg',
     type: 'error',
     alarm: {
-      repeat: 1
+      repeat: 3
     }
   },
   BC_MESSAGE_SG_UNDER_50_MG_DL: {
@@ -177,7 +180,7 @@ export const NOTIFICATION_MAP = {
     replace: 'sg',
     type: 'error',
     alarm: {
-      repeat: 1
+      repeat: 3
     }
   },
   BC_SID_REPLACE_BATTERY_SOON: {
@@ -206,7 +209,7 @@ export const NOTIFICATION_MAP = {
     replace: null,
     type: 'error',
     alarm: {
-      repeat: 1
+      repeat: 2
     }
   },
   BC_SID_IF_NEW_SENSR_SELCT_START_NEW_ELSE_REWIND: {
@@ -234,7 +237,7 @@ export const NOTIFICATION_MAP = {
     replace: null,
     type: 'error',
     alarm: {
-      repeat: 1
+      repeat: 2
     }
   },
   BC_SID_BASAL_STARTED_SMART_GUARD: {

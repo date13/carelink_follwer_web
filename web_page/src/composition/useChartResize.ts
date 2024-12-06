@@ -2,11 +2,12 @@ import {ref} from 'vue'
 
 export default function (chart) {
   // const chart = ref<any>()
+  const _chart = chart
   const sidebarElm = ref<Element>()
   const appMainElm = ref<Element>()
   const chartResizeHandler = () => {
-    if (chart) {
-      chart.resize()
+    if (_chart) {
+      _chart.resize()
     }
   }
 
@@ -81,7 +82,7 @@ export default function (chart) {
   }
 
   return {
-    chart,
+    chart: _chart,
     mounted,
     beforeDestroy,
     activated,

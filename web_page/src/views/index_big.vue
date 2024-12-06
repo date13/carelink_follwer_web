@@ -167,12 +167,12 @@ import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {COLORS, NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
+import {NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
 import LogsDialog from "@/views/components/logsDialog.vue";
-import {Log} from "@/model/classes/Carelink";
+import {InTimeBarChartData, Log} from "@/model/classes/Carelink";
 import useChartResize from "@/composition/useChartResize";
 import Menus from "@/views/components/menus.vue";
 import Trend from "@/views/components/trend.vue";
@@ -368,58 +368,8 @@ function refreshChart() {
 //画图的参数
 const charOption = computed(() => {
   return {
-    todayTIRChart: {
-      backgroundColor: '', //设置无背景色
-      title: {
-        text: '今日TIR',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'item'
-      },
-      label: {
-        show: true, // 显示标签
-        formatter: '{d}%' // 设置标签格式
-      },
-      series: [
-        {
-          name: '今日TIR',
-          type: 'pie',
-          radius: '50%',
-          data: [
-            {value: timeInRange.value[0], name: '框内', itemStyle: {color: COLORS[0]}},
-            {value: timeInRange.value[1], name: '低于', itemStyle: {color: COLORS[1]}},
-            {value: timeInRange.value[2], name: '高于', itemStyle: {color: COLORS[5]}}
-          ]
-        }
-      ]
-    },
-    todayTTIRChart: {
-      backgroundColor: '', //设置无背景色
-      title: {
-        text: '今日TTIR',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'item'
-      },
-      label: {
-        show: true, // 显示标签
-        formatter: '{d}%' // 设置标签格式
-      },
-      series: [
-        {
-          name: '今日TTIR',
-          type: 'pie',
-          radius: '50%',
-          data: [
-            {value: tightTimeInRange.value[0], name: '框内', itemStyle: {color: COLORS[0]}},
-            {value: tightTimeInRange.value[1], name: '低于', itemStyle: {color: COLORS[4]}},
-            {value: tightTimeInRange.value[2], name: '高于', itemStyle: {color: COLORS[5]}}
-          ]
-        }
-      ]
-    }
+    todayTIRChart: new InTimeBarChartData('TIR', timeInRange.value),
+    todayTTIRChart: new InTimeBarChartData('TTIR', tightTimeInRange.value),
   }
 })
 
