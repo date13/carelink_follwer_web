@@ -329,9 +329,8 @@ function playAlarm(plyCount = 1, alarmContent = '') {
     }
   }
 
-  // 监听音频播放结束事件
-  alarmAudio.addEventListener('ended', () => {
-    count++;
+  function playEnd() {
+    count++
     // setting.logs.push(new Log({content: `in ended event:${count}, playerCount:${plyCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
     if (count <= plyCount) {
       setTimeout(playNext, 500); // 每次播放间隔1秒
@@ -340,9 +339,12 @@ function playAlarm(plyCount = 1, alarmContent = '') {
       console.log("警告播放结束");
       setting.logs.push(new Log({content: `警告播放结束`,}))
       // 清除事件监听器，防止内存泄漏
-      alarmAudio.removeEventListener('ended', playNext);
+      alarmAudio.removeEventListener('ended', playEnd);
     }
-  });
+  }
+
+  // 监听音频播放结束事件
+  alarmAudio.addEventListener('ended', playEnd);
 
   // 开始第一次播放
   playNext();
