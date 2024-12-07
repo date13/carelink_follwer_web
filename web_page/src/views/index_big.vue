@@ -7,8 +7,8 @@
           <div :class="{'text-red':status!==200}" class="text-base hand"
                @click="refreshCarelinkToken">状态:{{ status }}
           </div>
-          <div v-if="playing">
-            <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer(true)"></ep-AlarmClock>
+          <div v-if="playAlarmObj.playing">
+            <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
           </div>
           <div class="text-4xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</div>
         </div>
@@ -22,7 +22,7 @@
             <Trend :is-home="false" :trend-obj="trendObj"></Trend>
           </div>
           <div class="h-10 flex items-start justify-center text-base">
-            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm(3)">
+            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm">
               {{
                 lastUpdateTime.sg
               }}
@@ -218,17 +218,23 @@ const {
   trendObj,
 } = sugarCommon
 
-const alarmAudio = new Audio('/alarm.mp3')
 const state: any = reactive({
-  playing: false,
   showLogsDialog: false,
   statistics: {},
+  playAlarmObj: {
+    alarmAudio: new Audio('/test.mp3'),
+    playing: false,
+    count: 1,
+    totalPlayCount: 1,
+    content: ''
+  }
 })
 
 const {
   playing,
   statistics,
-  showLogsDialog
+  showLogsDialog,
+  playAlarmObj
 } = toRefs(state)
 
 const {
@@ -265,8 +271,10 @@ onBeforeUnmount(() => {
 })
 
 function initSetting() {
-  alarmAudio.muted = false
-  // alarmAudio.autoplay = true
+  const {playAlarmObj} = state
+  playAlarmObj.alarmAudio.muted = false
+  playAlarmObj.autoplay = true
+  playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
   if (!setting.notification) {
     setting.notification = {
       hasNew: false,
@@ -297,64 +305,66 @@ function alarmNotification(item, notification, isActive) {
   if (!item) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   if (notifyObj && notifyObj.alarm && !state.playing) {
-    // console.log(item.referenceGUID, notification.lastAlarm.key);
+    // console.log(isActive, item.referenceGUID, notification.lastAlarm.key);
     const notificationKey = isActive ? item.GUID : item.referenceGUID
     if (!notification.lastAlarm.key || notificationKey !== notification.lastAlarm.key || (notificationKey === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
       notification.lastAlarm.key = notificationKey
       // setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
-      playAlarm(notifyObj.alarm.repeat, `${notifyObj.text} key:${notificationKey}`)
+      // stopPlayer()
+      const {playAlarmObj} = state
+      playAlarmObj.totalPlayCount = notifyObj.alarm.repeat
+      playAlarmObj.content = `${notifyObj.text} key:${notificationKey}`
+      playAlarm()
     }
   }
 }
 
-function playAlarm(plyCount = 1, alarmContent = '') {
-  let count = 1;
-  stopPlayer()
-
-  function playNext() {
-    if (count <= plyCount && !state.playing) {
-      state.playing = true
-      alarmAudio.play().then(res => {
-        console.log(`第${count}次警告播放:${alarmContent}`);
-        setting.logs.push(new Log({content: `第${count}次警告播放:${alarmContent}`,}))
-      }).catch(error => {
-        console.log(error);
-        setting.logs.push(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
-        if (error.name === 'NotAllowedError') {
-          Msg.alert('播放失败,请允许播放音频', () => {
-            playNext()
-          })
-        }
-      });
-    }
+function playAlarm() {
+  const {playAlarmObj} = state
+  // console.log(playAlarmObj);
+  if (playAlarmObj.count <= playAlarmObj.totalPlayCount && !playAlarmObj.playing) {
+    playAlarmObj.alarmAudio.play().then(res => {
+      playAlarmObj.playing = true
+      // playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
+      console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
+      setting.logs.push(new Log({content: `第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`,}))
+    }).catch(error => {
+      console.log(error);
+      playAlarmObj.playing = false
+      setting.logs.push(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
+      if (error.name === 'NotAllowedError') {
+        Msg.alert('播放失败,请允许播放音频', () => {
+          playAlarm()
+        })
+      }
+    });
   }
-
-  function playEnd() {
-    count++
-    // setting.logs.push(new Log({content: `in ended event:${count}, playerCount:${plyCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
-    if (count <= plyCount) {
-      setTimeout(playNext, 500); // 每次播放间隔1秒
-    } else {
-      stopPlayer(true)
-      console.log("警告播放结束");
-      setting.logs.push(new Log({content: `警告播放结束`,}))
-      // 清除事件监听器，防止内存泄漏
-      alarmAudio.removeEventListener('ended', playEnd);
-    }
-  }
-
-  // 监听音频播放结束事件
-  alarmAudio.addEventListener('ended', playEnd);
-
-  // 开始第一次播放
-  playNext();
 }
 
-function stopPlayer(isClear = false) {
-  alarmAudio.pause();
-  alarmAudio.currentTime = 0;
-  state.playing = false
-  setting.notification.lastAlarm.isClear = isClear
+
+async function playEnd() {
+  const {playAlarmObj} = state
+  // console.log("play end");
+  playAlarmObj.count++
+  setting.logs.push(new Log({content: `in ended event:${playAlarmObj.count}, playerCount:${playAlarmObj.totalPlayCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
+  if (playAlarmObj.count <= playAlarmObj.totalPlayCount) {
+    playAlarmObj.playing = false
+    setTimeout(playAlarm, 500); // 每次播放间隔1秒
+  } else {
+    stopPlayer()
+    console.log("警告播放结束");
+    setting.logs.push(new Log({content: `警告播放结束`,}))
+    // playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
+  }
+}
+
+function stopPlayer() {
+  state.playAlarmObj.alarmAudio.pause();
+  state.playAlarmObj.alarmAudio.currentTime = 0;
+  state.playAlarmObj.playing = false
+  state.playAlarmObj.count = 1
+  state.playAlarmObj.totalPlayCount = 1
+  setting.notification.lastAlarm.isClear = true
 }
 
 function refreshChart() {
