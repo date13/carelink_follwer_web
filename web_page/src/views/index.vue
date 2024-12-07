@@ -55,7 +55,7 @@
                   {{ tightTimeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
+              <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="my-1 mr-1" size="small"
                       type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
                   {{ NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg) : messageId }}

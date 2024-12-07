@@ -222,7 +222,7 @@ const state: any = reactive({
   showLogsDialog: false,
   statistics: {},
   playAlarmObj: {
-    alarmAudio: new Audio('/test.mp3'),
+    alarmAudio: new Audio('/alarm.mp3'),
     playing: false,
     count: 1,
     totalPlayCount: 1,
@@ -346,7 +346,7 @@ async function playEnd() {
   const {playAlarmObj} = state
   // console.log("play end");
   playAlarmObj.count++
-  setting.logs.push(new Log({content: `in ended event:${playAlarmObj.count}, playerCount:${playAlarmObj.totalPlayCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
+  // setting.logs.push(new Log({content: `in ended event:${playAlarmObj.count}, playerCount:${playAlarmObj.totalPlayCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount) {
     playAlarmObj.playing = false
     setTimeout(playAlarm, 500); // 每次播放间隔1秒
