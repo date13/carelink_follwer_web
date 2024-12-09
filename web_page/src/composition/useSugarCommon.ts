@@ -117,7 +117,7 @@ export default function (funcObj: any = {}) {
     }
     // state.data.notificationHistory.clearedNotifications.push({
     //   "referenceGUID": new Date().getTime(),
-    //   "dateTime": "2024-11-29T19:50:15.000-00:00",
+    //   "dateTime": "2024-12-29T19:50:15.000-00:00",
     //   "type": "ALERT",
     //   "faultId": 805,
     //   "instanceId": 8149,
