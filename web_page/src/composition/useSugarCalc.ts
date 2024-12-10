@@ -194,6 +194,10 @@ export default function () {
                 color: COLORS[2],
                 width: 0.5
               },
+              data: {
+                delivered: item.deliveredFastAmount.toFixed(1),
+                plan: item.programmedFastAmount.toFixed(1)
+              },
               last: i === newList.length - 1
             },
             {

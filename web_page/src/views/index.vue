@@ -654,7 +654,7 @@ const charOption = computed(() => {
             show: true,
             color: 'inherit',
             formatter: (item) => {
-              return item.data.last ? `${dayjs(item.value).format("HH:mm")}` : ''
+              return item.data.last ? `${dayjs(item.value).format("HH:mm")}${item.data.type === 'start' ? '\n' + item.data.data.plan : ''}` : ''
             },
           },
           emphasis: {
