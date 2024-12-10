@@ -138,8 +138,8 @@ export default function () {
 
   const loadBaselData = (list) => {
     return list.map(item => {
-      if (item.type === 'AUTO_BASAL_DELIVERY' || (item.type === 'INSULIN' && item.activationType === 'AUTOCORRECTION')) {
-        const isBasal = item.type === 'AUTO_BASAL_DELIVERY'
+      if (item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key || (item.type === INSULIN_TYPE.INSULIN.key && item.activationType === INSULIN_TYPE.AUTOCORRECTION.key)) {
+        const isBasal = item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key
         return [
           cleanTime(item.dateTime),
           isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3),
@@ -147,6 +147,40 @@ export default function () {
         ]
       }
     })
+  }
+
+  function showBaselPeak(list, setting) {
+    const result: any = []
+    if (setting.showPeak) {
+      let newList = list.filter(item => {
+        return item.type === 'INSULIN' && item.activationType === INSULIN_TYPE.AUTOCORRECTION.key
+      })
+      newList = newList.splice(newList.length > CONST_VAR.peakPoint ? -CONST_VAR.peakPoint : 0)
+      newList.forEach((item, i) => {
+        const start = cleanTime(item.dateTime)
+        result.push({
+              name: '开始',
+              xAxis: start,
+              type: 'start',
+              lineStyle: {
+                color: COLORS[2],
+                width: 0.5
+              },
+              last: i === newList.length - 1
+            },
+            {
+              name: '峰值',
+              type: 'end',
+              xAxis: dayjs(start).add(CONST_VAR.peakMinutes, 'minutes').valueOf(),
+              lineStyle: {
+                color: COLORS[5],
+                width: 0.5
+              },
+              last: i === newList.length - 1
+            })
+      })
+    }
+    return result
   }
 
   const loadInsulinData = (list, setting, type = INSULIN_TYPE.INSULIN) => {
@@ -195,8 +229,8 @@ export default function () {
                 width: 0.5
               },
               data: {
-                delivered: item.deliveredFastAmount.toFixed(1),
-                plan: item.programmedFastAmount.toFixed(1)
+                delivered: item.deliveredFastAmount.toFixed(2),
+                plan: item.programmedFastAmount.toFixed(2)
               },
               last: i === newList.length - 1
             },
@@ -407,6 +441,7 @@ export default function () {
     minMaxSG,
     showInsulin,
     showInsulinPeak,
+    showBaselPeak,
     sensorState,
     getStartPercent
   }

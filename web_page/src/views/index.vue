@@ -594,8 +594,8 @@ const charOption = computed(() => {
         symbolSize: 10,
         lineStyle: 'none',
         label: {
-          show: false,
-          position: 'bottom'
+          show: true,
+          position: 'top'
         },
         itemStyle: {
           color: INSULIN_TYPE.CALIBRATION.color
@@ -613,12 +613,45 @@ const charOption = computed(() => {
             opacity: 0.3
           },
         },
+        label: {
+          show: true,
+          color: 'inherit',
+          formatter: (item) => {
+            return item.data[2].key === INSULIN_TYPE.AUTOCORRECTION.key ? item.data[1] : ''
+          },
+          position: 'bottom'
+        },
         itemStyle: {
           color: item => {
             if (item.data) {
               return item.data[2].color
             }
           }
+        },
+        markLine: {
+          symbol: ['none', 'none'],
+          animation: false,
+          label: {
+            show: true,
+            color: 'inherit',
+            position: 'start',
+            formatter: (item) => {
+              return item.data.last ? `${dayjs(item.value).format("HH:mm")}` : ''
+            },
+          },
+          emphasis: {
+            label: {
+              show: true,
+              position: 'end',
+              formatter: (item) => {
+                return `${item.name}:${dayjs(item.value).format("HH:mm")}`
+              },
+            },
+            lineStyle: {
+              width: 1,	// hover时的折线宽度
+            }
+          },
+          data: sugarCalc.showBaselPeak(sugarCommon.state.data.markers, setting),
         },
         lineStyle: {
           width: 1

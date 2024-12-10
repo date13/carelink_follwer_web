@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import Carelink, {SugarSetting} from "@/model/classes/Carelink";
 import {cloneDeep, flatten, forEach} from "lodash-es";
 import defaultSettings from "@/settings";
-import {CARELINK_DICT_KEY, DIRECTIONS, NOTIFICATION_HASH_KEY, SG_STATUS} from "@/views/const";
+import {CARELINK_DICT_KEY, DIRECTIONS, INSULIN_TYPE, NOTIFICATION_HASH_KEY, SG_STATUS} from "@/views/const";
 import CryptoJS from "crypto-js";
 import useSugarCalc from "@/composition/useSugarCalc";
 import {DATE_FORMAT} from "@/model/model-type";
@@ -217,7 +217,7 @@ export default function (funcObj: any = {}) {
         if (item.type === 'INSULIN') {
           sumInsulin += item.deliveredFastAmount
         }
-        if (item.type === 'AUTO_BASAL_DELIVERY') {
+        if (item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key) {
           sumBaseDelivery += item.bolusAmount
         }
       })
