@@ -450,7 +450,7 @@ const charOption = computed(() => {
         type: 'value',
         inverse: true,
         min: 0,
-        max: 2,
+        max: sugarCalc.loadBaselData(sugarCommon.state.data.markers).max + 1,
       },
       {
         name: '大剂量',
@@ -656,7 +656,7 @@ const charOption = computed(() => {
         lineStyle: {
           width: 1
         },
-        data: sugarCalc.loadBaselData(sugarCommon.state.data.markers)
+        data: sugarCalc.loadBaselData(sugarCommon.state.data.markers).list
       },
       {
         name: '大剂量',

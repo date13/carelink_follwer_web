@@ -21,7 +21,10 @@
             </div>
             <Trend :is-home="false" :trend-obj="trendObj"></Trend>
           </div>
-          <div class="h-10 flex items-start justify-center text-base">
+          <div class="h-20 flex items-center justify-center text-base">
+            <div ref="myChart" class="h-full w-full"></div>
+          </div>
+          <div class="h-20 flex items-center justify-center text-base">
             <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm">
               {{
                 lastUpdateTime.sg
@@ -49,7 +52,7 @@
             </div>
           </div>
         </div>
-        <div class="flex items-center justify-around h-20">
+        <div class="flex items-center justify-around h-10">
           <div class="flex flex-col justify-center items-center">
             <div class="text-base">IOB</div>
             <div class="text-sm">{{ data.activeInsulin.amount }}</div>
@@ -120,9 +123,8 @@
             </div>
           </div>
         </div>
-        <div class="h-20 px-2 flex items-center justify-around">
+        <div class="h-15 px-2 flex items-end justify-around">
           <Modes :mode-obj="modeObj"></Modes>
-
           <el-tag size="large" type="primary">
             <div class="flex flex-col ">
               <span>剂量(昨):
@@ -167,7 +169,7 @@ import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
+import {INSULIN_TYPE, NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
@@ -187,11 +189,17 @@ dayjs.extend(duration)
 const sugarService = new SugarService()
 const todayTIRChart = ref<HTMLElement>();
 const todayTTIRChart = ref<HTMLElement>();
+const myChart = ref<HTMLElement>();
 let chartObj: any = {
   todayTIRChart: null,
   todayTTIRChart: null,
+  myChart: null
 }
-let resizeObj: any = {}
+let resizeObj: any = {
+  todayTIRChart: null,
+  todayTTIRChart: null,
+  myChart: null
+}
 const sugarCalc = useSugarCalc()
 const sugarCommon = useSugarCommon({
   refreshChart,
@@ -231,7 +239,6 @@ const state: any = reactive({
 })
 
 const {
-  playing,
   statistics,
   showLogsDialog,
   playAlarmObj
@@ -264,9 +271,8 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  if (resizeObj) {
-    resizeObj.chart1.beforeDestroy()
-    resizeObj.chart2.beforeDestroy()
+  for (const item in resizeObj) {
+    resizeObj[item].beforeDestroy()
   }
 })
 
@@ -375,6 +381,7 @@ function refreshChart() {
 
   chartObj.todayTIRChart.setOption(charOption.value.todayTIRChart, true);
   chartObj.todayTTIRChart.setOption(charOption.value.todayTTIRChart, true);
+  chartObj.myChart.setOption(charOption.value.myChart, true);
 }
 
 //画图的参数
@@ -382,6 +389,52 @@ const charOption = computed(() => {
   return {
     todayTIRChart: new InTimeBarChartData('TIR', timeInRange.value),
     todayTTIRChart: new InTimeBarChartData('TTIR', tightTimeInRange.value),
+    myChart: {
+      grid: {
+        left: 20,
+        top: 0,
+        right: 20,
+        bottom: 0,
+      },
+      xAxis: {
+        type: 'time',
+        show: false,
+      },
+      yAxis: [
+        {
+          name: '基础',
+          nameLocation: 'start',
+          show: false,
+          type: 'value',
+          min: 0,
+          max: sugarCalc.loadBaselData(sugarCommon.state.data.markers).max + 0.1,
+        }],
+      series: [
+        {
+          name: '基础',
+          type: "bar",
+          markArea: {
+            silent: true,
+          },
+          label: {
+            show: true,
+            color: 'inherit',
+            formatter: (item) => {
+              return item.data[2].key === INSULIN_TYPE.AUTOCORRECTION.key ? item.data[1] : ''
+            },
+            position: 'top'
+          },
+          itemStyle: {
+            color: item => {
+              if (item.data) {
+                return item.data[2].color
+              }
+            }
+          },
+          data: sugarCalc.loadBaselData(sugarCommon.state.data.markers).list
+        },
+      ]
+    }
   }
 })
 
@@ -393,10 +446,14 @@ function drawLine() {
   if (!chartObj.todayTTIRChart) { // 如果不存在，就进行初始化。
     chartObj.todayTTIRChart = echarts.init(<HTMLElement>todayTTIRChart.value, 'dark')
   }
-  resizeObj.chart1 = useChartResize(chartObj.todayTIRChart)
-  resizeObj.chart2 = useChartResize(chartObj.todayTTIRChart)
-  resizeObj.chart1.mounted()
-  resizeObj.chart2.mounted()
+  if (!chartObj.myChart) { // 如果不存在，就进行初始化。
+    chartObj.myChart = echarts.init(<HTMLElement>myChart.value, 'dark')
+  }
+
+  for (const item in resizeObj) {
+    resizeObj[item] = useChartResize(chartObj[item])
+    resizeObj[item].mounted()
+  }
 }
 </script>
 <style lang="scss" scoped>

@@ -137,16 +137,25 @@ export default function () {
   }
 
   const loadBaselData = (list) => {
-    return list.map(item => {
+    let max = 0
+    const result = list.map(item => {
       if (item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key || (item.type === INSULIN_TYPE.INSULIN.key && item.activationType === INSULIN_TYPE.AUTOCORRECTION.key)) {
         const isBasal = item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key
+        const val = isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3)
+        if (val > max) {
+          max = Number(val)
+        }
         return [
           cleanTime(item.dateTime),
-          isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3),
+          val,
           isBasal ? INSULIN_TYPE.AUTO_BASAL_DELIVERY : INSULIN_TYPE.AUTOCORRECTION
         ]
       }
     })
+    return {
+      max,
+      list: result
+    }
   }
 
   function showBaselPeak(list, setting) {
