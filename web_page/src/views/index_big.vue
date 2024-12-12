@@ -200,6 +200,7 @@ let resizeObj: any = {
   todayTTIRChart: null,
   myChart: null
 }
+const logMaxLen = 30
 const sugarCalc = useSugarCalc()
 const sugarCommon = useSugarCommon({
   refreshChart,
@@ -312,14 +313,14 @@ function alarmNotification(item, notification, isActive) {
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   if (notifyObj && notifyObj.alarm && !state.playing) {
     // console.log(isActive, item.referenceGUID, notification.lastAlarm.key);
-    const notificationKey = isActive ? item.GUID : item.referenceGUID
-    if (!notification.lastAlarm.key || notificationKey !== notification.lastAlarm.key || (notificationKey === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
-      notification.lastAlarm.key = notificationKey
+    const instanceId = isActive ? item.GUID : item.instanceId
+    if (!notification.lastAlarm.key || instanceId !== notification.lastAlarm.key || (instanceId === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
+      notification.lastAlarm.key = instanceId
       // setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
       // stopPlayer()
       const {playAlarmObj} = state
       playAlarmObj.totalPlayCount = notifyObj.alarm.repeat
-      playAlarmObj.content = `${notifyObj.text} key:${notificationKey}`
+      playAlarmObj.content = `${notifyObj.text} instanceId:${instanceId}`
       playAlarm()
     }
   }
@@ -332,12 +333,12 @@ function playAlarm() {
     playAlarmObj.alarmAudio.play().then(res => {
       playAlarmObj.playing = true
       // playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
-      console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
-      setting.logs.push(new Log({content: `第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`,}))
+      // console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
+      setting.logs.unshift(new Log({content: `第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`,}))
     }).catch(error => {
       console.log(error);
       playAlarmObj.playing = false
-      setting.logs.push(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
+      setting.logs.unshift(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
       if (error.name === 'NotAllowedError') {
         Msg.alert('播放失败,请允许播放音频', () => {
           playAlarm()
@@ -357,9 +358,10 @@ async function playEnd() {
     playAlarmObj.playing = false
     setTimeout(playAlarm, 500); // 每次播放间隔1秒
   } else {
+    if (setting.logs.length > logMaxLen) {
+      setting.logs.splice(logMaxLen)
+    }
     stopPlayer()
-    console.log("警告播放结束");
-    setting.logs.push(new Log({content: `警告播放结束`,}))
     // playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
   }
 }
@@ -371,6 +373,7 @@ function stopPlayer() {
   state.playAlarmObj.count = 1
   state.playAlarmObj.totalPlayCount = 1
   setting.notification.lastAlarm.isClear = true
+  setting.logs.unshift(new Log({content: `播放结束`,}))
 }
 
 function refreshChart() {
