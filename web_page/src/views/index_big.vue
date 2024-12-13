@@ -313,7 +313,7 @@ function alarmNotification(item, notification, isActive) {
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   if (notifyObj && notifyObj.alarm && !state.playing) {
     // console.log(isActive, item.referenceGUID, notification.lastAlarm.key);
-    const instanceId = isActive ? item.GUID : item.instanceId
+    const instanceId = item.instanceId
     if (!notification.lastAlarm.key || instanceId !== notification.lastAlarm.key || (instanceId === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
       notification.lastAlarm.key = instanceId
       // setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
