@@ -410,33 +410,62 @@ const charOption = computed(() => {
           show: false,
           type: 'value',
           min: 0,
-          max: sugarCalc.loadBaselData(sugarCommon.state.data.markers).max + 0.1,
+          max: sugarCalc.loadBaselData(sugarCommon.state.data.markers).max + 0.3,
         }],
-      series: [
+      tooltip: {
+        trigger: 'axis',
+        confine: true,
+        formatter: params => {
+          // 获取xAxis data中的数据
+          const param = params[0]
+          let dataStr = `<div class="text-xs font-bold flex justify-between">
+          <span>${dayjs(param.data[0]).format("HH:mm")}</span>
+        </div>`
+          params.forEach((item, i) => {
+            const type = item.data[2]
+            dataStr += `
+            <div class="flex text-xs items-center justify-between my-1 w-15">
+              <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
+              <span>${item.data[1]}</span>
+            </div>`
+          })
+          return dataStr
+        }
+      },
+      dataZoom: [
         {
-          name: '基础',
-          type: "bar",
-          markArea: {
-            silent: true,
-          },
-          label: {
-            show: true,
-            color: 'inherit',
-            formatter: (item) => {
-              return item.data[2].key === INSULIN_TYPE.AUTOCORRECTION.key ? item.data[1] : ''
+          type: 'inside',
+          id: 'sliderX',
+          start: 50,
+          end: 100,
+          bottom: 0
+        }],
+      series:
+          [
+            {
+              name: '基础',
+              type: "bar",
+              markArea: {
+                silent: true,
+              },
+              label: {
+                show: true,
+                color: 'inherit',
+                formatter: (item) => {
+                  return item.data[2].key === INSULIN_TYPE.AUTOCORRECTION.key ? item.data[1] : ''
+                },
+                position: 'top'
+              },
+              itemStyle: {
+                color: item => {
+                  if (item.data) {
+                    return item.data[2].color
+                  }
+                }
+              },
+              data: sugarCalc.loadBaselData(sugarCommon.state.data.markers).list
             },
-            position: 'top'
-          },
-          itemStyle: {
-            color: item => {
-              if (item.data) {
-                return item.data[2].color
-              }
-            }
-          },
-          data: sugarCalc.loadBaselData(sugarCommon.state.data.markers).list
-        },
-      ]
+          ]
     }
   }
 })
