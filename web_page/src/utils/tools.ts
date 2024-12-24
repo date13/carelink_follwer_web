@@ -8,6 +8,7 @@ import {localStorage} from './storage'
 
 let loadingInstance: any | null
 let loadingCount = 0
+let msgInstance: any | null = null
 
 export const isProd = import.meta.env.VITE_APP_NODE_ENV === 'production'
 
@@ -134,6 +135,14 @@ export class Msg {
 
   static errorMsg(message: string) {
     ElMessage.error(message)
+  }
+
+  static showMsg(opt = {}) {
+    ElMessage.success(opt)
+  }
+
+  static closeMsg() {
+    ElMessage.closeAll()
   }
 }
 

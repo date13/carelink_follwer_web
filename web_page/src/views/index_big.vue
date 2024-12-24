@@ -7,9 +7,9 @@
           <div :class="{'text-red':status!==200}" class="text-base hand"
                @click="refreshCarelinkToken">状态:{{ status }}
           </div>
-          <div v-if="playAlarmObj.playing">
-            <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
-          </div>
+          <!--          <div v-if="playAlarmObj.playing">
+                      <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
+                    </div>-->
           <div class="text-4xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</div>
         </div>
         <div class="flex flex-col w-full h-full flex-1">
@@ -181,6 +181,7 @@ import Trend from "@/views/components/trend.vue";
 import Device from "@/views/components/device.vue";
 import Conduit from "@/views/components/conduit.vue";
 import Modes from "@/views/components/modes.vue";
+import {AlarmClock} from "@element-plus/icons-vue";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -334,10 +335,22 @@ function playAlarm() {
       playAlarmObj.playing = true
       // playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
       // console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
+      Msg.showMsg({
+        center: true,
+        duration: 0,
+        showClose: false,
+        offset: window.innerHeight / 2 - 150,
+        icon: AlarmClock,
+        customClass: 'alarm-msg',
+        onClick() {
+          stopPlayer()
+        }
+      })
       setting.logs.unshift(new Log({content: `第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`,}))
     }).catch(error => {
       console.log(error);
       playAlarmObj.playing = false
+      Msg.closeMsg()
       setting.logs.unshift(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
       if (error.name === 'NotAllowedError') {
         Msg.alert('播放失败,请允许播放音频', () => {
@@ -356,6 +369,7 @@ async function playEnd() {
   // setting.logs.push(new Log({content: `in ended event:${playAlarmObj.count}, playerCount:${playAlarmObj.totalPlayCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount) {
     playAlarmObj.playing = false
+    Msg.closeMsg()
     setTimeout(playAlarm, 500); // 每次播放间隔1秒
   } else {
     if (setting.logs.length > logMaxLen) {
@@ -374,6 +388,7 @@ function stopPlayer() {
   state.playAlarmObj.totalPlayCount = 1
   setting.notification.lastAlarm.isClear = true
   setting.logs.unshift(new Log({content: `播放结束`,}))
+  Msg.closeMsg()
 }
 
 function refreshChart() {
@@ -488,7 +503,23 @@ function drawLine() {
   }
 }
 </script>
+<style lang="scss">
+.alarm-msg {
+  border: none;
+  background-color: transparent;
+
+  .el-icon.el-message-icon--success {
+    font-size: 150px;
+    color: #f694ba;
+  }
+
+  .el-message__content {
+    display: none;
+  }
+}
+</style>
 <style lang="scss" scoped>
+
 .big-panel {
   .sg {
     font-size: 16em;
