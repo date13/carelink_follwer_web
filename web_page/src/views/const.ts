@@ -402,9 +402,14 @@ export const INSULIN_TYPE = {
     symbol: 'emptyCircle',
   },
   CALIBRATION: {
-    name: '校准',
+    name: '校准血糖',
     color: COLORS[9],
     key: 'CALIBRATION'
+  },
+  TIME_CHANGE: {
+    name: '校准时间',
+    color: COLORS[9],
+    key: 'TIME_CHANGE'
   },
   AUTO_BASAL_DELIVERY: {
     name: '基础率',

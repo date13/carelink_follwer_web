@@ -126,13 +126,24 @@ export default function () {
   const loadCalibrationData = (list) => {
     return list.map(item => {
       //获取校准数据
-      if (item.type === 'CALIBRATION') {
+      if (item.type === INSULIN_TYPE.CALIBRATION.key) {
         return [
           cleanTime(item.dateTime),
           calcSG(item.value),
-          INSULIN_TYPE.CALIBRATION
+          INSULIN_TYPE.CALIBRATION,
+          'image://blood.png',
+          13
         ]
-      }//排序
+      }
+      if (item.type === INSULIN_TYPE.TIME_CHANGE.key) {
+        return [
+          cleanTime(item.dateTime),
+          11,
+          INSULIN_TYPE.TIME_CHANGE,
+          'image://time.png',
+          20
+        ]
+      }
     })
   }
 

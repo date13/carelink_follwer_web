@@ -212,6 +212,7 @@ import Trend from "@/views/components/trend.vue";
 import Device from "@/views/components/device.vue";
 import Conduit from "@/views/components/conduit.vue";
 import Modes from "@/views/components/modes.vue";
+import {DATE_FORMAT} from "@/model/model-type";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -393,7 +394,7 @@ const charOption = computed(() => {
             <div class="flex items-center justify-between my-1">
               <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
               <span class="flex-1 ml-1 text-sm">${isInsulin ? type.text[0] : (params.length > 1 ? type.name : '')}</span>
-              <span>${item.data[1]}</span>
+              <span>${type.key === INSULIN_TYPE.TIME_CHANGE.key ? dayjs(item.data[0]).format(DATE_FORMAT.datetime2) : item.data[1]}</span>
             </div>`
           if (isInsulin) {
             dataStr += `<div class="flex items-center justify-between mb-1">
@@ -590,15 +591,28 @@ const charOption = computed(() => {
         data: sugarCalc.loadCalibrationData(sugarCommon.state.data.markers),
         type: 'scatter',
         yAxisIndex: 1,
-        symbol: 'circle',
-        symbolSize: 10,
+        symbol: (value, params) => {
+          if (value) {
+            return value[3]
+          }
+        },
+        symbolSize: (value, params) => {
+          if (value) {
+            return value[4]
+          }
+        },
         lineStyle: 'none',
+        z: 10,
         label: {
           show: true,
+          formatter: (value: any, params: Object) => {
+            const data = value.data
+            if (data[2].key === INSULIN_TYPE.CALIBRATION.key) {
+              return data[1]
+            }
+            return ''
+          },
           position: 'top'
-        },
-        itemStyle: {
-          color: INSULIN_TYPE.CALIBRATION.color
         }
       },
       {
@@ -718,7 +732,8 @@ const charOption = computed(() => {
           show: false,
         },
         lineStyle: {
-          opacity: 0.4
+          opacity: 0.4,
+          color: COLORS[9],
         },
         labelLine: {
           smooth: true,
