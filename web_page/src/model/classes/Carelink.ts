@@ -81,10 +81,19 @@ export class InTimeBarChartData extends Base {
   tooltip = {
     trigger: 'item'
   }
+  minAngle = 10          　　 //最小的扇区角度（0 ~ 360），用于防止某个值过小导致扇区太小影响交互
+
   label = {
     show: true, // 显示标签
-    position: 'inside',
-    formatter: '{d}%' // 设置标签格式
+    formatter: '{b|{d}%}', // 设置标签格式
+    rich: {
+      b: {
+        fontSize: 12,
+        height: 60,
+        lineHeight: 20,
+        align: 'center' // 设置文字居中
+      },
+    }
   }
   series = [
     {

@@ -97,7 +97,7 @@
                >
                 <template #reference>
                   预计启动:&nbsp;{{
-                    Tools.toNow(nextStartTime)
+                    nextStartTimeToNow
                   }}
                 </template>
                </el-popover>
@@ -346,7 +346,9 @@ const chartTimeOption: any = computed(() => {
     interval
   }
 })
-
+const nextStartTimeToNow = computed(() => {
+  return Tools.toNow(sugarCommon.state.nextStartTime)
+})
 //画图的参数
 const charOption = computed(() => {
   return {
