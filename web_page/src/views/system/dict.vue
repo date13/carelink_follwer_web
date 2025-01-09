@@ -59,6 +59,7 @@ import {RegFunc} from "@/utils/validator";
 import {Msg, Tools} from "@/utils/tools";
 import VueJsoneditor from 'vue3-ts-jsoneditor';
 import {Refresh} from "@element-plus/icons-vue";
+import dayjs from "dayjs";
 
 const service = new DictService()
 const keys = [
@@ -76,7 +77,8 @@ const keys = [
     key: "history",
     type: 'hash',
     isJson: true,
-    user: true
+    user: true,
+    sort: (a: any, b: any) => dayjs(b).diff(dayjs(a))
   }, {
     key: 'food',
     type: 'hash',
@@ -132,7 +134,7 @@ async function loadDict() {
         console.log(e);
       }
     } else {
-      state.hashObj.keys = Object.keys(result)
+      state.hashObj.keys = Object.keys(result).sort(state.curKeyObj.sort ? state.curKeyObj.sort : (a, b) => a.localeCompare(b))
       state.hashObj.result = result
       state.params.subKey = state.hashObj.keys[0]
       loadSubDict(state.curKeyObj.isJson)
