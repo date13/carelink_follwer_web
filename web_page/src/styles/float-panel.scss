@@ -1,0 +1,42 @@
+.float-panel {
+  right: 5px;
+  position: absolute;
+  bottom: 30px;
+  background: white;
+
+  .float-item-panel {
+    background: white;
+    position: absolute;
+    right: 35px;
+
+    .float-item {
+      height: 35px;
+      padding: 0 5px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .item {
+    width: 35px;
+    height: 35px;
+  }
+
+  .no-right {
+    border-right: none;
+  }
+
+  .no-top {
+    border-top: none;
+  }
+
+  .only-right {
+    border-left: none;
+    border-top: none;
+    border-bottom: none;
+  }
+
+  .no-bottom {
+    border-bottom: none;
+  }
+}

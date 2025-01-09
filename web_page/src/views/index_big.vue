@@ -148,7 +148,17 @@
              @click="openLogsDialog">
           <ep-Tickets></ep-Tickets>
         </div>
-        <div class="item flex items-center justify-center border-solid border-1 hand"
+        <div :class="{'only-right':showSetting}"
+             class="item flex items-center justify-center border-solid border-1 hand no-bottom">
+          <div v-show="showSetting"
+               class="flex float-item-panel items-center justify-between border-solid border-1 no-right bg-transparent">
+            <div class="float-item ">
+              <el-checkbox v-model="setting.notification.alarmEnable" label="报警" size="small"/>
+            </div>
+          </div>
+          <ep-Setting class="hand" @click="triggerSetting"></ep-Setting>
+        </div>
+        <div :class="{'no-top':showSetting}" class="item flex items-center justify-center border-solid border-1 hand"
              @click="reload">
           <ep-Refresh></ep-Refresh>
         </div>
@@ -231,6 +241,7 @@ const {
 const state: any = reactive({
   showLogsDialog: false,
   statistics: {},
+  showSetting: false,
   playAlarmObj: {
     alarmAudio: new Audio('/alarm.mp3'),
     playing: false,
@@ -243,6 +254,7 @@ const state: any = reactive({
 const {
   statistics,
   showLogsDialog,
+  showSetting
 } = toRefs(state)
 
 const {
@@ -302,14 +314,21 @@ function initSetting() {
       isActive: false
     }
   }
+  if (!setting.notification.alarmEnable) {
+    setting.notification.alarmEnable = true
+  }
 }
 
 function openLogsDialog() {
   state.showLogsDialog = true
 }
 
+function triggerSetting() {
+  state.showSetting = !state.showSetting
+}
+
 function alarmNotification(item, notification, isActive) {
-  if (!item) return
+  if (!item || !setting.notification.alarmEnable) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   if (notifyObj && notifyObj.alarm && !state.playing) {
     // console.log(isActive, item.referenceGUID, notification.lastAlarm.key);
@@ -327,6 +346,7 @@ function alarmNotification(item, notification, isActive) {
 }
 
 function playAlarm() {
+  if (!setting.notification.alarmEnable) return
   const {playAlarmObj} = state
   // console.log(playAlarmObj);
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount && !playAlarmObj.playing) {
@@ -521,7 +541,7 @@ function drawLine() {
 }
 </style>
 <style lang="scss" scoped>
-
+@import "../styles/float-panel.scss";
 .big-panel {
   .sg {
     font-size: 16em;
@@ -529,35 +549,14 @@ function drawLine() {
 }
 
 .float-panel {
-  right: 5px;
-  position: absolute;
-  bottom: 20px;
   background: black;
 
   .float-item-panel {
-    background: white;
-    position: absolute;
-    right: 35px;
+    background: black;
 
-    .float-item {
-      height: 35px;
-      padding: 0 5px;
-      display: flex;
-      align-items: center;
+    :deep(.el-checkbox__label) {
+      color: white;
     }
-  }
-
-  .item {
-    width: 35px;
-    height: 35px;
-  }
-
-  .no-top {
-    border-top: none;
-  }
-
-  .no-bottom {
-    border-bottom: none;
   }
 }
 </style>

@@ -780,7 +780,7 @@ function drawLine() {
 }
 </script>
 <style lang="scss" scoped>
-
+@import "../styles/float-panel.scss";
 .info-panel {
   :deep(.el-card__header) {
     padding: 4px;
@@ -806,49 +806,6 @@ function drawLine() {
     --el-segmented-item-selected-color: white;
     --el-segmented-item-selected-bg-color: var(--el-color-primary-light-3);
     --el-border-radius-base: 16px;
-  }
-}
-
-.float-panel {
-  right: 5px;
-  position: absolute;
-  bottom: 30px;
-  background: white;
-
-  .float-item-panel {
-    background: white;
-    position: absolute;
-    right: 35px;
-
-    .float-item {
-      height: 35px;
-      padding: 0 5px;
-      display: flex;
-      align-items: center;
-    }
-  }
-
-  .item {
-    width: 35px;
-    height: 35px;
-  }
-
-  .no-right {
-    border-right: none;
-  }
-
-  .no-top {
-    border-top: none;
-  }
-
-  .only-right {
-    border-left: none;
-    border-top: none;
-    border-bottom: none;
-  }
-
-  .no-bottom {
-    border-bottom: none;
   }
 }
 </style>

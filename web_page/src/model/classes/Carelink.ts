@@ -52,6 +52,7 @@ export class SugarSetting extends Base {
   notification = {
     hasNew: false,
     lastKey: null,
+    alarmEnable: true,
     lastAlarm: {
       key: '',
       isClear: false,
