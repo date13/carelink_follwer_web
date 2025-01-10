@@ -303,7 +303,7 @@ def updateLuckData(user, localtime):
     else:
         luck["no"] += 1
     luck["update_time"] = localtime.strftime(datetimeFormat)
-    # rds.set_json(luckKey, luck)
+    rds.set_json(luckKey, luck)
     my_logger.info("用户:%s tir:%s cv:%s 刷新luck数据成功" % (user, tir, '{:.2f}'.format(cv)))
 
 
