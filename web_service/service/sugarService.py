@@ -120,6 +120,8 @@ def refreshCarelinkDataForUser(user):
             updateCarelinkDataToRedis(user, dataObj)
             # await updateCarelinkDataToDB(dataObj)
     else:
+        if dataObj["status"] == 401:
+            return
         status, data = loadCarelinkData(user, token)
         if status is not None:
             dataObj["status"] = status
