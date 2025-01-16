@@ -230,7 +230,10 @@ export const NOTIFICATION_MAP = {
   BC_SID_ENTER_BG_TO_CONTINUE_IN_SMART_GUARD: {
     text: '请输入血糖值,继续使用闭环模式',
     replace: null,
-    type: 'warning'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_SENSOR_RELATED_ISSUE_INSERT_NEW: {
     text: '请更换新探头',
@@ -276,7 +279,10 @@ export const NOTIFICATION_MAP = {
   BC_MESSAGE_DELIVERY_STOPPED_SG_APPROACHILG_LOW_LIMIT_CHECK_BG: {
     text: '血糖接近低限值,暂停输注',
     replace: null,
-    type: 'warning'
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
   },
   BC_SID_CALL_FOR_EMERGENCY: {
     text: '紧急呼叫',

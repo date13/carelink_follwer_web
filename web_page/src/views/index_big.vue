@@ -25,7 +25,7 @@
             <div ref="myChart" class="h-full w-full"></div>
           </div>
           <div class="h-20 flex items-center justify-center text-base">
-            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm">
+            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm()">
               {{
                 lastUpdateTime.sg
               }}
@@ -340,12 +340,12 @@ function alarmNotification(item, notification, isActive) {
       const {playAlarmObj} = state
       playAlarmObj.totalPlayCount = notifyObj.alarm.repeat
       playAlarmObj.content = `${notifyObj.text} instanceId:${instanceId}`
-      playAlarm()
+      playAlarm(notifyObj.type)
     }
   }
 }
 
-function playAlarm() {
+function playAlarm(type = 'error') {
   if (!setting.notification.alarmEnable) return
   const {playAlarmObj} = state
   // console.log(playAlarmObj);
@@ -360,7 +360,7 @@ function playAlarm() {
         showClose: false,
         offset: window.innerHeight / 2 - 150,
         icon: AlarmClock,
-        customClass: 'alarm-msg',
+        customClass: `alarm-msg ${type}`,
         onClick() {
           stopPlayer()
         }
@@ -530,9 +530,20 @@ function drawLine() {
   border: none;
   background-color: transparent;
 
+  &.warning {
+    .el-icon.el-message-icon--success {
+      color: #ffd539;
+    }
+  }
+
+  &.error {
+    .el-icon.el-message-icon--success {
+      color: #fd3c7d;
+    }
+  }
+
   .el-icon.el-message-icon--success {
     font-size: 150px;
-    color: #f694ba;
   }
 
   .el-message__content {
@@ -542,6 +553,7 @@ function drawLine() {
 </style>
 <style lang="scss" scoped>
 @import "../styles/float-panel.scss";
+
 .big-panel {
   .sg {
     font-size: 16em;
