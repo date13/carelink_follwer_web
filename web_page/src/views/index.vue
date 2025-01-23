@@ -21,13 +21,13 @@
                 CV:
                 {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="mb-1 mr-1" size="small" type="primary">
                 Avg:
                 {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;
                 GMI:
                 {{ GMI }}
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="mb-1 mr-1" size="small" type="primary">
                 <span class="text-red">Wav:
                   {{ sugarCalc.maxWave(data.sgs, setting) }}</span>&nbsp;
                 <span class="text-red">Min:
@@ -35,7 +35,7 @@
                 <span class="text-red">Max:
                   {{ minMaxSG[1] }}</span>
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="mb-1 mr-1" size="small" type="primary">
                 TIR:
                 {{ timeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -45,7 +45,7 @@
                   {{ timeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag class="" size="small" type="primary">
+              <el-tag class="mb-1 mr-1" size="small" type="primary">
                 TTIR:
                 {{ tightTimeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -55,7 +55,7 @@
                   {{ tightTimeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="my-1 mr-1" size="small"
+              <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
                       type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
                   {{ NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg) : messageId }}
