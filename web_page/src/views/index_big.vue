@@ -25,7 +25,7 @@
             <div ref="myChart" class="h-full w-full"></div>
           </div>
           <div class="h-20 flex items-center justify-center text-base">
-            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm()">
+            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="testPlay()">
               {{
                 lastUpdateTime.sg
               }}
@@ -330,7 +330,9 @@ function triggerSetting() {
 function alarmNotification(item, notification, isActive) {
   if (!item || !setting.notification.alarmEnable) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
-  if (notifyObj && notifyObj.alarm && !state.playing) {
+  console.log(item, state.playAlarmObj.playing);
+  if (notifyObj && notifyObj.alarm && !state.playAlarmObj.playing) {
+    console.log("play");
     // console.log(isActive, item.referenceGUID, notification.lastAlarm.key);
     const instanceId = item.instanceId
     if (!notification.lastAlarm.key || instanceId !== notification.lastAlarm.key || (instanceId === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
@@ -345,13 +347,45 @@ function alarmNotification(item, notification, isActive) {
   }
 }
 
+function testPlay() {
+  const {notification} = setting;
+  const obj1 = {
+    "referenceGUID": "66230000-3503-0000-D6C0-422D00000000",
+    "dateTime": "2025-01-24T02:28:57.000-00:00",
+    "type": "ALERT",
+    "faultId": 821,
+    "instanceId": 9062,
+    "messageId": "BC_SID_SMART_GUARD_MINIMUM_DELIVERY",
+    "pumpDeliverySuspendState": false,
+    "pnpId": "1.1",
+    "relativeOffset": -23430,
+    "alertSilenced": false,
+    "triggeredDateTime": "2025-01-24T02:24:21.000-00:00"
+  }
+  const obj2 = {
+    "referenceGUID": "67230000-3F03-0000-EAC1-422D00000000",
+    "dateTime": "2025-01-24T02:29:00.000-00:00",
+    "type": "ALERT",
+    "faultId": 831,
+    "instanceId": 9063,
+    "messageId": "BC_SID_ENTER_BG_TO_CONTINUE_IN_SMART_GUARD",
+    "pumpDeliverySuspendState": false,
+    "pnpId": "1.1",
+    "relativeOffset": -23427,
+    "alertSilenced": false,
+    "triggeredDateTime": "2025-01-24T02:24:21.000-00:00"
+  }
+  alarmNotification(obj2, notification, false)
+  // alarmNotification(obj1, notification, false)
+}
+
 function playAlarm(type = 'error') {
   if (!setting.notification.alarmEnable) return
   const {playAlarmObj} = state
   // console.log(playAlarmObj);
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount && !playAlarmObj.playing) {
+    playAlarmObj.playing = true
     playAlarmObj.alarmAudio.play().then(res => {
-      playAlarmObj.playing = true
       // playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
       // console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
       Msg.showMsg({

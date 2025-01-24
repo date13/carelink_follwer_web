@@ -232,7 +232,7 @@ export const NOTIFICATION_MAP = {
     replace: null,
     type: 'error',
     alarm: {
-      repeat: 1
+      repeat: 2
     }
   },
   BC_SID_SENSOR_RELATED_ISSUE_INSERT_NEW: {
