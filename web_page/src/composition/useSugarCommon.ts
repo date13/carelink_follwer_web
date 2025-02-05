@@ -66,6 +66,8 @@ export default function (funcObj: any = {}) {
       state.status = result.status
       state.GMI = result.GMI
       state.nextStartTime = result.nextStartTime
+      // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
+      // state.nextStartTime = '2025-02-05 13:35:30'
       state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
       funcObj.dealSelfData(result)
       // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)

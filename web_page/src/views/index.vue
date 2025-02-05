@@ -191,7 +191,7 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import useChartResize from "@/composition/useChartResize";
-import {Msg, Tools} from '@/utils/tools'
+import {Msg} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {
   CHART_LEGEND,
@@ -347,7 +347,7 @@ const chartTimeOption: any = computed(() => {
   }
 })
 const nextStartTimeToNow = computed(() => {
-  return Tools.toNow(sugarCommon.state.nextStartTime)
+  return time.value.to(sugarCommon.state.nextStartTime)
 })
 //画图的参数
 const charOption = computed(() => {
@@ -781,6 +781,7 @@ function drawLine() {
 </script>
 <style lang="scss" scoped>
 @import "../styles/float-panel.scss";
+
 .info-panel {
   :deep(.el-card__header) {
     padding: 4px;

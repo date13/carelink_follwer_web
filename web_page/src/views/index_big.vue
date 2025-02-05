@@ -177,7 +177,7 @@ import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
-import {Msg, Tools} from '@/utils/tools'
+import {Msg} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {INSULIN_TYPE, NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
@@ -456,7 +456,7 @@ function refreshChart() {
 }
 
 const nextStartTimeToNow = computed(() => {
-  return Tools.toNow(sugarCommon.state.nextStartTime)
+  return time.value.to(sugarCommon.state.nextStartTime)
 })
 //画图的参数
 const charOption = computed(() => {
