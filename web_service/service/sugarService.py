@@ -1,7 +1,7 @@
 import json
-import numpy as np
 from datetime import datetime, timedelta
 
+import numpy as np
 import pandas as pd
 import requests
 from statsmodels.tsa.ar_model import AutoReg
@@ -81,7 +81,7 @@ def loadCarelinkData(user, token):
         return None, None
 
 
-async def getCarelinkToken(user):
+def getCarelinkToken(user):
     authKey = "%s:%s" % (user, dictKey["auth"])
     return rds.get_json(authKey)
 
@@ -120,8 +120,8 @@ def refreshCarelinkDataForUser(user):
             updateCarelinkDataToRedis(user, dataObj)
             # await updateCarelinkDataToDB(dataObj)
     else:
-        if dataObj["status"] == 401:
-            return
+        # if dataObj["status"] == 401:
+        #     return
         status, data = loadCarelinkData(user, token)
         if status is not None:
             dataObj["status"] = status
@@ -445,25 +445,3 @@ def updateFood(user, hashObj: RedisHashObj):
 def delFood(user, key):
     return rds.del_hash_kv("%s:food" % user, key)
 
-# asyncio.run(refreshCarelinkToken())
-# asyncio.run(refreshCarelinkData())
-# result = getToken()
-# token = result["data"]["tokenObj"]["token"]
-# print(token)
-# loadCarelinkData(token)
-# updateLuckData(datetime.now())
-# refreshCarelinkData()
-# refreshCarelinkYesterdayData(datetime.now())
-# updateLuckData()
-# data = rds.get_json(dictKey["data"])
-# saveHistoryData(data)
-# user = "alex"
-# localtime = datetime.now()
-# data = rds.get_json("%s:%s" % (user, dictKey["data"]))
-# updateStatistics(user, data)
-# updateLuckData(user,localtime)
-# saveHistoryData(user, data, localtime)
-# refreshCarelinkYesterdayData(data, localtime)
-# print((localtime - timedelta(days=1)).strftime("%Y-%m-%d"))
-# print(localtime.strftime(datetimeFormat))
-# refreshCarelinkDataIntervalForUser('alex')
