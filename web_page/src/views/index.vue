@@ -1,7 +1,7 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
-      <Menus @handler="handleMenu"></Menus>
+      <Menus class="only-full-height" @handler="handleMenu"></Menus>
       <div class="flex flex-row h-45">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
@@ -27,7 +27,7 @@
                 GMI:
                 {{ GMI }}
               </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="primary">
+              <el-tag class="mb-1 mr-1 only-full-height" size="small" type="primary">
                 <span class="text-red">Wav:
                   {{ sugarCalc.maxWave(data.sgs, setting) }}</span>&nbsp;
                 <span class="text-red">Min:
@@ -35,7 +35,7 @@
                 <span class="text-red">Max:
                   {{ minMaxSG[1] }}</span>
               </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="primary">
+              <el-tag class="mb-1 mr-1 only-full-height" size="small" type="primary">
                 TIR:
                 {{ timeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -45,7 +45,7 @@
                   {{ timeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag class="mb-1 mr-1" size="small" type="primary">
+              <el-tag class="mb-1 mr-1 only-full-height" size="small" type="primary">
                 TTIR:
                 {{ tightTimeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -83,7 +83,7 @@
                           <ep-Refresh class="hand" @click="reload"></ep-Refresh>
                         </span>-->
           </div>
-          <div class="flex items-center justify-center time-range mt-1">
+          <div class="flex items-center justify-center time-range mt-1 only-full-height">
             <el-radio-group v-model="setting.startPercent" size="small" @change="refreshChart">
               <el-radio-button v-for="item in TIME_RANGE_CONFIG" :label="item.label" :value="item.value"/>
             </el-radio-group>
@@ -107,7 +107,7 @@
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
           </div>
-          <div class="flex items-center justify-around align-center info-panel">
+          <div class="flex items-center justify-around align-center info-panel only-full-height">
             <Device :data="{
               reservoirRemainingUnits: data.reservoirRemainingUnits,
               medicalDeviceBatteryLevelPercent: data.medicalDeviceBatteryLevelPercent,
@@ -119,7 +119,7 @@
         </div>
       </div>
       <div class="flex-1 chart-panel flex">
-        <div ref="myChart" class="flex-1 border-grey border-grey h-full"></div>
+        <div ref="myChart" class="flex-1 border-grey border-grey h-full only-full-height"></div>
         <div class="w-1/28"></div>
       </div>
       <div class="h-10 px-2 flex items-center justify-around">
@@ -138,18 +138,18 @@
       </div>
     </div>
     <div class="float-panel flex flex-col items-center justify-center">
-      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height"
            @click="handleMenu('notification')">
         <el-badge :is-dot="setting.notification.hasNew">
           <ep-Bell></ep-Bell>
         </el-badge>
       </div>
-      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height"
            @click="showDrawer">
         <ep-KnifeFork></ep-KnifeFork>
       </div>
       <div :class="{'only-right':showSetting}"
-           class="item flex items-center justify-center border-solid border-1 hand no-bottom">
+           class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height">
         <div v-show="showSetting"
              class="flex float-item-panel items-center justify-between border-solid border-1 no-right">
           <div class="float-item ">
@@ -807,6 +807,12 @@ function drawLine() {
     --el-segmented-item-selected-color: white;
     --el-segmented-item-selected-bg-color: var(--el-color-primary-light-3);
     --el-border-radius-base: 16px;
+  }
+}
+
+@media screen and (max-height: 300px) {
+  .only-full-height {
+    display: none !important;
   }
 }
 </style>
