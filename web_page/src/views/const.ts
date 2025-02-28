@@ -294,11 +294,24 @@ export const NOTIFICATION_MAP = {
   },
   BC_MESSAGE_DELIVERY_STOPPED_SG_X_CHECK_BG: {
     text: '输注暂停,请检测血糖值',
-    replace: 'sg',
+    replace: null,
     type: 'error',
     alarm: {
       repeat: 1
     }
+  },
+  BC_SID_ENTER_BG_TO_CALIBRATE_SENSOR: {
+    text: '请输入血糖值以校准探头',
+    replace: null,
+    type: 'error',
+    alarm: {
+      repeat: 1
+    }
+  },
+  BC_SID_WAIT_AT_LEAST_15_MINUTES: {
+    text: '等待至少15分钟,再测指血',
+    replace: null,
+    type: 'warning'
   }
 }
 
