@@ -299,13 +299,15 @@ export default function () {
         result.mode = PUMP_STATUS.safe
         result.timeRemaining = getTimeRemaining(therapyAlgorithmState.safeBasalDuration)
       } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
-        result.mode = PUMP_STATUS.manuel
-        if (data.basal.tempBasalRate) {
-          result.isTemp = true
-          result.basalRate = data.basal.tempBasalRate
-          result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
-        } else {
-          result.basalRate = data.basal.basalRate
+        if (data.basal) {
+          result.mode = PUMP_STATUS.manuel
+          if (data.basal.tempBasalRate) {
+            result.isTemp = true
+            result.basalRate = data.basal.tempBasalRate
+            result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
+          } else {
+            result.basalRate = data.basal.basalRate
+          }
         }
       }
     }
