@@ -165,6 +165,7 @@
       </div>
       <!--      <audio ref="alarmAudio" autoplay class="hide" preload="auto" src="/alarm.mp3"></audio>-->
       <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
+                          :NOTIFICATION_MAP="NOTIFICATION_MAP"
                           :notificationHistory="data.notificationHistory"></NotificationDialog>
       <LogsDialog v-if="showLogsDialog" v-model:show="showLogsDialog" :logs="setting.logs"></LogsDialog>
     </div>
@@ -179,7 +180,7 @@ import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import {Msg} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {INSULIN_TYPE, NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
+import {INSULIN_TYPE, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
@@ -213,6 +214,7 @@ let resizeObj: any = {
 }
 const logMaxLen = 30
 const sugarCalc = useSugarCalc()
+let NOTIFICATION_MAP: any = {}
 const sugarCommon = useSugarCommon({
   refreshChart,
   dealSelfData: (result) => {
@@ -317,6 +319,8 @@ function initSetting() {
   if (!setting.notification.alarmEnable) {
     setting.notification.alarmEnable = true
   }
+  const settingJSON = await loadSettings()
+  NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
 }
 
 function openLogsDialog() {

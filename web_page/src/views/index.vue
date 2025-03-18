@@ -58,7 +58,9 @@
               <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
                       type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
-                  {{ NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg) : messageId }}
+                  {{
+                    NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg, NOTIFICATION_MAP) : messageId
+                  }}
                 </div>
               </el-tag>
             </div>
@@ -180,6 +182,7 @@
       <Info :close-drawer="closeDrawer" :is-dialog="true" title="碳水计算"></Info>
     </el-drawer>
     <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
+                        :NOTIFICATION_MAP="NOTIFICATION_MAP"
                         :notificationHistory="data.notificationHistory"></NotificationDialog>
   </MainPanel>
 </template>
@@ -198,7 +201,6 @@ import {
   COLORS,
   CONST_VAR,
   INSULIN_TYPE,
-  NOTIFICATION_MAP,
   SG_STATUS,
   SYSTEM_STATUS_MAP,
   TIME_RANGE_CONFIG
@@ -252,7 +254,8 @@ const {
   lastUpdateTime,
   modeObj,
   trendObj,
-  minMaxSG
+  minMaxSG,
+  loadSettings
 } = sugarCommon
 
 const {
@@ -271,10 +274,10 @@ const {
   time
 }: any = toRefs(sugarCommon.state)
 
+let NOTIFICATION_MAP: any = {}
 onBeforeMount(() => {
   initSetting()
 })
-
 onMounted(async () => {
   // await onLoadCarelinkData()
   startTimeInterval()
@@ -290,7 +293,7 @@ onBeforeUnmount(() => {
   }
 })
 
-function initSetting() {
+async function initSetting() {
   if (!setting.notification) {
     setting.notification = {
       hasNew: false,
@@ -310,6 +313,8 @@ function initSetting() {
       selected: legendOptions
     }
   }
+  const settingJSON = await loadSettings()
+  NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
 }
 
 function triggerSetting() {

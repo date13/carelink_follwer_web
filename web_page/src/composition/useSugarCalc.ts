@@ -2,7 +2,6 @@ import {
   COLORS,
   CONST_VAR,
   INSULIN_TYPE,
-  NOTIFICATION_MAP,
   PUMP_STATUS,
   SENSOR_STATUS,
   SG_STATUS,
@@ -368,10 +367,9 @@ export default function () {
     return options
   }
 
-  function showNotificationMsg(messageId, sg) {
-    const item = NOTIFICATION_MAP[messageId]
-    if (sg) return item.text.replace(item.replace, Number(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
-    return item.text
+  function showNotificationMsg(notificationItem, sg) {
+    if (sg && notificationItem) return notificationItem.text.replace(notificationItem.replace, Number(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
+    return notificationItem.text
   }
 
   function calcSgsLen(sgs, setting) {

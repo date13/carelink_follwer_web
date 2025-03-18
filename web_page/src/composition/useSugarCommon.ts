@@ -9,6 +9,7 @@ import CryptoJS from "crypto-js";
 import useSugarCalc from "@/composition/useSugarCalc";
 import {DATE_FORMAT} from "@/model/model-type";
 import {DictService} from "@/service/dict-service";
+import router from "@/router";
 
 export default function (funcObj: any = {}) {
   const sugarCalc = useSugarCalc()
@@ -250,7 +251,7 @@ export default function (funcObj: any = {}) {
       state.showNotificationDialog = true
       setting.notification.hasNew = false
     } else {
-      location.href = `/${command}`
+      router.push(`/${command}`)
     }
   }
 
@@ -258,6 +259,13 @@ export default function (funcObj: any = {}) {
   const minMaxSG = computed(() => {
     return sugarCalc.minMaxSG(state.data.sgs, setting)
   })
+
+  async function loadSettings() {
+    const result = await new DictService().getDict('setting', true, {user: true})
+    if (result) {
+      return JSON.parse(result)
+    }
+  }
 
   return {
     reload,
@@ -267,6 +275,7 @@ export default function (funcObj: any = {}) {
     dealCarelinkData,
     updateConduitTime,
     handleMenu,
+    loadSettings,
     state,
     setting,
     timeInRange,
