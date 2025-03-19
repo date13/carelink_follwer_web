@@ -292,6 +292,10 @@ onBeforeUnmount(() => {
 })
 
 function initSetting() {
+  loadSettings().then(settingJSON => {
+    NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
+  })
+
   const {playAlarmObj} = state
   playAlarmObj.alarmAudio.muted = false
   playAlarmObj.autoplay = true
@@ -319,8 +323,6 @@ function initSetting() {
   if (!setting.notification.alarmEnable) {
     setting.notification.alarmEnable = true
   }
-  const settingJSON = await loadSettings()
-  NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
 }
 
 function openLogsDialog() {

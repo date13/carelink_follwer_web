@@ -294,6 +294,10 @@ onBeforeUnmount(() => {
 })
 
 async function initSetting() {
+  loadSettings().then(settingJSON => {
+    NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
+  })
+
   if (!setting.notification) {
     setting.notification = {
       hasNew: false,
@@ -313,8 +317,6 @@ async function initSetting() {
       selected: legendOptions
     }
   }
-  const settingJSON = await loadSettings()
-  NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
 }
 
 function triggerSetting() {
