@@ -238,6 +238,7 @@ const {
   lastUpdateTime,
   modeObj,
   trendObj,
+  loadSettings
 } = sugarCommon
 
 const state: any = reactive({
