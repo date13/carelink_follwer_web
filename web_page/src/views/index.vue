@@ -1,7 +1,7 @@
 <template>
   <MainPanel no-pad="1">
     <div class="flex flex-col h-full bg-white overflow-x-hidden pa-1">
-      <Menus @handler="handleMenu"></Menus>
+      <Menus class="only-full-height" @handler="handleMenu"></Menus>
       <div class="flex flex-row h-45">
         <div class="w-1/2 flex items-center justify-center">
           <el-card class="w-max info-panel ma-1 max-w-110">
@@ -21,13 +21,13 @@
                 CV:
                 {{ sugarCalc.calcCV(data.sgs, data.averageSG) }}%
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="mb-1 mr-1" size="small" type="primary">
                 Avg:
                 {{ sugarCalc.calcSG(data.averageSG) }}&nbsp;
                 GMI:
                 {{ GMI }}
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="mb-1 mr-1 only-full-height" size="small" type="primary">
                 <span class="text-red">Wav:
                   {{ sugarCalc.maxWave(data.sgs, setting) }}</span>&nbsp;
                 <span class="text-red">Min:
@@ -35,7 +35,7 @@
                 <span class="text-red">Max:
                   {{ minMaxSG[1] }}</span>
               </el-tag>
-              <el-tag class="mb-1 mr-1 " size="small" type="primary">
+              <el-tag class="mb-1 mr-1 only-full-height" size="small" type="primary">
                 TIR:
                 {{ timeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -45,7 +45,7 @@
                   {{ timeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag class="" size="small" type="primary">
+              <el-tag class="mb-1 mr-1 only-full-height" size="small" type="primary">
                 TTIR:
                 {{ tightTimeInRange[0] }}%
                 <span class="text-rose mx-1">L:
@@ -58,7 +58,9 @@
               <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="my-1 mr-1" size="small"
                       type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
-                  {{ NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg) : messageId }}
+                  {{
+                    NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg, NOTIFICATION_MAP) : messageId
+                  }}
                 </div>
               </el-tag>
             </div>
@@ -83,7 +85,7 @@
                           <ep-Refresh class="hand" @click="reload"></ep-Refresh>
                         </span>-->
           </div>
-          <div class="flex items-center justify-center time-range mt-1">
+          <div class="flex items-center justify-center time-range mt-1 only-full-height">
             <el-radio-group v-model="setting.startPercent" size="small" @change="refreshChart">
               <el-radio-button v-for="item in TIME_RANGE_CONFIG" :label="item.label" :value="item.value"/>
             </el-radio-group>
@@ -97,7 +99,7 @@
                >
                 <template #reference>
                   预计启动:&nbsp;{{
-                    Tools.toNow(nextStartTime)
+                    nextStartTimeToNow
                   }}
                 </template>
                </el-popover>
@@ -107,7 +109,7 @@
               {{ SYSTEM_STATUS_MAP[data.systemStatusMessage]?.name }}
             </div>
           </div>
-          <div class="flex items-center justify-around align-center info-panel">
+          <div class="flex items-center justify-around align-center info-panel only-full-height">
             <Device :data="{
               reservoirRemainingUnits: data.reservoirRemainingUnits,
               medicalDeviceBatteryLevelPercent: data.medicalDeviceBatteryLevelPercent,
@@ -119,7 +121,7 @@
         </div>
       </div>
       <div class="flex-1 chart-panel flex">
-        <div ref="myChart" class="flex-1 border-grey border-grey h-full"></div>
+        <div ref="myChart" class="flex-1 border-grey border-grey h-full only-full-height"></div>
         <div class="w-1/28"></div>
       </div>
       <div class="h-10 px-2 flex items-center justify-around">
@@ -138,18 +140,18 @@
       </div>
     </div>
     <div class="float-panel flex flex-col items-center justify-center">
-      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height"
            @click="handleMenu('notification')">
         <el-badge :is-dot="setting.notification.hasNew">
           <ep-Bell></ep-Bell>
         </el-badge>
       </div>
-      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom"
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height"
            @click="showDrawer">
         <ep-KnifeFork></ep-KnifeFork>
       </div>
       <div :class="{'only-right':showSetting}"
-           class="item flex items-center justify-center border-solid border-1 hand no-bottom">
+           class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height">
         <div v-show="showSetting"
              class="flex float-item-panel items-center justify-between border-solid border-1 no-right">
           <div class="float-item ">
@@ -180,6 +182,7 @@
       <Info :close-drawer="closeDrawer" :is-dialog="true" title="碳水计算"></Info>
     </el-drawer>
     <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
+                        :NOTIFICATION_MAP="NOTIFICATION_MAP"
                         :notificationHistory="data.notificationHistory"></NotificationDialog>
   </MainPanel>
 </template>
@@ -191,14 +194,13 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import useChartResize from "@/composition/useChartResize";
-import {Msg, Tools} from '@/utils/tools'
+import {Msg} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {
   CHART_LEGEND,
   COLORS,
   CONST_VAR,
   INSULIN_TYPE,
-  NOTIFICATION_MAP,
   SG_STATUS,
   SYSTEM_STATUS_MAP,
   TIME_RANGE_CONFIG
@@ -212,6 +214,7 @@ import Trend from "@/views/components/trend.vue";
 import Device from "@/views/components/device.vue";
 import Conduit from "@/views/components/conduit.vue";
 import Modes from "@/views/components/modes.vue";
+import {DATE_FORMAT} from "@/model/model-type";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -251,7 +254,8 @@ const {
   lastUpdateTime,
   modeObj,
   trendObj,
-  minMaxSG
+  minMaxSG,
+  loadSettings
 } = sugarCommon
 
 const {
@@ -270,10 +274,10 @@ const {
   time
 }: any = toRefs(sugarCommon.state)
 
+let NOTIFICATION_MAP: any = {}
 onBeforeMount(() => {
   initSetting()
 })
-
 onMounted(async () => {
   // await onLoadCarelinkData()
   startTimeInterval()
@@ -289,7 +293,11 @@ onBeforeUnmount(() => {
   }
 })
 
-function initSetting() {
+async function initSetting() {
+  loadSettings().then(settingJSON => {
+    NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
+  })
+
   if (!setting.notification) {
     setting.notification = {
       hasNew: false,
@@ -345,7 +353,9 @@ const chartTimeOption: any = computed(() => {
     interval
   }
 })
-
+const nextStartTimeToNow = computed(() => {
+  return time.value.to(sugarCommon.state.nextStartTime)
+})
 //画图的参数
 const charOption = computed(() => {
   return {
@@ -393,7 +403,7 @@ const charOption = computed(() => {
             <div class="flex items-center justify-between my-1">
               <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
               <span class="flex-1 ml-1 text-sm">${isInsulin ? type.text[0] : (params.length > 1 ? type.name : '')}</span>
-              <span>${item.data[1]}</span>
+              <span>${type.key === INSULIN_TYPE.TIME_CHANGE.key ? dayjs(item.data[0]).format(DATE_FORMAT.datetime2) : item.data[1]}</span>
             </div>`
           if (isInsulin) {
             dataStr += `<div class="flex items-center justify-between mb-1">
@@ -450,7 +460,7 @@ const charOption = computed(() => {
         type: 'value',
         inverse: true,
         min: 0,
-        max: 2,
+        max: sugarCalc.loadBaselData(sugarCommon.state.data.markers).max + 1,
       },
       {
         name: '大剂量',
@@ -590,15 +600,28 @@ const charOption = computed(() => {
         data: sugarCalc.loadCalibrationData(sugarCommon.state.data.markers),
         type: 'scatter',
         yAxisIndex: 1,
-        symbol: 'circle',
-        symbolSize: 10,
-        lineStyle: 'none',
-        label: {
-          show: false,
-          position: 'bottom'
+        symbol: (value, params) => {
+          if (value) {
+            return value[3]
+          }
         },
-        itemStyle: {
-          color: INSULIN_TYPE.CALIBRATION.color
+        symbolSize: (value, params) => {
+          if (value) {
+            return value[4]
+          }
+        },
+        lineStyle: 'none',
+        z: 10,
+        label: {
+          show: true,
+          formatter: (value: any, params: Object) => {
+            const data = value.data
+            if (data[2].key === INSULIN_TYPE.CALIBRATION.key) {
+              return data[1]
+            }
+            return ''
+          },
+          position: 'top'
         }
       },
       {
@@ -613,6 +636,14 @@ const charOption = computed(() => {
             opacity: 0.3
           },
         },
+        label: {
+          show: true,
+          color: 'inherit',
+          formatter: (item) => {
+            return item.data[2].key === INSULIN_TYPE.AUTOCORRECTION.key ? item.data[1] : ''
+          },
+          position: 'bottom'
+        },
         itemStyle: {
           color: item => {
             if (item.data) {
@@ -620,10 +651,35 @@ const charOption = computed(() => {
             }
           }
         },
+        markLine: {
+          symbol: ['none', 'none'],
+          animation: false,
+          label: {
+            show: true,
+            color: 'inherit',
+            position: 'start',
+            formatter: (item) => {
+              return item.data.last ? `${dayjs(item.value).format("HH:mm")}` : ''
+            },
+          },
+          emphasis: {
+            label: {
+              show: true,
+              position: 'end',
+              formatter: (item) => {
+                return `${item.name}:${dayjs(item.value).format("HH:mm")}`
+              },
+            },
+            lineStyle: {
+              width: 1,	// hover时的折线宽度
+            }
+          },
+          data: sugarCalc.showBaselPeak(sugarCommon.state.data.markers, setting),
+        },
         lineStyle: {
           width: 1
         },
-        data: sugarCalc.loadBaselData(sugarCommon.state.data.markers)
+        data: sugarCalc.loadBaselData(sugarCommon.state.data.markers).list
       },
       {
         name: '大剂量',
@@ -654,7 +710,7 @@ const charOption = computed(() => {
             show: true,
             color: 'inherit',
             formatter: (item) => {
-              return item.data.last ? `${dayjs(item.value).format("HH:mm")}` : ''
+              return item.data.last ? `${dayjs(item.value).format("HH:mm")}${item.data.type === 'start' ? '\n' + item.data.data.plan : ''}` : ''
             },
           },
           emphasis: {
@@ -685,7 +741,8 @@ const charOption = computed(() => {
           show: false,
         },
         lineStyle: {
-          opacity: 0.4
+          opacity: 0.4,
+          color: COLORS[9],
         },
         labelLine: {
           smooth: true,
@@ -730,6 +787,7 @@ function drawLine() {
 }
 </script>
 <style lang="scss" scoped>
+@import "../styles/float-panel.scss";
 
 .info-panel {
   :deep(.el-card__header) {
@@ -759,46 +817,9 @@ function drawLine() {
   }
 }
 
-.float-panel {
-  right: 5px;
-  position: absolute;
-  bottom: 30px;
-  background: white;
-
-  .float-item-panel {
-    background: white;
-    position: absolute;
-    right: 35px;
-
-    .float-item {
-      height: 35px;
-      padding: 0 5px;
-      display: flex;
-      align-items: center;
-    }
-  }
-
-  .item {
-    width: 35px;
-    height: 35px;
-  }
-
-  .no-right {
-    border-right: none;
-  }
-
-  .no-top {
-    border-top: none;
-  }
-
-  .only-right {
-    border-left: none;
-    border-top: none;
-    border-bottom: none;
-  }
-
-  .no-bottom {
-    border-bottom: none;
+@media screen and (max-height: 300px) {
+  .only-full-height {
+    display: none !important;
   }
 }
 </style>

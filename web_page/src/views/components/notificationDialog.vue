@@ -8,7 +8,7 @@
           return sugarCalc.cleanTime(b.triggeredDateTime) - sugarCalc.cleanTime(a.triggeredDateTime)
         })" :closable="false"
                   :description="dayjs(sugarCalc.cleanTime(triggeredDateTime)).format(DATE_FORMAT.datetime2)"
-                  :title="NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(messageId,sg):messageId"
+                  :title="NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(NOTIFICATION_MAP[messageId],sg):messageId"
                   :type="NOTIFICATION_MAP[messageId]?NOTIFICATION_MAP[messageId].type:'warning'"
                   class="item" show-icon/>
       </div>
@@ -19,7 +19,7 @@
           return sugarCalc.cleanTime(b.triggeredDateTime) - sugarCalc.cleanTime(a.triggeredDateTime)
         })" :closable="false"
                   :description="dayjs(sugarCalc.cleanTime(triggeredDateTime)).format(DATE_FORMAT.datetime2)"
-                  :title="NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(messageId,sg):messageId"
+                  :title="NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(NOTIFICATION_MAP[messageId],sg):messageId"
                   :type="NOTIFICATION_MAP[messageId]?NOTIFICATION_MAP[messageId].type:'warning'"
                   class="item" show-icon/>
       </div>
@@ -33,7 +33,6 @@
 </template>
 <script lang="ts" name="notificationDialog" setup>
 import {Close} from "@element-plus/icons-vue";
-import {NOTIFICATION_MAP} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import dayjs from "dayjs";
 import {DATE_FORMAT} from "@/model/model-type";
@@ -42,6 +41,10 @@ const props = defineProps({
   show: {
     default: false,
     type: Boolean
+  },
+  NOTIFICATION_MAP: {
+    default: {},
+    type: Object
   },
   notificationHistory: {
     default: {

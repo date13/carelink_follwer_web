@@ -7,9 +7,9 @@
           <div :class="{'text-red':status!==200}" class="text-base hand"
                @click="refreshCarelinkToken">状态:{{ status }}
           </div>
-          <div v-if="playAlarmObj.playing">
-            <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
-          </div>
+          <!--          <div v-if="playAlarmObj.playing">
+                      <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
+                    </div>-->
           <div class="text-4xl font-bold hand" @click="reloadCarelinkData">{{ time.format('HH:mm') }}</div>
         </div>
         <div class="flex flex-col w-full h-full flex-1">
@@ -21,8 +21,11 @@
             </div>
             <Trend :is-home="false" :trend-obj="trendObj"></Trend>
           </div>
-          <div class="h-10 flex items-start justify-center text-base">
-            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="playAlarm">
+          <div class="h-20 flex items-center justify-center text-base">
+            <div ref="myChart" class="h-full w-full"></div>
+          </div>
+          <div class="h-20 flex items-center justify-center text-base">
+            <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2" @click="testPlay()">
               {{
                 lastUpdateTime.sg
               }}
@@ -37,7 +40,7 @@
                  >
                   <template #reference>
                     预计启动:&nbsp;{{
-                      Tools.toNow(nextStartTime)
+                      nextStartTimeToNow
                     }}
                   </template>
                 </el-popover>
@@ -49,7 +52,7 @@
             </div>
           </div>
         </div>
-        <div class="flex items-center justify-around h-20">
+        <div class="flex items-center justify-around h-10">
           <div class="flex flex-col justify-center items-center">
             <div class="text-base">IOB</div>
             <div class="text-sm">{{ data.activeInsulin.amount }}</div>
@@ -120,9 +123,8 @@
             </div>
           </div>
         </div>
-        <div class="h-20 px-2 flex items-center justify-around">
+        <div class="h-15 px-2 flex items-end justify-around">
           <Modes :mode-obj="modeObj"></Modes>
-
           <el-tag size="large" type="primary">
             <div class="flex flex-col ">
               <span>剂量(昨):
@@ -146,13 +148,24 @@
              @click="openLogsDialog">
           <ep-Tickets></ep-Tickets>
         </div>
-        <div class="item flex items-center justify-center border-solid border-1 hand"
+        <div :class="{'only-right':showSetting}"
+             class="item flex items-center justify-center border-solid border-1 hand no-bottom">
+          <div v-show="showSetting"
+               class="flex float-item-panel items-center justify-between border-solid border-1 no-right bg-transparent">
+            <div class="float-item ">
+              <el-checkbox v-model="setting.notification.alarmEnable" label="报警" size="small"/>
+            </div>
+          </div>
+          <ep-Setting class="hand" @click="triggerSetting"></ep-Setting>
+        </div>
+        <div :class="{'no-top':showSetting}" class="item flex items-center justify-center border-solid border-1 hand"
              @click="reload">
           <ep-Refresh></ep-Refresh>
         </div>
       </div>
       <!--      <audio ref="alarmAudio" autoplay class="hide" preload="auto" src="/alarm.mp3"></audio>-->
       <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
+                          :NOTIFICATION_MAP="NOTIFICATION_MAP"
                           :notificationHistory="data.notificationHistory"></NotificationDialog>
       <LogsDialog v-if="showLogsDialog" v-model:show="showLogsDialog" :logs="setting.logs"></LogsDialog>
     </div>
@@ -165,9 +178,9 @@ import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
-import {Msg, Tools} from '@/utils/tools'
+import {Msg} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {NOTIFICATION_MAP, SYSTEM_STATUS_MAP,} from "@/views/const";
+import {INSULIN_TYPE, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
@@ -179,6 +192,7 @@ import Trend from "@/views/components/trend.vue";
 import Device from "@/views/components/device.vue";
 import Conduit from "@/views/components/conduit.vue";
 import Modes from "@/views/components/modes.vue";
+import {AlarmClock} from "@element-plus/icons-vue";
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime)
@@ -187,12 +201,20 @@ dayjs.extend(duration)
 const sugarService = new SugarService()
 const todayTIRChart = ref<HTMLElement>();
 const todayTTIRChart = ref<HTMLElement>();
+const myChart = ref<HTMLElement>();
 let chartObj: any = {
   todayTIRChart: null,
   todayTTIRChart: null,
+  myChart: null
 }
-let resizeObj: any = {}
+let resizeObj: any = {
+  todayTIRChart: null,
+  todayTTIRChart: null,
+  myChart: null
+}
+const logMaxLen = 30
 const sugarCalc = useSugarCalc()
+let NOTIFICATION_MAP: any = {}
 const sugarCommon = useSugarCommon({
   refreshChart,
   dealSelfData: (result) => {
@@ -216,11 +238,13 @@ const {
   lastUpdateTime,
   modeObj,
   trendObj,
+  loadSettings
 } = sugarCommon
 
 const state: any = reactive({
   showLogsDialog: false,
   statistics: {},
+  showSetting: false,
   playAlarmObj: {
     alarmAudio: new Audio('/alarm.mp3'),
     playing: false,
@@ -231,10 +255,9 @@ const state: any = reactive({
 })
 
 const {
-  playing,
   statistics,
   showLogsDialog,
-  playAlarmObj
+  showSetting
 } = toRefs(state)
 
 const {
@@ -264,13 +287,16 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  if (resizeObj) {
-    resizeObj.chart1.beforeDestroy()
-    resizeObj.chart2.beforeDestroy()
+  for (const item in resizeObj) {
+    resizeObj[item].beforeDestroy()
   }
 })
 
 function initSetting() {
+  loadSettings().then(settingJSON => {
+    NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
+  })
+
   const {playAlarmObj} = state
   playAlarmObj.alarmAudio.muted = false
   playAlarmObj.autoplay = true
@@ -295,43 +321,97 @@ function initSetting() {
       isActive: false
     }
   }
+  if (!setting.notification.alarmEnable) {
+    setting.notification.alarmEnable = true
+  }
 }
 
 function openLogsDialog() {
   state.showLogsDialog = true
 }
 
+function triggerSetting() {
+  state.showSetting = !state.showSetting
+}
+
 function alarmNotification(item, notification, isActive) {
-  if (!item) return
+  if (!item || !setting.notification.alarmEnable) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
-  if (notifyObj && notifyObj.alarm && !state.playing) {
+  console.log(item, state.playAlarmObj.playing);
+  if (notifyObj && notifyObj.alarm && !state.playAlarmObj.playing) {
+    console.log("play");
     // console.log(isActive, item.referenceGUID, notification.lastAlarm.key);
-    const notificationKey = isActive ? item.GUID : item.referenceGUID
-    if (!notification.lastAlarm.key || notificationKey !== notification.lastAlarm.key || (notificationKey === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
-      notification.lastAlarm.key = notificationKey
+    const instanceId = item.instanceId
+    if (!notification.lastAlarm.key || instanceId !== notification.lastAlarm.key || (instanceId === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
+      notification.lastAlarm.key = instanceId
       // setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
       // stopPlayer()
       const {playAlarmObj} = state
       playAlarmObj.totalPlayCount = notifyObj.alarm.repeat
-      playAlarmObj.content = `${notifyObj.text} key:${notificationKey}`
-      playAlarm()
+      playAlarmObj.content = `${notifyObj.text} instanceId:${instanceId}`
+      playAlarm(notifyObj.type)
     }
   }
 }
 
-function playAlarm() {
+function testPlay() {
+  const {notification} = setting;
+  const obj1 = {
+    "referenceGUID": "66230000-3503-0000-D6C0-422D00000000",
+    "dateTime": "2025-01-24T02:28:57.000-00:00",
+    "type": "ALERT",
+    "faultId": 821,
+    "instanceId": 9062,
+    "messageId": "BC_SID_SMART_GUARD_MINIMUM_DELIVERY",
+    "pumpDeliverySuspendState": false,
+    "pnpId": "1.1",
+    "relativeOffset": -23430,
+    "alertSilenced": false,
+    "triggeredDateTime": "2025-01-24T02:24:21.000-00:00"
+  }
+  const obj2 = {
+    "referenceGUID": "67230000-3F03-0000-EAC1-422D00000000",
+    "dateTime": "2025-01-24T02:29:00.000-00:00",
+    "type": "ALERT",
+    "faultId": 831,
+    "instanceId": 9063,
+    "messageId": "BC_SID_ENTER_BG_TO_CONTINUE_IN_SMART_GUARD",
+    "pumpDeliverySuspendState": false,
+    "pnpId": "1.1",
+    "relativeOffset": -23427,
+    "alertSilenced": false,
+    "triggeredDateTime": "2025-01-24T02:24:21.000-00:00"
+  }
+  alarmNotification(obj2, notification, false)
+  // alarmNotification(obj1, notification, false)
+}
+
+function playAlarm(type = 'error') {
+  if (!setting.notification.alarmEnable) return
   const {playAlarmObj} = state
   // console.log(playAlarmObj);
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount && !playAlarmObj.playing) {
+    playAlarmObj.playing = true
     playAlarmObj.alarmAudio.play().then(res => {
-      playAlarmObj.playing = true
       // playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
-      console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
-      setting.logs.push(new Log({content: `第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`,}))
+      // console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
+      Msg.showMsg({
+        center: true,
+        duration: 0,
+        showClose: false,
+        offset: window.innerHeight / 2 - 150,
+        icon: AlarmClock,
+        customClass: `alarm-msg ${type}`,
+        onClick() {
+          stopPlayer()
+        }
+      })
+      setting.logs.unshift(new Log({content: `第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`,}))
     }).catch(error => {
       console.log(error);
       playAlarmObj.playing = false
-      setting.logs.push(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
+      Msg.closeMsg()
+      setting.logs.unshift(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
       if (error.name === 'NotAllowedError') {
         Msg.alert('播放失败,请允许播放音频', () => {
           playAlarm()
@@ -349,11 +429,13 @@ async function playEnd() {
   // setting.logs.push(new Log({content: `in ended event:${playAlarmObj.count}, playerCount:${playAlarmObj.totalPlayCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount) {
     playAlarmObj.playing = false
+    Msg.closeMsg()
     setTimeout(playAlarm, 500); // 每次播放间隔1秒
   } else {
+    if (setting.logs.length > logMaxLen) {
+      setting.logs.splice(logMaxLen)
+    }
     stopPlayer()
-    console.log("警告播放结束");
-    setting.logs.push(new Log({content: `警告播放结束`,}))
     // playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
   }
 }
@@ -365,6 +447,8 @@ function stopPlayer() {
   state.playAlarmObj.count = 1
   state.playAlarmObj.totalPlayCount = 1
   setting.notification.lastAlarm.isClear = true
+  setting.logs.unshift(new Log({content: `播放结束`,}))
+  Msg.closeMsg()
 }
 
 function refreshChart() {
@@ -375,13 +459,92 @@ function refreshChart() {
 
   chartObj.todayTIRChart.setOption(charOption.value.todayTIRChart, true);
   chartObj.todayTTIRChart.setOption(charOption.value.todayTTIRChart, true);
+  chartObj.myChart.setOption(charOption.value.myChart, true);
 }
 
+const nextStartTimeToNow = computed(() => {
+  return time.value.to(sugarCommon.state.nextStartTime)
+})
 //画图的参数
 const charOption = computed(() => {
   return {
     todayTIRChart: new InTimeBarChartData('TIR', timeInRange.value),
     todayTTIRChart: new InTimeBarChartData('TTIR', tightTimeInRange.value),
+    myChart: {
+      grid: {
+        left: 20,
+        top: 0,
+        right: 20,
+        bottom: 0,
+      },
+      xAxis: {
+        type: 'time',
+        show: false,
+      },
+      yAxis: [
+        {
+          name: '基础',
+          nameLocation: 'start',
+          show: false,
+          type: 'value',
+          min: 0,
+          max: sugarCalc.loadBaselData(sugarCommon.state.data.markers).max + 0.3,
+        }],
+      tooltip: {
+        trigger: 'axis',
+        confine: true,
+        formatter: params => {
+          // 获取xAxis data中的数据
+          const param = params[0]
+          let dataStr = `<div class="text-xs font-bold flex justify-between">
+          <span>${dayjs(param.data[0]).format("HH:mm")}</span>
+        </div>`
+          params.forEach((item, i) => {
+            const type = item.data[2]
+            dataStr += `
+            <div class="flex text-xs items-center justify-between my-1 w-15">
+              <span style="width:10px;height:10px;background-color:${type.key === INSULIN_TYPE.SG.key ? sugarCalc.sgColor(item.data[1]) : type.color};"></span>
+              <span>${item.data[1]}</span>
+            </div>`
+          })
+          return dataStr
+        }
+      },
+      dataZoom: [
+        {
+          type: 'inside',
+          id: 'sliderX',
+          start: 50,
+          end: 100,
+          bottom: 0
+        }],
+      series:
+          [
+            {
+              name: '基础',
+              type: "bar",
+              markArea: {
+                silent: true,
+              },
+              label: {
+                show: true,
+                color: 'inherit',
+                formatter: (item) => {
+                  return item.data[2].key === INSULIN_TYPE.AUTOCORRECTION.key ? item.data[1] : ''
+                },
+                position: 'top'
+              },
+              itemStyle: {
+                color: item => {
+                  if (item.data) {
+                    return item.data[2].color
+                  }
+                }
+              },
+              data: sugarCalc.loadBaselData(sugarCommon.state.data.markers).list
+            },
+          ]
+    }
   }
 })
 
@@ -393,13 +556,45 @@ function drawLine() {
   if (!chartObj.todayTTIRChart) { // 如果不存在，就进行初始化。
     chartObj.todayTTIRChart = echarts.init(<HTMLElement>todayTTIRChart.value, 'dark')
   }
-  resizeObj.chart1 = useChartResize(chartObj.todayTIRChart)
-  resizeObj.chart2 = useChartResize(chartObj.todayTTIRChart)
-  resizeObj.chart1.mounted()
-  resizeObj.chart2.mounted()
+  if (!chartObj.myChart) { // 如果不存在，就进行初始化。
+    chartObj.myChart = echarts.init(<HTMLElement>myChart.value, 'dark')
+  }
+
+  for (const item in resizeObj) {
+    resizeObj[item] = useChartResize(chartObj[item])
+    resizeObj[item].mounted()
+  }
 }
 </script>
+<style lang="scss">
+.alarm-msg {
+  border: none;
+  background-color: transparent;
+
+  &.warning {
+    .el-icon.el-message-icon--success {
+      color: #ffd539;
+    }
+  }
+
+  &.error {
+    .el-icon.el-message-icon--success {
+      color: #fd3c7d;
+    }
+  }
+
+  .el-icon.el-message-icon--success {
+    font-size: 150px;
+  }
+
+  .el-message__content {
+    display: none;
+  }
+}
+</style>
 <style lang="scss" scoped>
+@import "../styles/float-panel.scss";
+
 .big-panel {
   .sg {
     font-size: 16em;
@@ -407,35 +602,14 @@ function drawLine() {
 }
 
 .float-panel {
-  right: 5px;
-  position: absolute;
-  bottom: 20px;
   background: black;
 
   .float-item-panel {
-    background: white;
-    position: absolute;
-    right: 35px;
+    background: black;
 
-    .float-item {
-      height: 35px;
-      padding: 0 5px;
-      display: flex;
-      align-items: center;
+    :deep(.el-checkbox__label) {
+      color: white;
     }
-  }
-
-  .item {
-    width: 35px;
-    height: 35px;
-  }
-
-  .no-top {
-    border-top: none;
-  }
-
-  .no-bottom {
-    border-bottom: none;
   }
 }
 </style>

@@ -38,6 +38,7 @@
                             v-model:json="params.value"
                             class="json-editor"
                             mode="tree"
+                            @change="handleJsonChange"
             />
           </el-form-item>
         </el-form>
@@ -59,6 +60,7 @@ import {RegFunc} from "@/utils/validator";
 import {Msg, Tools} from "@/utils/tools";
 import VueJsoneditor from 'vue3-ts-jsoneditor';
 import {Refresh} from "@element-plus/icons-vue";
+import dayjs from "dayjs";
 
 const service = new DictService()
 const keys = [
@@ -70,13 +72,19 @@ const keys = [
     user: true
   },
   {
+    key: "setting",
+    isJson: true,
+    user: true,
+  },
+  {
     key: 'carelinkMyData',
     user: true
   }, {
     key: "history",
     type: 'hash',
     isJson: true,
-    user: true
+    user: true,
+    sort: (a: any, b: any) => dayjs(b).diff(dayjs(a))
   }, {
     key: 'food',
     type: 'hash',
@@ -123,7 +131,7 @@ async function loadDict() {
   state.curKeyObj = keysMap[state.params.key]
   const result = await service.getDict(state.params.key, true, state.curKeyObj)
   state.load = true
-  if (result) {
+  if (result && result !== true) {
     if (!state.curKeyObj.type) {
       try {
         state.params.subKey = null
@@ -132,13 +140,25 @@ async function loadDict() {
         console.log(e);
       }
     } else {
-      state.hashObj.keys = Object.keys(result)
+      state.hashObj.keys = Object.keys(result).sort(state.curKeyObj.sort ? state.curKeyObj.sort : (a, b) => a.localeCompare(b))
       state.hashObj.result = result
       state.params.subKey = state.hashObj.keys[0]
       loadSubDict(state.curKeyObj.isJson)
     }
   } else {
     state.params.value = {}
+  }
+}
+
+function handleJsonChange(content: any) {
+  if (content.text) {
+    try {
+      state.params.value = JSON.parse(content.text)
+    } catch (e) {
+      console.error('JSON 解析错误:', e)
+    }
+  } else {
+    state.params.value = content.json
   }
 }
 
@@ -166,6 +186,11 @@ function update() {
   display: flex;
   flex-flow: column;
 
+  :deep(.el-card__body) {
+    overflow: auto;
+    height: 100%;
+  }
+
   .dict-form {
     height: 100%;
     display: flex;
@@ -173,6 +198,7 @@ function update() {
 
     .json-editor-item {
       flex: 1;
+      overflow: auto;
 
       :deep(.el-form-item__content) {
         height: 100%;
@@ -194,11 +220,6 @@ function update() {
 
   :deep(.el-card__footer) {
     padding: 8px;
-  }
-
-  :deep(.el-card__body) {
-    padding: 8px;
-    flex: 1;
   }
 }
 </style>

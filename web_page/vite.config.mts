@@ -8,7 +8,7 @@ import {resolve} from 'path'
 import {createSvgIconsPlugin} from 'vite-plugin-svg-icons'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import Unocss from 'unocss/vite'
-import {presetAttributify, presetUno} from 'unocss'
+import {presetAttributify, presetWind3} from 'unocss'
 import {compression} from 'vite-plugin-compression2'
 import {visualizer} from "rollup-plugin-visualizer";
 import Icons from 'unplugin-icons/vite'
@@ -41,8 +41,8 @@ export default defineConfig(({mode}) => {
       preprocessorOptions: {
         scss: {
           additionalData: `@use "@/styles/element/index.scss" as *;`,
-          silenceDeprecations: ["mixed-decls", 'legacy-js-api', 'color-functions']
-        },
+          silenceDeprecations: ["mixed-decls", 'legacy-js-api', 'color-functions', 'global-builtin', 'import']
+        }
       },
     },
     base: env.VITE_APP_DOMAIN_CONTEXT,
@@ -107,7 +107,7 @@ export default defineConfig(({mode}) => {
       Unocss({
         presets: [
           presetAttributify({ /* preset options */}),
-          presetUno(),
+          presetWind3(),
         ]
       }),
       createSvgIconsPlugin({

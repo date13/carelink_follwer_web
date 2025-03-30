@@ -2,7 +2,6 @@ import {
   COLORS,
   CONST_VAR,
   INSULIN_TYPE,
-  NOTIFICATION_MAP,
   PUMP_STATUS,
   SENSOR_STATUS,
   SG_STATUS,
@@ -126,27 +125,81 @@ export default function () {
   const loadCalibrationData = (list) => {
     return list.map(item => {
       //获取校准数据
-      if (item.type === 'CALIBRATION') {
+      if (item.type === INSULIN_TYPE.CALIBRATION.key) {
         return [
           cleanTime(item.dateTime),
           calcSG(item.value),
-          INSULIN_TYPE.CALIBRATION
+          INSULIN_TYPE.CALIBRATION,
+          'image://blood.png',
+          13
         ]
-      }//排序
+      }
+      if (item.type === INSULIN_TYPE.TIME_CHANGE.key) {
+        return [
+          cleanTime(item.dateTime),
+          11,
+          INSULIN_TYPE.TIME_CHANGE,
+          'image://time.png',
+          20
+        ]
+      }
     })
   }
 
   const loadBaselData = (list) => {
-    return list.map(item => {
-      if (item.type === 'AUTO_BASAL_DELIVERY' || (item.type === 'INSULIN' && item.activationType === 'AUTOCORRECTION')) {
-        const isBasal = item.type === 'AUTO_BASAL_DELIVERY'
+    let max = 0
+    const result = list.map(item => {
+      if (item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key || (item.type === INSULIN_TYPE.INSULIN.key && item.activationType === INSULIN_TYPE.AUTOCORRECTION.key)) {
+        const isBasal = item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key
+        const val = isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3)
+        if (val > max) {
+          max = Number(val)
+        }
         return [
           cleanTime(item.dateTime),
-          isBasal ? item.bolusAmount.toFixed(3) : item.deliveredFastAmount.toFixed(3),
+          val,
           isBasal ? INSULIN_TYPE.AUTO_BASAL_DELIVERY : INSULIN_TYPE.AUTOCORRECTION
         ]
       }
     })
+    return {
+      max,
+      list: result
+    }
+  }
+
+  function showBaselPeak(list, setting) {
+    const result: any = []
+    if (setting.showPeak) {
+      let newList = list.filter(item => {
+        return item.type === 'INSULIN' && item.activationType === INSULIN_TYPE.AUTOCORRECTION.key
+      })
+      newList = newList.splice(newList.length > CONST_VAR.peakPoint ? -CONST_VAR.peakPoint : 0)
+      newList.forEach((item, i) => {
+        const start = cleanTime(item.dateTime)
+        result.push({
+              name: '开始',
+              xAxis: start,
+              type: 'start',
+              lineStyle: {
+                color: COLORS[2],
+                width: 0.5
+              },
+              last: i === newList.length - 1
+            },
+            {
+              name: '峰值',
+              type: 'end',
+              xAxis: dayjs(start).add(CONST_VAR.peakMinutes, 'minutes').valueOf(),
+              lineStyle: {
+                color: COLORS[5],
+                width: 0.5
+              },
+              last: i === newList.length - 1
+            })
+      })
+    }
+    return result
   }
 
   const loadInsulinData = (list, setting, type = INSULIN_TYPE.INSULIN) => {
@@ -193,6 +246,10 @@ export default function () {
               lineStyle: {
                 color: COLORS[2],
                 width: 0.5
+              },
+              data: {
+                delivered: item.deliveredFastAmount.toFixed(2),
+                plan: item.programmedFastAmount.toFixed(2)
               },
               last: i === newList.length - 1
             },
@@ -241,13 +298,15 @@ export default function () {
         result.mode = PUMP_STATUS.safe
         result.timeRemaining = getTimeRemaining(therapyAlgorithmState.safeBasalDuration)
       } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
-        result.mode = PUMP_STATUS.manuel
-        if (data.basal.tempBasalRate) {
-          result.isTemp = true
-          result.basalRate = data.basal.tempBasalRate
-          result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
-        } else {
-          result.basalRate = data.basal.basalRate
+        if (data.basal) {
+          result.mode = PUMP_STATUS.manuel
+          if (data.basal.tempBasalRate) {
+            result.isTemp = true
+            result.basalRate = data.basal.tempBasalRate
+            result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
+          } else {
+            result.basalRate = data.basal.basalRate
+          }
         }
       }
     }
@@ -308,10 +367,9 @@ export default function () {
     return options
   }
 
-  function showNotificationMsg(messageId, sg) {
-    const item = NOTIFICATION_MAP[messageId]
-    if (sg) return item.text.replace(item.replace, Number(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
-    return item.text
+  function showNotificationMsg(notificationItem, sg) {
+    if (sg && notificationItem) return notificationItem.text.replace(notificationItem.replace, Number(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
+    return notificationItem.text
   }
 
   function calcSgsLen(sgs, setting) {
@@ -403,6 +461,7 @@ export default function () {
     minMaxSG,
     showInsulin,
     showInsulinPeak,
+    showBaselPeak,
     sensorState,
     getStartPercent
   }

@@ -1,7 +1,7 @@
 import json
-import time
 from datetime import datetime, timedelta
 
+import numpy as np
 import pandas as pd
 import requests
 from statsmodels.tsa.ar_model import AutoReg
@@ -31,7 +31,14 @@ mailObj = MailObject()
 rds = RedisTool()
 userConfig = {}
 forcastCount = 30
+luckLimit = 92
+minLuckCV = 25
+yesterdayKey = "yesterday"
+datetimeFormat = "%Y-%m-%d %H:%M:%S"
+dateFormat = "%Y-%m-%d"
 
+
+# hourOffset = 23
 
 def addUserCofig(user, config):
     userConfig[user] = config
@@ -74,7 +81,7 @@ def loadCarelinkData(user, token):
         return None, None
 
 
-async def getCarelinkToken(user):
+def getCarelinkToken(user):
     authKey = "%s:%s" % (user, dictKey["auth"])
     return rds.get_json(authKey)
 
@@ -113,6 +120,8 @@ def refreshCarelinkDataForUser(user):
             updateCarelinkDataToRedis(user, dataObj)
             # await updateCarelinkDataToDB(dataObj)
     else:
+        # if dataObj["status"] == 401:
+        #     return
         status, data = loadCarelinkData(user, token)
         if status is not None:
             dataObj["status"] = status
@@ -206,12 +215,6 @@ def refreshCarelinkTokenForUser(user):
 #     params: UpdateSysDictForm = UpdateSysDictForm(key=key, val=json.dumps(dataObj))
 #     result = await updateSysDict(params)
 #     return result
-yesterdayKey = "yesterday"
-datetimeFormat = "%Y-%m-%d %H:%M:%S"
-dateFormat = "%Y-%m-%d"
-# hourOffset = 23
-luckLimit = 90
-
 
 def refreshCarelinkYesterdayData(user, data, localtime):
     # yesterdayDatatime = datetime.strptime(myData[yesterdayKey]["time"], dataFormat)
@@ -291,13 +294,19 @@ def updateLuckData(user, localtime):
     data = rds.get_json("%s:%s" % (user, dictKey["data"]))
     sgData = data["data"]
     tir = sgData["timeInRange"]
-    if tir >= luckLimit:
+    arr = list(map(lambda n: n["sg"],
+                   filter(
+                       lambda n: (n["kind"] == "SG" and n["sensorState"] == "NO_ERROR_MESSAGE" and n["sg"] != 0) or n[
+                           "sensorState"] == "SG_BELOW_40_MGDL", sgData["sgs"])))
+
+    cv = (np.std(arr) / sgData["averageSG"]) * 100
+    if tir >= luckLimit and cv <= minLuckCV:
         luck["yes"] += 1
     else:
         luck["no"] += 1
     luck["update_time"] = localtime.strftime(datetimeFormat)
     rds.set_json(luckKey, luck)
-    my_logger.info("用户:%s 刷新luck数据成功" % user)
+    my_logger.info("用户:%s tir:%s cv:%s 刷新luck数据成功" % (user, tir, '{:.2f}'.format(cv)))
 
 
 def getSumObj():
@@ -414,10 +423,10 @@ def refreshCarelinkTaskIntervalMinutesForUser(user):
         my_logger.info("==============开始用户:%s refreshCarelinkTaskIntervalMinutes任务开始==============" % user)
         localtime = datetime.now()
         data = rds.get_json("%s:%s" % (user, dictKey["data"]))
-        updateLuckData(user, localtime)
+        refreshCarelinkYesterdayData(user, data, localtime)
         saveHistoryData(user, data, localtime)
         updateStatistics(user, data)
-        refreshCarelinkYesterdayData(user, data, localtime)
+        updateLuckData(user, localtime)
     except Exception as ex:
         text = "用户:%s refreshCarelinkTaskIntervalMinutes刷新任务刷新任务错误!!!%s" % (user, str(ex))
         my_logger.info(text)
@@ -436,26 +445,3 @@ def updateFood(user, hashObj: RedisHashObj):
 def delFood(user, key):
     return rds.del_hash_kv("%s:food" % user, key)
 
-
-# asyncio.run(refreshCarelinkToken())
-# asyncio.run(refreshCarelinkData())
-# result = getToken()
-# token = result["data"]["tokenObj"]["token"]
-# print(token)
-# loadCarelinkData(token)
-# updateLuckData(datetime.now())
-# refreshCarelinkData()
-# refreshCarelinkYesterdayData(datetime.now())
-# updateLuckData()
-# data = rds.get_json(dictKey["data"])
-# saveHistoryData(data)
-# user = "alex"
-# localtime = datetime.now()
-# data = rds.get_json("%s:%s" % (user, dictKey["data"]))
-# updateStatistics(user, data)
-# # updateLuckData(localtime)
-# saveHistoryData(user, data, localtime)
-# refreshCarelinkYesterdayData(data, localtime)
-# print((localtime - timedelta(days=1)).strftime("%Y-%m-%d"))
-# print(localtime.strftime(datetimeFormat))
-# refreshCarelinkDataIntervalForUser('alex')

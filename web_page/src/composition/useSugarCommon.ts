@@ -4,11 +4,12 @@ import dayjs from "dayjs";
 import Carelink, {SugarSetting} from "@/model/classes/Carelink";
 import {cloneDeep, flatten, forEach} from "lodash-es";
 import defaultSettings from "@/settings";
-import {CARELINK_DICT_KEY, DIRECTIONS, NOTIFICATION_HASH_KEY, SG_STATUS} from "@/views/const";
+import {CARELINK_DICT_KEY, DIRECTIONS, INSULIN_TYPE, NOTIFICATION_HASH_KEY, SG_STATUS} from "@/views/const";
 import CryptoJS from "crypto-js";
 import useSugarCalc from "@/composition/useSugarCalc";
 import {DATE_FORMAT} from "@/model/model-type";
 import {DictService} from "@/service/dict-service";
+import router from "@/router";
 
 export default function (funcObj: any = {}) {
   const sugarCalc = useSugarCalc()
@@ -66,6 +67,8 @@ export default function (funcObj: any = {}) {
       state.status = result.status
       state.GMI = result.GMI
       state.nextStartTime = result.nextStartTime
+      // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
+      // state.nextStartTime = '2025-02-05 13:35:30'
       state.updateDatetime = dayjs(state.data.update_time).format("MM-DD HH:mm")
       funcObj.dealSelfData(result)
       // state.data.lastSG.datetime = sugarCalc.cleanTime(state.data.lastSG.datetime)
@@ -117,7 +120,7 @@ export default function (funcObj: any = {}) {
     }
     // state.data.notificationHistory.clearedNotifications.push({
     //   "referenceGUID": new Date().getTime(),
-    //   "dateTime": "2024-11-29T19:50:15.000-00:00",
+    //   "dateTime": "2024-12-29T19:50:15.000-00:00",
     //   "type": "ALERT",
     //   "faultId": 805,
     //   "instanceId": 8149,
@@ -217,7 +220,7 @@ export default function (funcObj: any = {}) {
         if (item.type === 'INSULIN') {
           sumInsulin += item.deliveredFastAmount
         }
-        if (item.type === 'AUTO_BASAL_DELIVERY') {
+        if (item.type === INSULIN_TYPE.AUTO_BASAL_DELIVERY.key) {
           sumBaseDelivery += item.bolusAmount
         }
       })
@@ -248,7 +251,7 @@ export default function (funcObj: any = {}) {
       state.showNotificationDialog = true
       setting.notification.hasNew = false
     } else {
-      location.href = `/${command}`
+      router.push(`/${command}`)
     }
   }
 
@@ -256,6 +259,13 @@ export default function (funcObj: any = {}) {
   const minMaxSG = computed(() => {
     return sugarCalc.minMaxSG(state.data.sgs, setting)
   })
+
+  async function loadSettings() {
+    const result = await new DictService().getDict('setting', true, {user: true})
+    if (result) {
+      return JSON.parse(result)
+    }
+  }
 
   return {
     reload,
@@ -265,6 +275,7 @@ export default function (funcObj: any = {}) {
     dealCarelinkData,
     updateConduitTime,
     handleMenu,
+    loadSettings,
     state,
     setting,
     timeInRange,

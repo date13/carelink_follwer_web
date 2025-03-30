@@ -3,9 +3,7 @@
              :show-close="false" width="80%" @close="close">
     <div class="flex flex-col h-100">
       <div class="w-full h-full flex-1 logs-panel">
-        <el-alert v-for="(log) in logs.sort((a:any,b:any)=>{
-          return b.time - a.time
-        })" :closable="false"
+        <el-alert v-for="(log) in logs" :closable="false"
                   :description="dayjs(log.time).format('MM-DD HH:mm:ss')"
                   :title="log.content"
                   :type="log.type"
