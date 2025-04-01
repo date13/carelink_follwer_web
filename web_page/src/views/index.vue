@@ -59,7 +59,7 @@
                       type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
                   {{
-                    NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(messageId, sg, NOTIFICATION_MAP) : messageId
+                    NOTIFICATION_MAP[messageId] ? sugarCalc.showNotificationMsg(NOTIFICATION_MAP[messageId], sg) : messageId
                   }}
                 </div>
               </el-tag>
