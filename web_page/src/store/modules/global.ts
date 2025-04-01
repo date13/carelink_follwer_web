@@ -1,5 +1,4 @@
-const useGlobalStore = defineStore({
-  id: "global",
+const useGlobalStore = defineStore('global', {
   state: (): any => ({
     user: null,
     language: "zh-cn",

@@ -13,7 +13,7 @@ import {compression} from 'vite-plugin-compression2'
 import {visualizer} from "rollup-plugin-visualizer";
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
-
+import {feathersPiniaAutoImport} from 'feathers-pinia'
 
 /*// @ts-ignore
 import dns from 'dns'
@@ -102,7 +102,9 @@ export default defineConfig(({mode}) => {
         emitFile: true,
         filename: "stats.html",
       }), // 自动开启分析页面
-      vue(),
+      vue({
+        reactivityTransform: true,
+      }),
       VueSetupExtend(),
       Unocss({
         presets: [
@@ -128,7 +130,8 @@ export default defineConfig(({mode}) => {
         eslintrc: {
           enabled: true, // <-- this
         },
-        imports: ['vue', 'vue-router', 'pinia'],
+        imports: ['vue', 'vue-router', '@vueuse/head',
+          '@vueuse/core', 'pinia', feathersPiniaAutoImport],
       }),
       Components({
         dts: true,

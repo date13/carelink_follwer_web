@@ -183,9 +183,10 @@ export default function (funcObj: any = {}) {
     }
   }
 
-  function updateConduitTime() {
-    Msg.confirm("是否确认更新管路更换时间", async () => {
-      state.orgMyData.lastConduitTime = dayjs().format(DATE_FORMAT.datetime)
+  function updateConduitTime(params: any) {
+    const datetime = params ? dayjs(params.datetime).format(DATE_FORMAT.datetime) : ''
+    Msg.confirm(`是否确认更新管路更换时间为:${datetime ? datetime : '当前时间'}`, async () => {
+      state.orgMyData.lastConduitTime = datetime ? datetime : dayjs().format(DATE_FORMAT.datetime)
       const result = await dictService.updateDict({
         key: CARELINK_DICT_KEY.carelinkMyData,
         val: JSON.stringify(state.orgMyData)
