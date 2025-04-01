@@ -349,6 +349,7 @@ function refreshChart() {
 
 const chartTimeOption: any = computed(() => {
   const {interval} = sugarCalc.getStartPercent(setting.startPercent)
+  console.log(interval);
   return {
     interval
   }
@@ -431,6 +432,7 @@ const charOption = computed(() => {
       type: 'time',
       splitLine: {show: false},
       boundaryGap: false,
+      axisTick: {show: false},
       interval: chartTimeOption.value.interval,
       axisLabel: {
         formatter: function (value, index) {
@@ -444,7 +446,7 @@ const charOption = computed(() => {
         type: 'value',
         ...sugarCalc.calcSgYValueLimit(),
         splitLine: {show: false},
-        axisTick: {show: true},
+        axisTick: {show: false},
         axisLine: {show: false},
       },
       {
