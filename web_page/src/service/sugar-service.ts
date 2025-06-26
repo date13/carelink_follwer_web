@@ -112,4 +112,12 @@ export class SugarService extends BaseService {
   delFood(key) {
     return HttpClient.destroy(`${this.apiContext}food/${key}`,)
   }
+
+  refreshDexcomToken() {
+    return HttpClient.get(`${this.apiContext}dexcomAuthRefresh/${Tools.getUser().name}`, {})
+  }
+
+  refreshDexcomData() {
+    return HttpClient.get(`${this.apiContext}dexcomData/${Tools.getUser().name}`, {})
+  }
 }

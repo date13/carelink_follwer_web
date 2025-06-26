@@ -10,6 +10,7 @@ import useSugarCalc from "@/composition/useSugarCalc";
 import {DATE_FORMAT} from "@/model/model-type";
 import {DictService} from "@/service/dict-service";
 import router from "@/router";
+import {API_URL} from "@/utils/http-client";
 
 export default function (funcObj: any = {}) {
   const sugarCalc = useSugarCalc()
@@ -22,6 +23,7 @@ export default function (funcObj: any = {}) {
     status: 200,
     prepare: false,
     showNotificationDialog: false,
+    showBasalDialog: false,
     updateDatetime: '--',//数据更新时间
     interval: {
       time: null,
@@ -49,7 +51,7 @@ export default function (funcObj: any = {}) {
   }
 
 
-//获取数据库数据,不是去 carelink 刷新数据
+  //获取数据库数据,不是去 carelink 刷新数据
   async function loadCarelinkData(mask = true) {
     try {
       const result = await sugarService.loadData(mask)
@@ -197,16 +199,16 @@ export default function (funcObj: any = {}) {
     })
   }
 
-//计算入框率
+  //计算入框率
   const timeInRange = computed(() => {
     return sugarCalc.calcTimeInRange(state.data.sgs)
   })
 
-//计算入框率
+  //计算入框率
   const tightTimeInRange = computed(() => {
     return sugarCalc.calcTimeInRange(state.data.sgs, true)
   })
-//计算最后的数据升降幅度
+  //计算最后的数据升降幅度
   const lastOffset = computed(() => {
     return sugarCalc.calcLastOffset(state.data.sgs)
   })
@@ -245,18 +247,28 @@ export default function (funcObj: any = {}) {
     return state.data?.lastSGTrend && DIRECTIONS[state.data.lastSGTrend]
   })
 
-  function handleMenu(command) {
+  async function handleMenu(command) {
     if (command === 'login') {
       window.open("https://carelink.minimed.eu/patient/sso/login?country=hk&lang=zh")
+    } else if (command === 'loginDexcom') {
+      window.open(`${API_URL}public/dexcomLogin/${Tools.getUser().name}`)
+    } else if (command === 'refreshDexToken') {
+      const result = await sugarService.refreshDexcomToken()
+      console.log(result);
+    } else if (command === 'refreshDexData') {
+      const result = await sugarService.refreshDexcomData()
+      console.log(result);
     } else if (command === 'notification') {
       state.showNotificationDialog = true
       setting.notification.hasNew = false
+    } else if (command === 'basal') {
+      state.showBasalDialog = true
     } else {
       router.push(`/${command}`)
     }
   }
 
-//计算最大和最小值
+  //计算最大和最小值
   const minMaxSG = computed(() => {
     return sugarCalc.minMaxSG(state.data.sgs, setting)
   })

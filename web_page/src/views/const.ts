@@ -18,8 +18,8 @@ export const REFRESH_INTERVAL = {
 
 export const CONST_VAR = {
   maxSeriousSg: 12.5,
-  maxWarnSg: 9.5,
-  maxTightWarnSg: 7.8,
+  maxWarnSg: 9.7,
+  maxTightWarnSg: 8.6,
   minWarnSg: 3.9,
   minSeriousSg: 3.2,
   minTightWarnSg: 4,
@@ -46,7 +46,7 @@ export const SG_STATUS = {
   },
   SG_BELOW_40_MGDL: {
     key: 'SG_BELOW_40_MGDL',
-    name: '低于3.2'
+    name: '<=3.2'
   },
   NO_DATA_FROM_PUMP: {
     key: 'NO_DATA_FROM_PUMP',
@@ -101,7 +101,15 @@ export const SENSOR_STATUS = {
   },
   SG_BELOW_40_MGDL: {
     key: 'SG_BELOW_40_MGDL',
-    name: '低于3.2'
+    name: '<=3.2'
+  },
+  WAIT_TO_CALIBRATE: {
+    key: 'WAIT_TO_CALIBRATE',
+    name: '等待校准'
+  },
+  CALIBRATION_REQUIRED: {
+    key: 'CALIBRATION_REQUIRED',
+    name: '需要校准'
   },
 }
 export const PUMP_STATUS = {
@@ -283,6 +291,14 @@ export const DIRECTIONS = {
   NONE: {
     direction: 0,
   }
+  , FORTY_FIVE_UP: {
+    direction: 2,
+    num: 1
+  }
+  , FORTY_FIVE_DOWN: {
+    direction: 4,
+    num: 1
+  }
   , UP_DOUBLE: {
     direction: 1,
     num: 2
@@ -290,8 +306,8 @@ export const DIRECTIONS = {
   , UP: {
     direction: 1,
     num: 1
-  }
-  , UP_TRIPLE: {
+  },
+  UP_TRIPLE: {
     direction: 1,
     num: 3
   }
