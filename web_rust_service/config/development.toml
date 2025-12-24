@@ -1,0 +1,34 @@
+[default]
+env = "development"
+jwt_secret = "carelink_follower_rust"
+jwt_exp_hours = 87600
+
+[default.cors]
+allowed_origins = [
+]
+max_age_seconds = 3600
+
+[server]
+host = "0.0.0.0"
+port = 8000
+
+[redis]
+url = "redis://*@localhost:6379/1"
+max_connections = 20
+min_connections = 1
+connection_timeout = 30
+max_lifetime = 3600
+
+[log]
+level = "info"
+
+[scheduler]
+enabled = true
+
+[mail]
+enabled = true
+user = "test@test.com"
+password = "123456"
+to = "receive@qq.com"
+smtp_host = "smtp.exmail.qq.com"
+smtp_port = 465

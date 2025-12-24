@@ -1,0 +1,6 @@
+1.服务器上运行
+RUN_MODE=production cargo run
+开发运行命令
+cargo  run --package carelink_follower_rust_service --bin carelink_follower_rust_service -- --run-mode development
+打包后运行命令
+./carelink_follower_rust_service --run-mode local
