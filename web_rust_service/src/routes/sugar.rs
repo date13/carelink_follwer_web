@@ -56,19 +56,28 @@ pub async fn load_data_sse(
     let name = user.name.unwrap_or("".to_string());
     let setting = state.get_user_settings(&name).await;
 
-    let (data, my_data) = load_sugar_data(&name, state)
-        .await
-        .unwrap_or((Value::Null, Value::Null));
     let stream = stream::repeat_with(move || {
-        Event::default()
-            .event(format!("{}:sugar_data", &name))
-            .id(Local::now().timestamp_millis().to_string())
-            .json_data(json!({
-                "data":data,
-                "myData":my_data,
-            }))
-            .unwrap()
+        // 克隆需要的状态
+        let state_clone = state.clone();
+        let name_clone = name.clone();
+        async move {
+            // 每次迭代都重新加载最新数据
+            let (data, my_data) = load_sugar_data(&name_clone, state_clone)
+                .await
+                .unwrap_or((Value::Null, Value::Null));
+
+            Event::default()
+                .event(format!("{}:sugar_data", &name_clone))
+                .id(Local::now().timestamp_millis().to_string())
+                .json_data(json!({
+                    "data": data,
+                    "myData": my_data,
+                }))
+                .unwrap()
+        }
     })
+        // 使用 then 处理异步操作
+        .then(|f| f)
         .map(Ok)
         .throttle(Duration::from_secs(setting.sse_interval as u64));
 
