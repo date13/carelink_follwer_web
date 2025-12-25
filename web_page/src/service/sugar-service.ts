@@ -1,54 +1,61 @@
 import {BaseService} from './base-service'
 import {API_URL, HttpClient} from "@/utils/http-client";
-import {DictService} from "@/service/dict-service";
-import {CONST_VAR} from "@/views/const";
-import {EventStreamContentType, fetchEventSource} from '@microsoft/fetch-event-source';
+import {EventStreamContentType} from '@microsoft/fetch-event-source';
 import {Msg, Tools} from "@/utils/tools";
 import router from "@/router";
+import {EventSourceManager} from "@/utils/EventSourceManager";
 
 export class SugarService extends BaseService {
+  eventSourceManager: EventSourceManager
+
   constructor() {
     super('/sugar/', '');
+
+    // 使用示例
+    const user = Tools.getUser();
+    this.eventSourceManager = new EventSourceManager(`${API_URL}sugar/sse`, {
+      method: 'put',
+      headers: {
+        Authorization: `${user ? `Bearer ${user.token}` : ''}`,
+        'Content-Type': 'application/json',
+      },
+      openWhenHidden: false,
+    });
   }
 
-  async loadData(mask) {
-    let resultData: any = null
-    const dictService = new DictService()
-    if (!CONST_VAR.isDemo) {
-      const result: any = await HttpClient.put(`${this.apiContext}`, {
-        mask
-      })
-      if (result) {
-        const data = JSON.parse(result.data)
-        const myData = JSON.parse(result.myData)
-        resultData = {
-          ...data,
-          myData
-        }
-      }
-    } else {
-      const result = await dictService.getDemo()
-      if (result) {
-        resultData = {
-          ...result
-        }
+  async loadData() {
+    const result = await HttpClient.put(`${this.apiContext}index`, {
+      mask: true
+    })
+    if (result) {
+      return {
+        ...result.data,
+        myData: result.myData
       }
     }
-    console.log(resultData);
-    return resultData
   }
 
   async initSugarSSE(callback = (res) => {
   }) {
-    const user = Tools.getUser();
-    await fetchEventSource(`${API_URL}sugar/sse`, {
-      method: 'put',
-      headers: {
-        Authorization: `${user ? user.token : ''}`,
-        'Content-Type': 'application/json',
+    this.eventSourceManager.setCallbacks({
+      onMessage: (event) => {
+        try {
+          if (event.data) {
+            const data = JSON.parse(event.data)
+            callback({
+              ...data.data,
+              myData: data.myData
+            })
+          }
+        } catch (e) {
+          console.log(`sse数据解析错误:`, e)
+        }
+        // 处理消息
       },
-      openWhenHidden: false,
-      async onopen(response) {
+      onError: (error) => {
+        console.error(`sse err:${error}`);
+      },
+      onOpen: (response) => {
         if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
           return; // everything's good
         } else if (response.status >= 400 && response.status < 500 && response.status !== 429) {
@@ -63,28 +70,14 @@ export class SugarService extends BaseService {
         } else {
           console.log(`sse连接打开`, response)
         }
-      },
-      onmessage(msg) {
-        try {
-          if (msg.data) {
-            const data = JSON.parse(msg.data)
-            callback({
-              ...data.data,
-              myData: data.myData
-            })
-          }
-        } catch (e) {
-          console.log(`sse数据解析错误:`, e)
-        }
-      },
-      onclose() {
-        // if the server closes the connection unexpectedly, retry:
-        console.log("sse close");
-      },
-      onerror(err) {
-        console.error(`sse err:${err}`);
       }
     });
+    // 启动连接
+    this.eventSourceManager.start();
+  }
+
+  SSERestart() {
+    this.eventSourceManager.restart();
   }
 
   refreshCarelinkToken() {

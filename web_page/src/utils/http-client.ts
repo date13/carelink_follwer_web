@@ -24,7 +24,7 @@ function checkResponse(response: AxiosResponse): Promise<AxiosResponse<any>> {
           const result = response.data ? response.data : JSON.parse(response.request.responseText)
           const code = result.code
           if (code !== 0) {
-            Msg.alert(result.msg || result.message)
+            Msg.errorMsg(result.msg || result.message)
             response.data = false
           } else {
             response.data = result.data || (result.code === '0') || (result.code === 0)
@@ -50,7 +50,7 @@ axios.interceptors.response.use(checkResponse, (error) => {
   hideLoading()
   if (status === 422) {
     const data = error?.response.data
-    const errMsg = `${data.msg}${JSON.stringify(data.data)}`
+    const errMsg = `${data.msg}${JSON.stringify(data.data || data)}`
     Msg.errorMsg(errMsg)
     return Promise.resolve(false)
   } else if (status === 401) {
@@ -92,7 +92,7 @@ export class HttpClient {
       return url.indexOf(item) !== -1;
     })) {
       const user = Tools.getUser();
-      params.headers['Authorization'] = user ? user.token : '';
+      params.headers['Authorization'] = user ? `Bearer ${user.token}` : '';
     }
     if (method === 'get') {
       params.params = body

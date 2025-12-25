@@ -11,8 +11,8 @@
             <el-button :icon="Refresh" type="primary" @click="loadDict">刷新</el-button>
           </div>
         </template>
-        <el-form ref="formRef" :model="params" :rules="rules" class="dict-form"
-                 label-position="left" label-width="80px">
+        <el-form ref="formRef" :model="params" :rules="rules" label-position="left"
+                 class="dict-form" label-width="80px">
           <el-form-item label="Key" prop="key">
             <div class="flex w-full justify-center items-center">
               <el-select v-model="params.key" class="flex-1" size="small" @change="loadDict">
@@ -135,7 +135,7 @@ async function loadDict() {
     if (!state.curKeyObj.type) {
       try {
         state.params.subKey = null
-        state.params.value = JSON.parse(result)
+        state.params.value = result
       } catch (e) {
         console.log(e);
       }

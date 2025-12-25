@@ -4,8 +4,7 @@ import dayjs from "dayjs";
 import Carelink, {SugarSetting} from "@/model/classes/Carelink";
 import {cloneDeep, flatten, forEach} from "lodash-es";
 import defaultSettings from "@/settings";
-import {CARELINK_DICT_KEY, DIRECTIONS, INSULIN_TYPE, NOTIFICATION_HASH_KEY, SG_STATUS} from "@/views/const";
-import CryptoJS from "crypto-js";
+import {CARELINK_DICT_KEY, DIRECTIONS, INSULIN_TYPE, SG_STATUS} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import {DATE_FORMAT} from "@/model/model-type";
 import {DictService} from "@/service/dict-service";
@@ -54,7 +53,7 @@ export default function (funcObj: any = {}) {
   //获取数据库数据,不是去 carelink 刷新数据
   async function loadCarelinkData(mask = true) {
     try {
-      const result = await sugarService.loadData(mask)
+      const result = await sugarService.loadData()
       dealCarelinkData(result)
     } catch (e) {
       console.log(e);
@@ -116,10 +115,28 @@ export default function (funcObj: any = {}) {
 
   function dealNewNotification() {
     const {notification} = setting;
-    const len = state.data.notificationHistory.clearedNotifications.length
+    let notificationKey = '';
+    let notificationData = null;
     if (state.data.notificationHistory.activeNotifications.length > 0) {
-      notification.hasNew = true;
+      notificationKey = state.data.notificationHistory.activeNotifications[0].instanceId
+      notificationData = state.data.notificationHistory.activeNotifications[0]
+    } else if (state.data.notificationHistory.clearedNotifications.length > 0) {
+      const clearedNotifications = state.data.notificationHistory.clearedNotifications.sort((a: any, b: any) => {
+        return sugarCalc.cleanTime(b.triggeredDateTime)! - sugarCalc.cleanTime(a.triggeredDateTime)!
+      })
+      notificationKey = clearedNotifications[0].instanceId
+      notificationData = clearedNotifications[0]
     }
+
+    if (notification && notificationKey !== notification.lastKey) {
+      notification.hasNew = true;
+      setting.notification.lastKey = notificationKey
+    }
+    funcObj.alarmNotification(notificationData, notification)
+    // if (state.data.notificationHistory.activeNotifications.length > 0) {
+    //   notification.hasNew = true;
+    //   setting.notification.lastKey = notificationKey
+    // }
     // state.data.notificationHistory.clearedNotifications.push({
     //   "referenceGUID": new Date().getTime(),
     //   "dateTime": "2024-12-29T19:50:15.000-00:00",
@@ -132,25 +149,18 @@ export default function (funcObj: any = {}) {
     //   "alertSilenced": false,
     //   "triggeredDateTime": "2024-12-29T19:50:06.000-00:00"
     // })
-    const clearedNotifications = state.data.notificationHistory.clearedNotifications.sort((a: any, b: any) => {
-      return sugarCalc.cleanTime(b.triggeredDateTime)! - sugarCalc.cleanTime(a.triggeredDateTime)!
-    })
-    const notificationKey = CryptoJS.HmacSHA1(JSON.stringify(
-        clearedNotifications.map(item => {
-          return {
-            referenceGUID: item.referenceGUID,
-            triggeredDateTime: item.triggeredDateTime
-          }
-        }).slice(0, len > 4 ? 4 : len)
-    ), NOTIFICATION_HASH_KEY).toString()
-    // console.log(notificationKey);
-    if (notification && !notification.hasNew && notificationKey !== notification.lastKey) {
-      notification.hasNew = true;
-    }
-    const activeNotifications = state.data.notificationHistory.activeNotifications
-    const isActive = activeNotifications.length > 0
-    funcObj.alarmNotification(isActive ? activeNotifications[0] : (clearedNotifications.length > 0 ? clearedNotifications[0] : null), notification, isActive)
-    setting.notification.lastKey = notificationKey
+    // const clearedNotifications = state.data.notificationHistory.clearedNotifications.sort((a: any, b: any) => {
+    //   return sugarCalc.cleanTime(b.triggeredDateTime)! - sugarCalc.cleanTime(a.triggeredDateTime)!
+    // })
+    // const notificationKey = CryptoJS.HmacSHA1(JSON.stringify(
+    //     clearedNotifications.map(item => {
+    //       return {
+    //         referenceGUID: item.referenceGUID,
+    //         triggeredDateTime: item.triggeredDateTime
+    //       }
+    //     }).slice(0, len > 4 ? 4 : len)
+    // ), NOTIFICATION_HASH_KEY).toString()
+    // setting.notification.lastKey = notificationKey
   }
 
   async function reload() {
@@ -176,12 +186,23 @@ export default function (funcObj: any = {}) {
     }
   }
 
+  async function restartSSE() {
+    //后端去 carelink 刷新token
+    sugarService.SSERestart()
+    Msg.successMsg('SSE重启成功')
+  }
+
+  function reloadPage() {
+    router.go(0)
+  }
+
   async function reloadCarelinkData() {
     //后端去 carelink 刷新数据
     const result = await sugarService.refreshCarelinkData()
     if (result) {
       Msg.successMsg('远程数据刷新成功')
-      onLoadCarelinkData()
+      await onLoadCarelinkData()
+      Msg.closeMsg()
     }
   }
 
@@ -276,14 +297,16 @@ export default function (funcObj: any = {}) {
   async function loadSettings() {
     const result = await new DictService().getDict('setting', true, {user: true})
     if (result) {
-      return JSON.parse(result)
+      return result
     }
   }
 
   return {
     reload,
+    reloadPage,
     startTimeInterval,
     refreshCarelinkToken,
+    restartSSE,
     reloadCarelinkData,
     dealCarelinkData,
     updateConduitTime,

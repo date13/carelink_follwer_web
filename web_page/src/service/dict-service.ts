@@ -39,4 +39,28 @@ export class DictService extends BaseService {
       }
     })
   }
+
+  async getUserSetting() {
+    return HttpClient.get(`${this.apiContext}user_setting`);
+  }
+
+  async updateUserSetting(params: any) {
+    return HttpClient.postBody(`${this.apiContext}user_setting`, {
+      body: params
+    });
+  }
+
+  async restartJobs() {
+    return HttpClient.get(`${this.apiContext}job-restart`, {})
+  }
+
+  getJobs() {
+    return HttpClient.get(`${this.apiContext}tasks`, {
+      mask: false
+    })
+  }
+
+  operateJob(params) {
+    return HttpClient.get(`${this.apiContext}task/${params.task_id}/${params.operation === 1 ? 'stop' : 'start'}`)
+  }
 }

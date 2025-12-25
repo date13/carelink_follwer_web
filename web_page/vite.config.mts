@@ -41,7 +41,7 @@ export default defineConfig(({mode}) => {
       preprocessorOptions: {
         scss: {
           additionalData: `@use "@/styles/element/index.scss" as *;`,
-          silenceDeprecations: ["mixed-decls", 'legacy-js-api', 'color-functions', 'global-builtin', 'import']
+          silenceDeprecations: ['legacy-js-api', 'color-functions', 'global-builtin', 'import', 'if-function']
         }
       },
     },
@@ -60,7 +60,7 @@ export default defineConfig(({mode}) => {
     esbuild: {
       pure: ['console.log'],
       drop: ['debugger'],
-      minify: true,
+      minify: isProd,
     },
     build: {
       /* minify: 'terser',
@@ -129,6 +129,8 @@ export default defineConfig(({mode}) => {
         vueTemplate: true,
         eslintrc: {
           enabled: true, // <-- this
+          filepath: './.eslintrc-auto-import.json', // Default `./.eslintrc-auto-import.json`
+          globalsPropValue: true, // Default `true`, (true | false | 'readonly' | 'readable' | 'writable' | 'writeable')
         },
         imports: ['vue', 'vue-router', '@vueuse/head',
           '@vueuse/core', 'pinia', feathersPiniaAutoImport],

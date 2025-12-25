@@ -5,7 +5,7 @@
       <div class="flex flex-col w-3/5  big-panel mr-4">
         <div class="h-10 flex w-full justify-between items-center px-4">
           <div :class="{'text-red':status!==200}" class="text-base hand"
-               @click="refreshCarelinkToken">状态:{{ status }}
+               @click="reloadPage">状态:{{ status }}
           </div>
           <!--          <div v-if="playAlarmObj.playing">
                       <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
@@ -163,7 +163,6 @@
           <ep-Refresh></ep-Refresh>
         </div>
       </div>
-      <!--      <audio ref="alarmAudio" autoplay class="hide" preload="auto" src="/alarm.mp3"></audio>-->
       <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                           :NOTIFICATION_MAP="NOTIFICATION_MAP"
                           :notificationHistory="data.notificationHistory"></NotificationDialog>
@@ -225,7 +224,9 @@ const sugarCommon = useSugarCommon({
 
 const {
   reload,
+  reloadPage,
   refreshCarelinkToken,
+  restartSSE,
   reloadCarelinkData,
   startTimeInterval,
   dealCarelinkData,
@@ -292,22 +293,28 @@ onBeforeUnmount(() => {
   }
 })
 
+function initAudio() {
+  const {playAlarmObj} = state
+  if (!playAlarmObj.alarmAudio) {
+    playAlarmObj.alarmAudio = new Audio('/alarm.mp3')
+    playAlarmObj.alarmAudio.muted = false
+    playAlarmObj.autoplay = true
+    playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
+  }
+}
+
 function initSetting() {
   loadSettings().then(settingJSON => {
     NOTIFICATION_MAP = settingJSON.NOTIFICATION_MAP
   })
 
-  const {playAlarmObj} = state
-  playAlarmObj.alarmAudio.muted = false
-  playAlarmObj.autoplay = true
-  playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
+  initAudio()
   if (!setting.notification) {
     setting.notification = {
       hasNew: false,
       lastKey: null,
       lastAlarm: {
         key: '',
-        isClear: false
       }
     }
   }
@@ -316,9 +323,7 @@ function initSetting() {
   }
   if (!setting.notification.lastAlarm) {
     setting.notification.lastAlarm = {
-      key: '',
-      isClear: false,
-      isActive: false
+      key: ''
     }
   }
   if (!setting.notification.alarmEnable) {
@@ -334,21 +339,23 @@ function triggerSetting() {
   state.showSetting = !state.showSetting
 }
 
-function alarmNotification(item, notification, isActive) {
+function alarmNotification(item, notification, notificationKey,isForce = false) {
   if (!item || !setting.notification.alarmEnable) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
-  console.log(item, state.playAlarmObj.playing);
+  // console.log(item, state.playAlarmObj.playing);
   if (notifyObj && notifyObj.alarm && !state.playAlarmObj.playing) {
-    console.log("play");
     // console.log(isActive, item.referenceGUID, notification.lastAlarm.key);
     const instanceId = item.instanceId
-    if (!notification.lastAlarm.key || instanceId !== notification.lastAlarm.key || (instanceId === notification.lastAlarm.key && !notification.lastAlarm.isClear)) {
+    if (!notification.lastAlarm.key || instanceId !== notification.lastAlarm.key || isForce) {
       notification.lastAlarm.key = instanceId
       // setting.logs.push(new Log({content: `警告源数据:${JSON.stringify(item)},isActive:${isActive}`}))
-      // stopPlayer()
       const {playAlarmObj} = state
+      if (playAlarmObj.playing) {
+        stopPlayer()
+      }
       playAlarmObj.totalPlayCount = notifyObj.alarm.repeat
       playAlarmObj.content = `${notifyObj.text} instanceId:${instanceId}`
+      notification.lastKey = notificationKey
       playAlarm(notifyObj.type)
     }
   }
@@ -382,7 +389,7 @@ function testPlay() {
     "alertSilenced": false,
     "triggeredDateTime": "2025-01-24T02:24:21.000-00:00"
   }
-  alarmNotification(obj2, notification, false)
+  alarmNotification(obj2, notification, true)
   // alarmNotification(obj1, notification, false)
 }
 
@@ -390,11 +397,15 @@ function playAlarm(type = 'error') {
   if (!setting.notification.alarmEnable) return
   const {playAlarmObj} = state
   // console.log(playAlarmObj);
+  // console.log(playAlarmObj,playAlarmObj.count <= playAlarmObj.totalPlayCount , !playAlarmObj.playing)
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount && !playAlarmObj.playing) {
+    console.log("play");
     playAlarmObj.playing = true
+    initAudio()
     playAlarmObj.alarmAudio.play().then(res => {
       // playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
       // console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
+
       Msg.showMsg({
         center: true,
         duration: 0,
@@ -441,14 +452,20 @@ async function playEnd() {
 }
 
 function stopPlayer() {
-  state.playAlarmObj.alarmAudio.pause();
-  state.playAlarmObj.alarmAudio.currentTime = 0;
-  state.playAlarmObj.playing = false
-  state.playAlarmObj.count = 1
-  state.playAlarmObj.totalPlayCount = 1
-  setting.notification.lastAlarm.isClear = true
-  setting.logs.unshift(new Log({content: `播放结束`,}))
   Msg.closeMsg()
+  const {playAlarmObj} = state
+  if (playAlarmObj.alarmAudio) {
+    playAlarmObj.alarmAudio.pause();
+    playAlarmObj.alarmAudio.currentTime = 0;
+    playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
+    playAlarmObj.alarmAudio = null
+  }
+  playAlarmObj.playing = false
+  playAlarmObj.count = 1
+  playAlarmObj.totalPlayCount = 1
+  // setting.notification.lastAlarm.isClear = false
+  setting.logs.unshift(new Log({content: `播放结束`,}))
+  console.log("播放结束");
 }
 
 function refreshChart() {

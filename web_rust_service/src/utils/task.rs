@@ -39,6 +39,7 @@ pub struct TaskManager {
     job_store: Arc<DashMap<String, Job>>,
 }
 
+#[allow(dead_code)]
 impl TaskManager {
     pub async fn new() -> Self {
         let scheduler = JobScheduler::new()
@@ -59,7 +60,7 @@ impl TaskManager {
         task: F,
     ) where
         F: Fn() -> Fut + Send + Sync + 'static,
-        Fut: Future<Output=()> + Send + 'static,
+        Fut: Future<Output = ()> + Send + 'static,
     {
         let task = Arc::new(task);
         let id_arc = Arc::new(id.to_string());
@@ -87,17 +88,17 @@ impl TaskManager {
         };
 
         let job = match schedule_type {
-            ScheduleType::Cron(schedule) => {
-                Job::new_async(&schedule, move |_uuid, mut _l: JobScheduler| {
-                    closure_fn(_uuid, _l)
-                })
-                    .expect("Failed to create Cron job")
-            }
+            ScheduleType::Cron(schedule) => Job::new_cron_job_async_tz(
+                &schedule,
+                chrono_tz::Asia::Shanghai,
+                move |_uuid, mut _l: JobScheduler| closure_fn(_uuid, _l),
+            )
+            .expect("Failed to create Cron job"),
             ScheduleType::Repeated(interval) => {
                 Job::new_repeated_async(*interval, move |_uuid, mut _l: JobScheduler| {
                     closure_fn(_uuid, _l)
                 })
-                    .expect("Failed to create Repeated job")
+                .expect("Failed to create Repeated job")
             }
         };
 
@@ -149,6 +150,7 @@ impl TaskManager {
         false
     }
 
+    #[allow(unused_variables)]
     /// 恢复任务
     pub async fn resume_task(&self, job_id: &str) -> bool {
         if let Some(task) = self.tasks.get_mut(job_id) {
@@ -213,8 +215,8 @@ impl TaskManager {
 pub enum ScheduleType {
     Cron(String), // Cron 表达式
     Repeated(Duration), // 重复间隔
-    // RepeatedAt(DateTime<Utc>, Duration), // 指定时间开始的重复
-    // OneShotAt(DateTime<Utc>),            // 一次性任务
+                  // RepeatedAt(DateTime<Utc>, Duration), // 指定时间开始的重复
+                  // OneShotAt(DateTime<Utc>),            // 一次性任务
 }
 
 pub struct TaskBuilder {
@@ -235,7 +237,7 @@ impl TaskBuilder {
     pub async fn build<F, Fut>(&self, id: &str, name: &str, f: F) -> &Self
     where
         F: Fn(Arc<AppState>, Arc<UserSetting>) -> Fut + Send + Sync + Clone + 'static,
-        Fut: Future<Output=()> + Send + 'static,
+        Fut: Future<Output = ()> + Send + 'static,
     {
         let id_arc = Arc::new(id.to_string());
         let state_clone = Arc::clone(&self.state);
@@ -259,7 +261,6 @@ impl TaskBuilder {
             .await;
         &self
     }
-
 }
 
 // 使用示例
@@ -283,14 +284,14 @@ pub async fn add_scheduler_job(state: AppState, setting: UserSetting) -> Result<
                     setting.carelink_token_refresh_interval as u64,
                 )),
             )
-                .build(
-                    &token_key,
-                    format!("刷新carelinkToken:{}", user_key).as_ref(),
-                    |state, user_setting| async move {
-                        carelink_refresh_token(&state, &user_setting).await;
-                    },
-                )
-                .await;
+            .build(
+                &token_key,
+                format!("刷新carelinkToken:{}", user_key).as_ref(),
+                |state, user_setting| async move {
+                    carelink_refresh_token(&state, &user_setting).await;
+                },
+            )
+            .await;
             TaskBuilder::new(
                 Arc::clone(&app_state),
                 setting.clone(),
@@ -299,28 +300,28 @@ pub async fn add_scheduler_job(state: AppState, setting: UserSetting) -> Result<
                     setting.carelink_data_refresh_interval as u64,
                 )),
             )
-                .build(
-                    &data_key,
-                    format!("刷新carelinkData:{}", user_key).as_ref(),
-                    |state, user_setting| async move {
-                        carelink_refresh_data(&state, &user_setting).await;
-                    },
-                )
-                .await;
+            .build(
+                &data_key,
+                format!("刷新carelinkData:{}", user_key).as_ref(),
+                |state, user_setting| async move {
+                    carelink_refresh_data(&state, &user_setting).await;
+                },
+            )
+            .await;
 
             TaskBuilder::new(
                 Arc::clone(&app_state),
                 setting.clone(),
                 ScheduleType::Cron("0 0 0 * * *".to_string()),
             )
-                .build(
-                    &history_key,
-                    format!("刷新carelinkHistory:{}", user_key).as_ref(),
-                    |state, user_setting| async move {
-                        carelink_refresh_history(&state, &user_setting).await;
-                    },
-                )
-                .await;
+            .build(
+                &history_key,
+                format!("刷新carelinkHistory:{}", user_key).as_ref(),
+                |state, user_setting| async move {
+                    carelink_refresh_history(&state, &user_setting).await;
+                },
+            )
+            .await;
         }
         CgmType::Dexcom => {
             // Dexcom 相关任务
