@@ -229,6 +229,7 @@ const {
   restartSSE,
   reloadCarelinkData,
   startTimeInterval,
+  clearStartTimeInterval,
   dealCarelinkData,
   updateConduitTime,
   handleMenu,
@@ -246,13 +247,7 @@ const state: any = reactive({
   showLogsDialog: false,
   statistics: {},
   showSetting: false,
-  playAlarmObj: {
-    alarmAudio: new Audio('/alarm.mp3'),
-    playing: false,
-    count: 1,
-    totalPlayCount: 1,
-    content: ''
-  }
+  playAlarmObj: null
 })
 
 const {
@@ -288,19 +283,25 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  clearSugarData()
   for (const item in resizeObj) {
     resizeObj[item].beforeDestroy()
   }
 })
 
+function clearSugarData() {
+  sugarService.eventSourceManager.stop()
+  clearStartTimeInterval();
+  state.playAlarmObj.alarmAudio = null
+}
+
 function initAudio() {
+  state.playAlarmObj = {};
   const {playAlarmObj} = state
-  if (!playAlarmObj.alarmAudio) {
-    playAlarmObj.alarmAudio = new Audio('/alarm.mp3')
-    playAlarmObj.alarmAudio.muted = false
-    playAlarmObj.autoplay = true
-    playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
-  }
+  playAlarmObj.alarmAudio = new Audio('/alarm.mp3')
+  playAlarmObj.alarmAudio.muted = false
+  playAlarmObj.autoplay = true
+  playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
 }
 
 function initSetting() {
@@ -339,7 +340,7 @@ function triggerSetting() {
   state.showSetting = !state.showSetting
 }
 
-function alarmNotification(item, notification, notificationKey,isForce = false) {
+function alarmNotification(item, notification, notificationKey, isForce = false) {
   if (!item || !setting.notification.alarmEnable) return
   const notifyObj = NOTIFICATION_MAP[item.messageId]
   // console.log(item, state.playAlarmObj.playing);

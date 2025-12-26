@@ -8,7 +8,7 @@
             <template #header>
               <div class="card-header text-center flex items-center justify-between">
                 <span :class="{'text-red':status!==200}" class="text-xs hand"
-                      @click="refreshCarelinkToken">状态:{{ status }}</span>
+                      @click="reloadPage">状态:{{ status }}</span>
                 <span class="text-2xl font-bold hand" @click="reloadCarelinkData">{{
                     time.format('HH:mm')
                   }}</span>
@@ -93,7 +93,7 @@
           <div class="flex text-xs items-center justify-between align-center my-1">
             <span v-if="data.systemStatusMessage===SYSTEM_STATUS_MAP.WARM_UP.key" class="mx-2">
                <el-popover
-                   :content="`启动:${nextStartTime}`"
+                   :content="`启动:${dayjs(nextStartTime).format(DATE_FORMAT.datetime2)}`"
                    placement="bottom"
                    trigger="click"
                >
@@ -147,6 +147,10 @@
         </el-badge>
       </div>
       <div class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height"
+           @click="handleMenu('basal')">
+        <ep-Calendar></ep-Calendar>
+      </div>
+      <div class="item flex items-center justify-center border-solid border-1 hand no-bottom only-full-height"
            @click="showDrawer">
         <ep-KnifeFork></ep-KnifeFork>
       </div>
@@ -184,6 +188,8 @@
     <NotificationDialog v-if="showNotificationDialog" v-model:show="showNotificationDialog"
                         :NOTIFICATION_MAP="NOTIFICATION_MAP"
                         :notificationHistory="data.notificationHistory"></NotificationDialog>
+    <BasalDialog v-if="showBasalDialog" v-model:show="showBasalDialog"
+                 :basals="data.markers.filter(item=>item.type===INSULIN_TYPE.AUTO_BASAL_DELIVERY.key)"></BasalDialog>
   </MainPanel>
 </template>
 <script lang="ts" name="mySugar" setup>
@@ -207,6 +213,7 @@ import {
 } from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
+import BasalDialog from "@/views/components/basalDialog.vue"
 import Info from "@/views/info.vue"
 import useSugarCommon from "@/composition/useSugarCommon";
 import Menus from "@/views/components/menus.vue";
@@ -242,8 +249,11 @@ const state: any = reactive({
 const {
   reload,
   refreshCarelinkToken,
+  restartSSE,
+  reloadPage,
   reloadCarelinkData,
   startTimeInterval,
+  clearStartTimeInterval,
   dealCarelinkData,
   updateConduitTime,
   handleMenu,
@@ -269,6 +279,7 @@ const {
   updateDatetime,
   status,
   showNotificationDialog,
+  showBasalDialog,
   nextStartTime,
   GMI,
   time
@@ -288,10 +299,16 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  clearSugarData()
   if (resizeObj) {
     resizeObj.beforeDestroy()
   }
 })
+
+function clearSugarData() {
+  sugarService.eventSourceManager.stop()
+  clearStartTimeInterval();
+}
 
 async function initSetting() {
   loadSettings().then(settingJSON => {
@@ -349,7 +366,6 @@ function refreshChart() {
 
 const chartTimeOption: any = computed(() => {
   const {interval} = sugarCalc.getStartPercent(setting.startPercent)
-  console.log(interval);
   return {
     interval
   }
@@ -361,6 +377,7 @@ const nextStartTimeToNow = computed(() => {
 const charOption = computed(() => {
   return {
     legend: {
+      top: 0,
       icon: 'rect',
       itemGap: 5,
       itemWidth: 20,

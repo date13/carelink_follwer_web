@@ -43,6 +43,10 @@ export default function (funcObj: any = {}) {
     }, 1000)
   }
 
+  function clearStartTimeInterval() {
+    clearInterval(state.interval.time)
+  }
+
   async function onLoadCarelinkData(isMask = true) {
     await loadCarelinkData(isMask)
     // await loadCarelinkMyData(isMask)
@@ -305,6 +309,7 @@ export default function (funcObj: any = {}) {
     reload,
     reloadPage,
     startTimeInterval,
+    clearStartTimeInterval,
     refreshCarelinkToken,
     restartSSE,
     reloadCarelinkData,
