@@ -1,12 +1,14 @@
 use crate::models::{AppState, UserSetting};
 use crate::utils::ar2::forecast_ar2_sg;
+use crate::utils::mail::EmailService;
 use crate::utils::redis_client::{RedisResult, RedisService};
-use crate::utils::{parse_json, DateUtils, JsonHelp};
+use crate::utils::{DateUtils, JsonHelp, parse_json};
 use axum::http::StatusCode;
 use chrono::{Duration, Local};
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
+use std::sync::Arc;
 use tracing::{debug, error, info};
 
 pub const CARELINK_REFRESH_TOKEN_URL: &str = "https://carelink.minimed.eu/patient/sso/reauth";
@@ -19,15 +21,15 @@ const FORECAST_COUNT: usize = 30;
 const LUCK_LIMIT: u8 = 92;
 const MIN_LUCK_CV: u8 = 27;
 // 或者使用 associated constants
-pub struct DictKeys {
-}
+pub struct DictKeys {}
+
 impl DictKeys {
     pub const LUCK: &'static str = "luck";
     pub const AUTH: &'static str = "carelinkAuth";
     pub const DATA: &'static str = "carelinkData";
     pub const MY_DATA: &'static str = "carelinkMyData";
     pub const HISTORY: &'static str = "history";
-    pub const SETTING: &'static str = "setting";
+    // pub const SETTING: &'static str = "setting";
     pub const FOOD: &'static str = "food";
 }
 
@@ -55,6 +57,9 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
                     .header("User-Agent", UA)
                     .send()
                     .await
+                    .inspect_err(|e| {
+                        send_mail(state.email.clone(), format!("刷新token错误,{}", e));
+                    })
                     .expect("Failed to send token request");
 
                 let status = response.status();
@@ -72,22 +77,8 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
                     // result
                 } else {
                     let text = format!("用户:{} 获取 carelinkToken 数据失败!!!:{}", user, status);
-                    match state
-                        .email
-                        .send_text_email(
-                            state.email.to.as_str(),
-                            "carelink_follower_web警报",
-                            text.as_str(),
-                        )
-                        .await
-                    {
-                        Ok(_) => {}
-                        Err(e) => {
-                            error!("send mail error:{}", e);
-                        }
-                    };
-
-                    error!("{}", text);
+                    send_mail(state.email.clone(), text.clone());
+                    error!("{}", text)
                 }
 
                 auth_data["update_time"] = DateUtils::datetime().into();
@@ -137,8 +128,13 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                     );
                 } else {
                     // 克隆需要的部分 - 确保都是 Send 的
-                    let (status, json_data) =
-                        load_carelink_data(&state.http_client, &token, setting.clone()).await;
+                    let (status, json_data) = load_carelink_data(
+                        &state.http_client,
+                        state.email.clone(),
+                        &token,
+                        setting.clone(),
+                    )
+                        .await;
                     update_carelink_data(
                         &redis, // 注意：这里传递的是 &RedisService
                         &setting.user_key,
@@ -155,8 +151,29 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
     }
 }
 
+pub async fn carelink_refresh_history(state: &AppState, user_setting: &UserSetting) {
+    // state.redis.get_json()
+    info!("Carelink refresh history");
+    let user_key = user_setting.user_key.clone();
+    let data_key = format!("{}:{}", user_key, DictKeys::DATA);
+    // 假设 redis 连接已经建立
+    if let Ok(Some(mut org_data)) = state.redis.get_json::<Value>(data_key.as_str()).await {
+        let mut org_sugar_data = &mut org_data["data"];
+        update_carelink_my_data_yesterday_data(&mut org_sugar_data, &state.redis, user_key.clone())
+            .await;
+        save_history_data(&mut org_sugar_data, &state.redis, user_key.clone()).await;
+        update_luck_data(&mut org_sugar_data, &state.redis, user_key.clone()).await;
+        update_statistics(&mut org_data, &state.redis, user_key.clone()).await;
+    } else {
+        error!(
+            "Failed to get carelink data when carelink_refresh_history: {:?}",
+            data_key
+        );
+    }
+}
 pub async fn load_carelink_data(
     client: &Client,
+    email: Arc<EmailService>,
     token: &str,
     user_setting: UserSetting,
 ) -> (i32, Option<Value>) {
@@ -174,6 +191,9 @@ pub async fn load_carelink_data(
         .header("User-Agent", UA)
         .send()
         .await
+        .inspect_err(|e| {
+            send_mail(email.clone(), format!("刷新CarelinkDate错误,{}", e));
+        })
         .expect("Failed to send data request");
 
     let status = response.status();
@@ -182,12 +202,16 @@ pub async fn load_carelink_data(
         let result = response
             .json::<Value>()
             .await
+            .inspect_err(|e| {
+                send_mail(email.clone(), format!("解析CarelinkDate JSON错误,{}", e));
+            })
             .expect("Failed to parse JSON response");
         debug!("用户:{} 远程读取 carelinkData 数据成功!!!", user);
         (StatusCode::OK.as_u16() as i32, Some(result))
         // result
     } else {
         let text = format!("用户:{} 读取 carelinkData 数据失败!!!:{}", user, status);
+        send_mail(email.clone(), text.clone());
         error!("{}", text);
         // send_mail(&text); // 邮件发送函数需要另外实现
         // Err(reqwest::Error::from("")
@@ -208,7 +232,7 @@ async fn update_carelink_data(
         org_data["status"] = status.into();
 
         if let Some(data) = data {
-            let system_status = data["systemStatusMessage"].to_string();
+            let system_status = data.get_string("systemStatusMessage");
             deal_warm_up(system_status, &mut org_data);
             org_data["data"] = data;
             let sgs = org_data["data"]["sgs"]
@@ -235,11 +259,11 @@ const NEXT_START_TIME_KEY: &str = "nextStartTime";
 fn deal_warm_up(system_status: String, org_data: &mut Value) {
     let next_start: i64 = org_data[NEXT_START_TIME_KEY].as_i64().unwrap_or(0);
     if system_status == "WARM_UP" && next_start == -1 {
-        org_data[NEXT_START_TIME_KEY] = (Local::now() + Duration::hours(2))
-            .format(DateUtils::DATE_TIME)
-            .to_string()
-            .parse()
-            .unwrap();
+        org_data[NEXT_START_TIME_KEY] =
+            Value::from((Local::now() + Duration::hours(2)).timestamp_millis());
+    }
+    if system_status == "NO_ERROR_MESSAGE" && next_start != -1 {
+        org_data[NEXT_START_TIME_KEY] = Value::from(-1);
     }
 }
 
@@ -253,27 +277,6 @@ async fn update_carelink_data_to_redis(data: &mut Value, redis: &RedisService, u
         Err(e) => {
             error!("用户:{} 刷新 carelinkData 数据失败!!!:{}", data_key, e);
         }
-    }
-}
-
-pub async fn carelink_refresh_history(state: &AppState, user_setting: &UserSetting) {
-    // state.redis.get_json()
-    info!("Carelink refresh history");
-    let user_key = user_setting.user_key.clone();
-    let data_key = format!("{}:{}", user_key, DictKeys::DATA);
-    // 假设 redis 连接已经建立
-    if let Ok(Some(mut org_data)) = state.redis.get_json::<Value>(data_key.as_str()).await {
-        let mut org_sugar_data = &mut org_data["data"];
-        update_carelink_my_data_yesterday_data(&mut org_sugar_data, &state.redis, user_key.clone())
-            .await;
-        save_history_data(&mut org_sugar_data, &state.redis, user_key.clone()).await;
-        update_luck_data(&mut org_sugar_data, &state.redis, user_key.clone()).await;
-        update_statistics(&mut org_data, &state.redis, user_key.clone()).await;
-    } else {
-        error!(
-            "Failed to get carelink data when carelink_refresh_history: {:?}",
-            data_key
-        );
     }
 }
 
@@ -396,7 +399,7 @@ pub async fn save_history_data(
         }
     }
 }
-#[warn(unused_variables)]
+#[allow(unused_variables)]
 pub async fn update_statistics(org_data: &mut Value, redis: &RedisService, user_key: String) {
     match redis
         .hget_all(format!("{}:{}", user_key, DictKeys::HISTORY).as_str())
@@ -580,6 +583,7 @@ fn calculate_std_dev(values: &[f64], mean: f64) -> f64 {
     variance.sqrt()
 }
 
+#[allow(dead_code)]
 /// 或者使用更完整的统计计算
 fn calculate_statistics(values: &[f64]) -> (f64, f64, f64) {
     let count = values.len();
@@ -672,4 +676,22 @@ fn increment_field(day_obj: &mut Value, field: &str, increment: u64) {
     } else {
         day_obj[field] = Value::from(increment);
     }
+}
+
+pub fn send_mail(email_service: Arc<EmailService>, text: String) {
+    tokio::spawn(async move {
+        match email_service
+            .send_text_email(
+                email_service.to.as_str(),
+                "carelink_follower_web警报",
+                text.as_str(),
+            )
+            .await
+        {
+            Ok(_) => {}
+            Err(e) => {
+                error!("send mail error:{}", e);
+            }
+        };
+    });
 }
