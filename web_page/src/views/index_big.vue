@@ -247,7 +247,9 @@ const state: any = reactive({
   showLogsDialog: false,
   statistics: {},
   showSetting: false,
-  playAlarmObj: null
+  playAlarmObj: {
+    alarmAudio: new Audio('/alarm.mp3'),
+  }
 })
 
 const {
@@ -292,7 +294,8 @@ onBeforeUnmount(() => {
 function clearSugarData() {
   sugarService.eventSourceManager.stop()
   clearStartTimeInterval();
-  state.playAlarmObj.alarmAudio = null
+  // state.playAlarmObj.alarmAudio = null
+  state.playAlarmObj.alarmAudio.removeEventListener("ended", playEnd)
 }
 
 function initAudio() {
@@ -300,8 +303,13 @@ function initAudio() {
   const {playAlarmObj} = state
   playAlarmObj.alarmAudio = new Audio('/alarm.mp3')
   playAlarmObj.alarmAudio.muted = false
-  playAlarmObj.autoplay = true
   playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
+
+  playAlarmObj.playing = false
+  playAlarmObj.count = 1
+  playAlarmObj.totalPlayCount = 1
+  playAlarmObj.content = ''
+  playAlarmObj.autoplay = true
 }
 
 function initSetting() {
@@ -458,8 +466,8 @@ function stopPlayer() {
   if (playAlarmObj.alarmAudio) {
     playAlarmObj.alarmAudio.pause();
     playAlarmObj.alarmAudio.currentTime = 0;
-    playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
-    playAlarmObj.alarmAudio = null
+    // playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
+    // playAlarmObj.alarmAudio = null
   }
   playAlarmObj.playing = false
   playAlarmObj.count = 1
