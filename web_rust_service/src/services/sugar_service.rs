@@ -2,11 +2,11 @@ use crate::models::{AppState, UserSetting};
 use crate::utils::ar2::forecast_ar2_sg;
 use crate::utils::mail::EmailService;
 use crate::utils::redis_client::{RedisResult, RedisService};
-use crate::utils::{DateUtils, JsonHelp, parse_json};
+use crate::utils::{parse_json, DateUtils, JsonHelp};
 use axum::http::StatusCode;
 use chrono::{Duration, Local};
 use reqwest::Client;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, error, info};
@@ -58,7 +58,7 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
                     .send()
                     .await
                     .inspect_err(|e| {
-                        send_mail(state.email.clone(), format!("刷新token错误,{}", e));
+                        send_mail(state.email.clone(), format!("刷新token错误,{:#?}", e));
                     })
                     .expect("Failed to send token request");
 
@@ -106,8 +106,8 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
     let setting = user_setting.clone();
     match state.redis.get_json::<Value>(&auth_key).await.get_json() {
         Ok(data) => {
-            let status = data.get_i64("status");
-            if status != 200 {
+            let status = data.get_i64("status") as u16;
+            if status == StatusCode::UNAUTHORIZED.as_u16() {
                 info!(
                     "用户:{} refreshCarelinkData token失效,请手动刷新Token,当前状态:{}",
                     user_setting.user_key, status
@@ -192,22 +192,24 @@ pub async fn load_carelink_data(
         .send()
         .await
         .inspect_err(|e| {
-            send_mail(email.clone(), format!("刷新CarelinkDate错误,{}", e));
+            send_mail(email.clone(), format!("刷新CarelinkDate错误,{:#?}", e));
         })
         .expect("Failed to send data request");
 
     let status = response.status();
     let user = &user_setting.user_key;
     if status == StatusCode::OK {
-        let result = response
-            .json::<Value>()
-            .await
-            .inspect_err(|e| {
-                send_mail(email.clone(), format!("解析CarelinkDate JSON错误,{}", e));
-            })
-            .expect("Failed to parse JSON response");
-        debug!("用户:{} 远程读取 carelinkData 数据成功!!!", user);
-        (StatusCode::OK.as_u16() as i32, Some(result))
+        match response.json::<Value>().await {
+            Ok(value) => {
+                info!("用户:{:?} 远程读取 carelinkData 数据成功!!!", user);
+                (StatusCode::OK.as_u16() as i32, Some(value))
+            }
+            Err(e) => {
+                send_mail(email.clone(), format!("解析CarelinkDate JSON错误,{:#?}", e));
+                // 返回错误状态码和 None
+                (StatusCode::UNPROCESSABLE_ENTITY.as_u16() as i32, None)
+            }
+        }
         // result
     } else {
         let text = format!("用户:{} 读取 carelinkData 数据失败!!!:{}", user, status);
@@ -336,8 +338,8 @@ fn deal_yes_data(yes_arr: &mut Vec<Value>, yes_data: &mut Vec<Value>) {
     } else if len == 2 {
         // 如果 yes_arr 长度等于2
         // 1. 将 [1] 移动到 [0]
-        yes_arr[0] = std::mem::take(&mut yes_arr[1]);
-        yes_arr[1] = Value::Array(yes_data.clone());
+        yes_arr[0] = std::mem::replace(&mut yes_arr[1], Value::Array(yes_data.clone()));
+        // yes_arr[1] = Value::Array(yes_data.clone());
     }
 }
 
@@ -410,14 +412,13 @@ pub async fn update_statistics(org_data: &mut Value, redis: &RedisService, user_
                 let mut history_arr: Vec<(String, Value)> =
                     obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
                 history_arr.sort_by(|a, b| b.0.cmp(&a.0));
-                let mut i = 0;
                 let mut sum_avg: f64 = 0.0;
-                let mut sum_below: f64 = 0.0;
-                let mut sum_above: f64 = 0.0;
+                // let mut sum_below: f64 = 0.0;
+                // let mut sum_above: f64 = 0.0;
                 let mut day_30 = get_sum_obj();
                 let mut day_90 = get_sum_obj();
-                for (key, value) in history_arr.iter() {
-                    let history_data = parse_json(value.as_str().unwrap());
+                for (i, item) in history_arr.iter().enumerate() {
+                    let history_data = parse_json(item.1.as_str().unwrap());
                     if i < 30 {
                         calc_day_obj_data(&mut day_30, &history_data);
                     }
@@ -425,9 +426,8 @@ pub async fn update_statistics(org_data: &mut Value, redis: &RedisService, user_
                         calc_day_obj_data(&mut day_90, &history_data);
                     }
                     sum_avg += history_data.get_f64("averageSGFloat");
-                    sum_below += history_data.get_f64("belowHypoLimit");
-                    sum_above += history_data.get_f64("aboveHyperLimit");
-                    i += 1;
+                    // sum_below += history_data.get_f64("belowHypoLimit");
+                    // sum_above += history_data.get_f64("aboveHyperLimit");
                 }
                 let total_avg_sg = sum_avg / history_arr.len() as f64;
 
@@ -690,7 +690,7 @@ pub fn send_mail(email_service: Arc<EmailService>, text: String) {
         {
             Ok(_) => {}
             Err(e) => {
-                error!("send mail error:{}", e);
+                error!("send mail error:{:#?}", e);
             }
         };
     });

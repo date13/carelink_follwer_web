@@ -41,7 +41,7 @@ impl CgmType {
 pub struct AppState {
     pub redis: Arc<RedisService>,
     pub http_client: Arc<Client>,
-    pub jwt_config: JwtConfig,
+    pub jwt_config: Arc<JwtConfig>,
     pub user_settings: Arc<RwLock<HashMap<String, UserSetting>>>,
     pub task_manager: Arc<TaskManager>,
     pub email: Arc<EmailService>,
@@ -64,7 +64,7 @@ impl AppState {
                     .build()
                     .expect("Failed to build reqwest client"),
             ),
-            jwt_config,
+            jwt_config: Arc::new(jwt_config),
             user_settings: Arc::new(RwLock::new(HashMap::new())),
             task_manager: Arc::new(task_manager),
             email: Arc::new(email),
@@ -91,6 +91,8 @@ impl AppState {
 }
 
 pub type ApiResponse<T> = anyhow::Result<ApiResult<T>, AppError>;
+
+#[allow(dead_code)]
 pub trait OperationStatusTrait {
     fn ok() -> Value;
     fn fail() -> Value;

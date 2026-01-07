@@ -7,6 +7,7 @@ use axum::{
     body::Body, extract::Request, http::Method, middleware::Next, response::Response, Json,
 };
 use serde_json::Value;
+use std::sync::Arc;
 use std::time::Duration;
 use tower_http::cors::{AllowOrigin, Any, CorsLayer};
 use tracing::info;
@@ -136,7 +137,7 @@ pub fn cors_layer(config: &AppConfig) -> CorsLayer {
 const SKIP_PATHS: &[&str] = &["/public", "/user/login"];
 // 认证中间件
 pub async fn auth_middleware(
-    State(jwt_config): State<JwtConfig>,
+    State(jwt_config): State<Arc<JwtConfig>>,
     mut request: Request,
     next: Next,
 ) -> Result<Response, (StatusCode, Json<Value>)> {

@@ -47,7 +47,7 @@ pub async fn create_routes_and_init_app_state(config: &AppConfig) -> Router {
         "/api",
         api_routes(state.clone())
             .layer(middleware::from_fn_with_state(
-                state.jwt_config.clone(),
+                state.jwt_config,
                 auth_middleware,
             ))
             .layer(cors_layer(config))

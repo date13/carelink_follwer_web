@@ -80,7 +80,7 @@ export default function (funcObj: any = {}) {
       // setting.notification.hasNew = true
       dealNewNotification()
       dealMyData(result.myData)
-      console.log(result);
+      // console.log(result);
       state.prepare = true
       document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${Number(lastOffset.value) > 0 ? '+' + lastOffset.value : lastOffset.value}`
       i++
