@@ -79,6 +79,7 @@ async fn init_user_state(state: AppState, is_scheduler: bool) {
                         if username != "" {
                             let setting = UserSetting {
                                 user_key: name.to_string(),
+                                carelink_password: config.get_string("carelink_password"),
                                 cgm: CgmType::new(config.get_string("cgm").as_str()),
                                 patient_id: config.get_string("patientId"),
                                 username: config.get_string("username"),

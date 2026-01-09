@@ -5,13 +5,18 @@ use crate::utils::redis_client::{RedisResult, RedisService};
 use crate::utils::{parse_json, DateUtils, JsonHelp};
 use axum::http::StatusCode;
 use chrono::{Duration, Local};
-use reqwest::Client;
+use garde::rules::pattern::regex::Regex;
+use reqwest::{Client, Response};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use std::string::ToString;
 use std::sync::Arc;
 use tracing::{debug, error, info};
+use url::Url;
 
-pub const CARELINK_REFRESH_TOKEN_URL: &str = "https://carelink.minimed.eu/patient/sso/reauth";
+pub const CARELINK_BASE_URL: &str = "https://carelink.minimed.eu";
+pub const CARELINK_LOGIN_URL: &str = "https://carelink-login.minimed.eu";
+pub const CARELINK_REFRESH_TOKEN_URL: &str = "/patient/sso/reauth";
 pub const CARELINK_DATA_URL: &str =
     "https://clcloud.minimed.eu/connect/carepartner/v6/display/message";
 pub const HTTP_TIMEOUT: u64 = 120;
@@ -50,7 +55,10 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
             } else {
                 let response = state
                     .http_client
-                    .post(CARELINK_REFRESH_TOKEN_URL)
+                    .post(format!(
+                        "{}{}",
+                        CARELINK_BASE_URL, CARELINK_REFRESH_TOKEN_URL
+                    ))
                     // .json(&params)
                     .header("Content-Type", "application/json")
                     .header("Authorization", format!("Bearer {}", token))
@@ -80,16 +88,7 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
                     send_mail(state.email.clone(), text.clone());
                     error!("{}", text)
                 }
-
-                auth_data["update_time"] = DateUtils::datetime().into();
-                match state.redis.set_json(&auth_key, &auth_data, None).await {
-                    Ok(_) => {
-                        info!("用户:{} 刷新 carelinkToken 数据成功!!!", auth_key);
-                    }
-                    Err(e) => {
-                        error!("用户:{} 刷新 carelinkToken 数据失败!!!:{}", auth_key, e);
-                    }
-                }
+                update_carelink_auth_data_to_redis(&mut auth_data, &state.redis, user_key).await;
             }
         }
         Err(e) => {
@@ -109,16 +108,21 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
             let status = data.get_i64("status") as u16;
             if status == StatusCode::UNAUTHORIZED.as_u16() {
                 info!(
-                    "用户:{} refreshCarelinkData token失效,请手动刷新Token,当前状态:{}",
+                    "用户:{} refreshCarelinkData token失效,开始自动刷新Token,当前状态:{}",
                     user_setting.user_key, status
                 );
-                update_carelink_data(
-                    &redis, // 注意：这里传递的是 &RedisService
-                    &setting.user_key,
-                    status as i32,
-                    None,
-                )
-                    .await
+                match carelink_login(&state, &setting).await {
+                    Ok(_) => {}
+                  Err(_) => {
+                        update_carelink_data(
+                            &redis, // 注意：这里传递的是 &RedisService
+                            &setting.user_key,
+                            status as i32,
+                            None,
+                        )
+                            .await
+                    }
+                }
             } else {
                 let token = data.get_string("token");
                 if token.is_empty() {
@@ -266,6 +270,23 @@ fn deal_warm_up(system_status: String, org_data: &mut Value) {
     }
     if system_status == "NO_ERROR_MESSAGE" && next_start != -1 {
         org_data[NEXT_START_TIME_KEY] = Value::from(-1);
+    }
+}
+
+async fn update_carelink_auth_data_to_redis(
+    data: &mut Value,
+    redis: &RedisService,
+    user_key: &str,
+) {
+    let auth_key = format!("{}:{}", user_key, DictKeys::AUTH);
+    data["update_time"] = DateUtils::datetime().into();
+    match redis.set_json(&auth_key, &data, None).await {
+        Ok(_) => {
+            info!("用户:{} 刷新 carelinkAuthData 数据成功!!!", auth_key);
+        }
+        Err(e) => {
+            error!("用户:{} 刷新 carelinkAuthData 数据失败!!!:{}", auth_key, e);
+        }
     }
 }
 
@@ -694,4 +715,307 @@ pub fn send_mail(email_service: Arc<EmailService>, text: String) {
             }
         };
     });
+}
+
+pub async fn carelink_login(
+    state: &AppState,
+    user_setting: &UserSetting,
+) -> Result<bool, LoginError> {
+    let carelink_login = CarelinkLogin::new(
+        state.http_client.clone(),
+        user_setting.username.clone(),
+        user_setting.carelink_password.clone(),
+    );
+
+    match carelink_login.login().await {
+        Ok(token) => {
+            info!("Carelink auto login successful: {}", token);
+            let user_key = user_setting.user_key.as_str();
+            let auth_key = format!("{}:{}", user_key, DictKeys::AUTH);
+            match state.redis.get_json::<Value>(&auth_key).await.get_json() {
+                Ok(mut auth_data) => {
+                    auth_data["status"] = Value::from(200);
+                    auth_data["token"] = Value::from(token.to_string());
+                    update_carelink_auth_data_to_redis(&mut auth_data, &state.redis, user_key)
+                        .await;
+                    info!("Carelink token refresh successful");
+                    send_mail(
+                        state.email.clone(),
+                        format!("Carelink token refresh successful, token is:{}", token),
+                    );
+                    Ok(true)
+                }
+                Err(e) => {
+                    Err(LoginError::LoginFailed(format!("Carelink get user auth data error: {:?}", e)))
+                }
+            }
+        }
+        Err(e) => {
+            let msg = format!("Carelink login error: {:?}", e);
+            error!(msg);
+            send_mail(state.email.clone(), msg.clone());
+            Err(LoginError::LoginFailed(msg))
+        }
+    }
+}
+
+// 错误类型
+#[derive(Debug)]
+#[allow(dead_code)]
+pub enum LoginError {
+    HttpError(reqwest::Error),
+    UrlParseError(url::ParseError),
+    MissingLocationHeader,
+    AuthTokenNotFound,
+    LoginFailed(String),
+}
+
+impl From<reqwest::Error> for LoginError {
+    fn from(err: reqwest::Error) -> Self {
+        LoginError::HttpError(err)
+    }
+}
+
+impl From<url::ParseError> for LoginError {
+    fn from(err: url::ParseError) -> Self {
+        LoginError::UrlParseError(err)
+    }
+}
+
+struct CarelinkLogin {
+    client: Arc<Client>,
+    username: String,
+    password: String,
+}
+
+impl CarelinkLogin {
+    fn new(client: Arc<Client>, username: String, password: String) -> CarelinkLogin {
+        Self {
+            client,
+            username: username.to_string(),
+            password: password.to_string(),
+        }
+    }
+
+    // 主登录方法
+    pub async fn login(&self) -> Result<String, LoginError> {
+        info!("开始登录流程...");
+
+        // 步骤1：获取初始重定向地址
+        let auth_url = self.get_initial_redirect().await?;
+
+        // 步骤2：获取登录页面地址
+        let login_page_url = self.get_login_page(&auth_url).await?;
+
+        // 步骤3：访问登录页面，获取state参数
+        let state = self.visit_login_page(&login_page_url).await?;
+
+        // 步骤4：提交登录表单
+        let resume_url = self.submit_login(&login_page_url, &state).await?;
+
+        // 步骤5：访问授权继续页面
+        let final_url = self.resume_authorization(&resume_url).await?;
+
+        // 步骤6：获取最终的auth token
+        let auth_token = self.get_auth_token(&final_url).await?;
+
+        info!("登录成功！");
+        Ok(auth_token)
+    }
+
+    fn show_status(&self, response: &Response) {
+        info!("response status:{}", response.status());
+    }
+
+    async fn get_initial_redirect(&self) -> Result<String, LoginError> {
+        let url = format!(
+            "{}{}",
+            CARELINK_BASE_URL, "/patient/sso/login?country=hk&lang=zh"
+        );
+        info!("步骤1：访问 {}", url);
+        let response = self.client.get(url).send().await?;
+        // 从Location头部获取重定向地址
+        let location = response
+            .headers()
+            .get("location")
+            .ok_or(LoginError::MissingLocationHeader)?
+            .to_str()
+            .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
+        self.show_status(&response);
+        info!("步骤1完成：重定向到 {}", location);
+        Ok(location.to_string())
+    }
+
+    // 步骤2：获取登录页面地址
+    async fn get_login_page(&self, auth_url: &str) -> Result<String, LoginError> {
+        info!("步骤2：访问 {}", auth_url);
+
+        let response = self.client.get(auth_url).send().await?;
+
+        // 从Location头部获取重定向地址
+        let location = response
+            .headers()
+            .get("location")
+            .ok_or(LoginError::MissingLocationHeader)?
+            .to_str()
+            .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
+
+        // 构建完整的URL
+        let full_url = if location.starts_with("http") {
+            location.to_string()
+        } else {
+            let base = Url::parse(CARELINK_LOGIN_URL)?;
+            let url = base.join(location)?;
+            url.to_string()
+        };
+        self.show_status(&response);
+        info!("步骤2完成：登录页面 {}", full_url);
+        Ok(full_url)
+    }
+
+    // 步骤3：访问登录页面（获取必要参数）
+    async fn visit_login_page(&self, login_url: &str) -> Result<String, LoginError> {
+        info!("步骤3：访问登录页面 {}", login_url);
+
+        let response = self.client.get(login_url).send().await?;
+
+        // 检查状态码
+        if !response.status().is_success() {
+            return Err(LoginError::LoginFailed(format!(
+                "登录页面访问失败: {}",
+                response.status()
+            )));
+        }
+
+        // let _ = &response.text().await?;
+        // 从URL中提取state参数
+        let url = Url::parse(login_url)?;
+        let pairs: Vec<(String, String)> = url.query_pairs().into_owned().collect();
+
+        let state = pairs
+            .iter()
+            .find(|(key, _)| key == "state")
+            .map(|(_, value)| value.clone())
+            .ok_or(LoginError::LoginFailed("未找到state参数".to_string()))?;
+        self.show_status(&response);
+        info!("步骤3完成：获取到state参数");
+        Ok(state)
+    }
+
+    // 步骤4：提交登录表单
+    async fn submit_login(&self, login_url: &str, state: &str) -> Result<String, LoginError> {
+        info!("步骤4：提交登录表单到 {}", login_url);
+
+        let mut form_data = HashMap::new();
+        form_data.insert("state", state);
+        form_data.insert("username", self.username.as_str());
+        form_data.insert("password", self.password.as_str());
+        form_data.insert("action", "default");
+
+        let response = self
+            .client
+            .post(login_url)
+            .form(&form_data)
+            // .header("Content-Type", "application/x-www-form-urlencoded")
+            // .header("User-Agent", UA)
+            .send()
+            .await?;
+
+        let status = response.status();
+        // 检查状态码是否为302
+        if status != 302 {
+            // 可能是登录失败，检查响应内容
+            let body = response.text().await?;
+            if body.contains("Invalid username or password") || body.contains("登录失败") {
+                return Err(LoginError::LoginFailed("用户名或密码错误".to_string()));
+            }
+            return Err(LoginError::LoginFailed(format!(
+                "登录失败，状态码: {}",
+                status
+            )));
+        }
+        self.show_status(&response);
+        // 从Location头部获取重定向地址
+        let location = response
+            .headers()
+            .get("location")
+            .ok_or(LoginError::MissingLocationHeader)?
+            .to_str()
+            .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
+
+        // 构建完整的URL
+        let full_url = if location.starts_with("http") {
+            location.to_string()
+        } else {
+            let base = Url::parse(CARELINK_LOGIN_URL)?;
+            let url = base.join(location)?;
+            url.to_string()
+        };
+
+        info!("步骤4完成：重定向到 {}", full_url);
+        Ok(full_url)
+    }
+
+    // 步骤5：访问授权继续页面
+    async fn resume_authorization(&self, resume_url: &str) -> Result<String, LoginError> {
+        info!("步骤5：访问 {}", resume_url);
+
+        let response = self.client.get(resume_url).send().await?;
+
+        // 检查状态码是否为302
+        if response.status() != 302 {
+            return Err(LoginError::LoginFailed(format!(
+                "期望状态码302，得到{}",
+                response.status()
+            )));
+        }
+
+        // 从Location头部获取重定向地址
+        let location = response
+            .headers()
+            .get("location")
+            .ok_or(LoginError::MissingLocationHeader)?
+            .to_str()
+            .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
+        self.show_status(&response);
+        info!("步骤5完成：重定向到 {}", location);
+        Ok(location.to_string())
+    }
+
+    // 步骤6：获取最终的auth token
+    async fn get_auth_token(&self, final_url: &str) -> Result<String, LoginError> {
+        info!("步骤6：访问 {}", final_url);
+
+        let response = self.client.get(final_url).send().await?;
+
+        // 检查状态码是否为307
+        if response.status() != 307 {
+            return Err(LoginError::LoginFailed(format!(
+                "期望状态码307，得到{}",
+                response.status()
+            )));
+        }
+        self.show_status(&response);
+        // 从Set-Cookie头部提取auth_tmp_token
+        let cookies = response
+            .headers()
+            .get_all("set-cookie")
+            .iter()
+            .filter_map(|h| h.to_str().ok())
+            .collect::<Vec<_>>();
+
+        // 查找包含auth_tmp_token的cookie
+        let token_regex = Regex::new(r"auth_tmp_token=([^;]+)").unwrap();
+
+        for cookie in cookies {
+            if let Some(captures) = token_regex.captures(cookie) {
+                if let Some(token) = captures.get(1) {
+                    let auth_token = token.as_str();
+                    info!("步骤6完成：成功获取auth_tmp_token");
+                    return Ok(auth_token.to_string());
+                }
+            }
+        }
+        Err(LoginError::AuthTokenNotFound)
+    }
 }

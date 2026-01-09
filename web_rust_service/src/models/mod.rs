@@ -12,6 +12,8 @@ use axum::{
     Json,
 };
 use garde::Validate;
+use reqwest::cookie::Jar;
+use reqwest::redirect::Policy;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -54,12 +56,15 @@ impl AppState {
         task_manager: TaskManager,
         email: EmailService,
     ) -> Self {
+        let cookie_jar = Jar::default();
         Self {
             redis: Arc::new(redis),
             http_client: Arc::new(
                 Client::builder()
-                    .cookie_store(true)
-                    .use_rustls_tls()
+                    .cookie_provider(Arc::new(cookie_jar))
+                    // .cookie_store(true)
+                    .redirect(Policy::none())
+                    // .use_rustls_tls()
                     .timeout(Duration::from_secs(HTTP_TIMEOUT))
                     .build()
                     .expect("Failed to build reqwest client"),
@@ -219,6 +224,7 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserSetting {
     pub user_key: String,
+    pub carelink_password: String,
     pub cgm: CgmType,
     pub patient_id: String,
     pub username: String,
@@ -233,6 +239,7 @@ impl UserSetting {
     pub fn null() -> Self {
         UserSetting {
             user_key: String::new(),
+            carelink_password: String::new(),
             cgm: CgmType::Carelink,
             patient_id: "".to_string(),
             username: "".to_string(),
