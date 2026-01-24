@@ -9,7 +9,6 @@ use garde::rules::pattern::regex::Regex;
 use reqwest::{Client, Response};
 use serde_json::{json, Value};
 use std::collections::HashMap;
-use std::string::ToString;
 use std::sync::Arc;
 use tracing::{debug, error, info};
 use url::Url;
@@ -113,7 +112,7 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                 );
                 match carelink_login(&state, &setting).await {
                     Ok(_) => {}
-                  Err(_) => {
+                    Err(_) => {
                         update_carelink_data(
                             &redis, // 注意：这里传递的是 &RedisService
                             &setting.user_key,
@@ -721,7 +720,7 @@ pub async fn carelink_login(
     state: &AppState,
     user_setting: &UserSetting,
 ) -> Result<bool, LoginError> {
-    let carelink_login = CarelinkLogin::new(
+    let mut carelink_login = CarelinkLogin::new(
         state.http_client.clone(),
         user_setting.username.clone(),
         user_setting.carelink_password.clone(),
@@ -745,9 +744,10 @@ pub async fn carelink_login(
                     );
                     Ok(true)
                 }
-                Err(e) => {
-                    Err(LoginError::LoginFailed(format!("Carelink get user auth data error: {:?}", e)))
-                }
+                Err(e) => Err(LoginError::LoginFailed(format!(
+                    "Carelink get user auth data error: {:?}",
+                    e
+                ))),
             }
         }
         Err(e) => {
@@ -765,7 +765,7 @@ pub async fn carelink_login(
 pub enum LoginError {
     HttpError(reqwest::Error),
     UrlParseError(url::ParseError),
-    MissingLocationHeader,
+    MissingLocationHeader(u8),
     AuthTokenNotFound,
     LoginFailed(String),
 }
@@ -838,7 +838,7 @@ impl CarelinkLogin {
         let location = response
             .headers()
             .get("location")
-            .ok_or(LoginError::MissingLocationHeader)?
+            .ok_or(LoginError::MissingLocationHeader(1))?
             .to_str()
             .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
         self.show_status(&response);
@@ -851,12 +851,12 @@ impl CarelinkLogin {
         info!("步骤2：访问 {}", auth_url);
 
         let response = self.client.get(auth_url).send().await?;
-
+        self.show_status(&response);
         // 从Location头部获取重定向地址
         let location = response
             .headers()
             .get("location")
-            .ok_or(LoginError::MissingLocationHeader)?
+            .ok_or(LoginError::MissingLocationHeader(2))?
             .to_str()
             .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
 
@@ -868,7 +868,6 @@ impl CarelinkLogin {
             let url = base.join(location)?;
             url.to_string()
         };
-        self.show_status(&response);
         info!("步骤2完成：登录页面 {}", full_url);
         Ok(full_url)
     }
@@ -879,6 +878,7 @@ impl CarelinkLogin {
 
         let response = self.client.get(login_url).send().await?;
 
+        self.show_status(&response);
         // 检查状态码
         if !response.status().is_success() {
             return Err(LoginError::LoginFailed(format!(
@@ -897,7 +897,6 @@ impl CarelinkLogin {
             .find(|(key, _)| key == "state")
             .map(|(_, value)| value.clone())
             .ok_or(LoginError::LoginFailed("未找到state参数".to_string()))?;
-        self.show_status(&response);
         info!("步骤3完成：获取到state参数");
         Ok(state)
     }
@@ -921,6 +920,7 @@ impl CarelinkLogin {
             .send()
             .await?;
 
+        self.show_status(&response);
         let status = response.status();
         // 检查状态码是否为302
         if status != 302 {
@@ -934,12 +934,11 @@ impl CarelinkLogin {
                 status
             )));
         }
-        self.show_status(&response);
         // 从Location头部获取重定向地址
         let location = response
             .headers()
             .get("location")
-            .ok_or(LoginError::MissingLocationHeader)?
+            .ok_or(LoginError::MissingLocationHeader(4))?
             .to_str()
             .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
 
@@ -974,7 +973,7 @@ impl CarelinkLogin {
         let location = response
             .headers()
             .get("location")
-            .ok_or(LoginError::MissingLocationHeader)?
+            .ok_or(LoginError::MissingLocationHeader(5))?
             .to_str()
             .map_err(|_| LoginError::LoginFailed("无效的Location头部".to_string()))?;
         self.show_status(&response);
