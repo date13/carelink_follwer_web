@@ -2,12 +2,12 @@ use crate::models::{AppState, UserSetting};
 use crate::utils::ar2::forecast_ar2_sg;
 use crate::utils::mail::EmailService;
 use crate::utils::redis_client::{RedisResult, RedisService};
-use crate::utils::{DateUtils, JsonHelp, parse_json};
+use crate::utils::{parse_json, DateUtils, JsonHelp};
 use axum::http::StatusCode;
 use chrono::{Duration, Local};
 use garde::rules::pattern::regex::Regex;
 use reqwest::{Client, Response};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, error, info};
@@ -64,7 +64,10 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
                     .send()
                     .await
                     .inspect_err(|e| {
-                        send_mail(state.email.clone(), format!("刷新token错误,{:#?}", e));
+                        send_mail(
+                            state.email.clone(),
+                            format!("刷新token错误,{:#?}", e).as_str(),
+                        );
                     })
                     .expect("Failed to send token request");
 
@@ -83,7 +86,7 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
                     // result
                 } else {
                     let text = format!("用户:{} 获取 carelinkToken 数据失败!!!:{}", user, status);
-                    send_mail(state.email.clone(), text.clone());
+                    send_mail(state.email.clone(), text.as_str());
                     error!("{}", text)
                 }
                 update_carelink_auth_data_to_redis(&mut auth_data, &state.redis, user_key).await;
@@ -98,25 +101,43 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
 pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting) {
     // state.redis.get_json()
     info!("Carelink refresh data");
-    let auth_key = format!("{}:{}", user_setting.user_key, DictKeys::AUTH);
+    let user_key = user_setting.user_key.clone();
+    let auth_key = format!("{}:{}", user_key, DictKeys::AUTH);
     let redis = state.redis.clone(); // 确保 RedisService 实现了 Clone + Send
-    let mut mut_setting = state.get_user_settings(user_setting.user_key.as_str()).await;
-
+    let mut mut_setting = state.get_user_settings(user_key.as_str()).await;
     match state.redis.get_json::<Value>(&auth_key).await.get_json() {
-        Ok(data) => {
-            let status = data.get_i64("status") as u16;
+        Ok(mut auth_data) => {
+            let status = auth_data.get_i64("status") as u16;
             if status == StatusCode::UNAUTHORIZED.as_u16() {
                 if mut_setting.can_login() {
-                    info!(
-                    "用户:{} refreshCarelinkData token失效,开始自动刷新Token,当前状态:{}",
-                    user_setting.user_key, status
-                );
+                    let text = format!(
+                        "用户:{} refreshCarelinkData token失效,开始第'{}'次自动刷新Token,当前状态-{}",
+                        user_key, mut_setting.retry, status
+                    );
+                    info!(text);
+                    send_mail(state.email.clone(), text.as_str());
                     match carelink_login(&state, &user_setting).await {
                         Ok(_) => {
+                            send_mail(
+                                state.email.clone(),
+                                format!(
+                                    "用户:{},第{}次自动登录成功!!!",
+                                    user_key, mut_setting.retry
+                                )
+                                    .as_str(),
+                            );
                             mut_setting.reset_retry();
                         }
                         Err(_) => {
-                            mut_setting.add_retry();
+                            send_mail(
+                                state.email.clone(),
+                                format!(
+                                    "用户:{},第{}次自动登录失败!!!",
+                                    user_key, mut_setting.retry
+                                )
+                                    .as_str(),
+                            );
+                            mut_setting.add_retry(); // 邮件发送函数需要另外实现
                             update_carelink_data(
                                 &redis, // 注意：这里传递的是 &RedisService
                                 &user_setting.user_key,
@@ -126,10 +147,13 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                                 .await
                         }
                     }
+                } else {
+                    let text = format!("用户:{} 自动登录超过次数限制!!!", user_key);
+                    info!(text);
+                    send_mail(state.email.clone(), text.as_str());
                 }
-
             } else {
-                let token = data.get_string("token");
+                let token = auth_data.get_string("token");
                 if token.is_empty() {
                     info!(
                         "用户:{} refreshCarelinkData token为空,请手动刷新Token",
@@ -143,14 +167,28 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                         &token,
                         user_setting.clone(),
                     )
-                    .await;
+                        .await;
                     update_carelink_data(
                         &redis, // 注意：这里传递的是 &RedisService
                         &user_setting.user_key,
                         status,
                         json_data,
                     )
-                    .await;
+                        .await;
+                    // 重置最大登录限制
+                    if status == StatusCode::OK.as_u16() as i32 && mut_setting.retry > 1 {
+                        mut_setting.reset_retry();
+                    }
+                    // 如果读取数据401了,直接把auth_data的状态改为401,去自动登录
+                    if status == StatusCode::UNAUTHORIZED.as_u16() as i32 {
+                        auth_data["status"] = status.into();
+                        update_carelink_auth_data_to_redis(
+                            &mut auth_data,
+                            &state.redis,
+                            user_key.as_str(),
+                        )
+                        .await;
+                    }
                 }
             }
         }
@@ -201,7 +239,10 @@ pub async fn load_carelink_data(
         .send()
         .await
         .inspect_err(|e| {
-            send_mail(email.clone(), format!("刷新CarelinkDate错误,{:#?}", e));
+            send_mail(
+                email.clone(),
+                format!("刷新CarelinkDate错误,{:#?}", e).as_str(),
+            );
         })
         .expect("Failed to send data request");
 
@@ -214,7 +255,10 @@ pub async fn load_carelink_data(
                 (StatusCode::OK.as_u16() as i32, Some(value))
             }
             Err(e) => {
-                send_mail(email.clone(), format!("解析CarelinkDate JSON错误,{:#?}", e));
+                send_mail(
+                    email.clone(),
+                    format!("解析CarelinkDate JSON错误,{:#?}", e).as_str(),
+                );
                 // 返回错误状态码和 None
                 (StatusCode::UNPROCESSABLE_ENTITY.as_u16() as i32, None)
             }
@@ -222,7 +266,7 @@ pub async fn load_carelink_data(
         // result
     } else {
         let text = format!("用户:{} 读取 carelinkData 数据失败!!!:{}", user, status);
-        send_mail(email.clone(), text.clone());
+        send_mail(email.clone(), text.as_str());
         error!("{}", text);
         // send_mail(&text); // 邮件发送函数需要另外实现
         // Err(reqwest::Error::from("")
@@ -704,13 +748,14 @@ fn increment_field(day_obj: &mut Value, field: &str, increment: u64) {
     }
 }
 
-pub fn send_mail(email_service: Arc<EmailService>, text: String) {
+pub fn send_mail(email_service: Arc<EmailService>, text: &str) {
+    let msg = String::from(text);
     tokio::spawn(async move {
         match email_service
             .send_text_email(
                 email_service.to.as_str(),
                 "carelink_follower_web警报",
-                text.as_str(),
+                msg.as_str(),
             )
             .await
         {
@@ -746,7 +791,7 @@ pub async fn carelink_login(
                     info!("Carelink token refresh successful");
                     send_mail(
                         state.email.clone(),
-                        format!("Carelink token refresh successful, token is:{}", token),
+                        format!("Carelink token refresh successful, token is:{}", token).as_str(),
                     );
                     Ok(true)
                 }
@@ -759,7 +804,7 @@ pub async fn carelink_login(
         Err(e) => {
             let msg = format!("Carelink login error: {:?}", e);
             error!(msg);
-            send_mail(state.email.clone(), msg.clone());
+            send_mail(state.email.clone(), msg.as_str());
             Err(LoginError::LoginFailed(msg))
         }
     }
