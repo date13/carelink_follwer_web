@@ -90,6 +90,8 @@ async fn init_user_state(state: AppState, is_scheduler: bool) {
                                     .get_i64_or("carelink_token_refresh_interval", 150),
                                 carelink_data_refresh_interval: config
                                     .get_i64_or("carelink_data_refresh_interval", 150),
+                                retry: 0,
+                                max_retries: 5,
                             };
                             state.save_user_settings(&name, setting.clone()).await;
                             info!("用户:{}数据初始化完成", username);

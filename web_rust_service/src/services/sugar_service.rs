@@ -2,12 +2,12 @@ use crate::models::{AppState, UserSetting};
 use crate::utils::ar2::forecast_ar2_sg;
 use crate::utils::mail::EmailService;
 use crate::utils::redis_client::{RedisResult, RedisService};
-use crate::utils::{parse_json, DateUtils, JsonHelp};
+use crate::utils::{DateUtils, JsonHelp, parse_json};
 use axum::http::StatusCode;
 use chrono::{Duration, Local};
 use garde::rules::pattern::regex::Regex;
 use reqwest::{Client, Response};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, error, info};
@@ -21,7 +21,6 @@ pub const CARELINK_DATA_URL: &str =
 pub const HTTP_TIMEOUT: u64 = 120;
 pub const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0";
 const FORECAST_COUNT: usize = 30;
-
 const LUCK_LIMIT: u8 = 92;
 const MIN_LUCK_CV: u8 = 27;
 // 或者使用 associated constants
@@ -101,27 +100,34 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
     info!("Carelink refresh data");
     let auth_key = format!("{}:{}", user_setting.user_key, DictKeys::AUTH);
     let redis = state.redis.clone(); // 确保 RedisService 实现了 Clone + Send
-    let setting = user_setting.clone();
+    let mut mut_setting = state.get_user_settings(user_setting.user_key.as_str()).await;
+
     match state.redis.get_json::<Value>(&auth_key).await.get_json() {
         Ok(data) => {
             let status = data.get_i64("status") as u16;
             if status == StatusCode::UNAUTHORIZED.as_u16() {
-                info!(
+                if mut_setting.can_login() {
+                    info!(
                     "用户:{} refreshCarelinkData token失效,开始自动刷新Token,当前状态:{}",
                     user_setting.user_key, status
                 );
-                match carelink_login(&state, &setting).await {
-                    Ok(_) => {}
-                    Err(_) => {
-                        update_carelink_data(
-                            &redis, // 注意：这里传递的是 &RedisService
-                            &setting.user_key,
-                            status as i32,
-                            None,
-                        )
-                            .await
+                    match carelink_login(&state, &user_setting).await {
+                        Ok(_) => {
+                            mut_setting.reset_retry();
+                        }
+                        Err(_) => {
+                            mut_setting.add_retry();
+                            update_carelink_data(
+                                &redis, // 注意：这里传递的是 &RedisService
+                                &user_setting.user_key,
+                                status as i32,
+                                None,
+                            )
+                                .await
+                        }
                     }
                 }
+
             } else {
                 let token = data.get_string("token");
                 if token.is_empty() {
@@ -135,16 +141,16 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                         &state.http_client,
                         state.email.clone(),
                         &token,
-                        setting.clone(),
+                        user_setting.clone(),
                     )
-                        .await;
+                    .await;
                     update_carelink_data(
                         &redis, // 注意：这里传递的是 &RedisService
-                        &setting.user_key,
+                        &user_setting.user_key,
                         status,
                         json_data,
                     )
-                        .await;
+                    .await;
                 }
             }
         }
@@ -225,7 +231,7 @@ pub async fn load_carelink_data(
 }
 
 // 更新Redis数据
-async fn update_carelink_data(
+pub async fn update_carelink_data(
     redis: &RedisService,
     user_key: &str,
     status: i32,
@@ -720,7 +726,7 @@ pub async fn carelink_login(
     state: &AppState,
     user_setting: &UserSetting,
 ) -> Result<bool, LoginError> {
-    let mut carelink_login = CarelinkLogin::new(
+    let carelink_login = CarelinkLogin::new(
         state.http_client.clone(),
         user_setting.username.clone(),
         user_setting.carelink_password.clone(),

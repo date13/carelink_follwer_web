@@ -1,24 +1,36 @@
+pub mod test_login;
+
 #[cfg(test)]
 mod test {
-    use super::*;
+    #[allow(dead_code)]
+    #[allow(unused)]
+    #[allow(unused_variables)]
+    #[allow(unused_imports)]
     use crate::config::RedisConfig;
-    use crate::models::{AppError, CgmType, UserSetting};
-    use crate::services::sugar_service::{load_carelink_data, save_history_data, update_carelink_my_data_yesterday_data, update_luck_data, update_statistics, DictKeys, CARELINK_DATA_URL, CARELINK_REFRESH_TOKEN_URL, HTTP_TIMEOUT, UA};
+    use crate::models::{AppState, CgmType, UserSetting};
+    use crate::services::sugar_service::{
+        CARELINK_DATA_URL, CARELINK_REFRESH_TOKEN_URL, DictKeys, HTTP_TIMEOUT, UA, carelink_login,
+        save_history_data, update_carelink_my_data_yesterday_data, update_statistics,
+    };
+    use crate::test::test_login::test_carelink_login;
+    use crate::utils;
+    use crate::utils::JsonHelp;
     use crate::utils::ar2::forecast_ar2_sg;
+    use crate::utils::jwt_token::JwtConfig;
     use crate::utils::mail::EmailService;
-    use crate::utils::redis_client::{create_redis_pool, RedisResult, RedisService};
+    use crate::utils::redis_client::{RedisResult, RedisService, create_redis_pool};
     use crate::utils::task::{ScheduleType, TaskManager};
-    use crate::utils::{DateUtils, JsonHelp};
-    use anyhow::Error;
     use axum::http::StatusCode;
     use chrono::{DateTime, Local, NaiveDateTime, Utc};
     use reqwest::Client;
-    use serde_json::{json, Value};
+    use reqwest::cookie::Jar;
+    use reqwest::redirect::Policy;
+    use serde_json::{Value, json};
     use std::collections::HashMap;
     use std::sync::Arc;
     use std::time::Duration;
     use tokio::time::sleep;
-    use tracing::{debug, error, info};
+    use tracing::{error, info};
 
     #[test]
     fn test_time() {
@@ -39,7 +51,7 @@ mod test {
         let datetime_str = "2023-01-01 12:00:00";
         let naive_datetime =
             NaiveDateTime::parse_from_str(datetime_str, "%Y-%m-%d %H:%M:%S").unwrap();
-        println!("解析的时间戳(秒): {}", naive_datetime.timestamp());
+        println!("解析的时间戳(秒): {}", naive_datetime.and_utc().timestamp());
 
         // 时间戳转 DateTime
         let timestamp = 1672531200; // 2023-01-01 00:00:00 UTC
@@ -70,6 +82,7 @@ mod test {
         };
         let redis_pool = create_redis_pool(&config).await.unwrap();
         let http_client = Client::builder()
+            .redirect(Policy::none())
             .cookie_store(true)
             .use_rustls_tls()
             .timeout(Duration::from_secs(HTTP_TIMEOUT))
@@ -77,11 +90,75 @@ mod test {
             .expect("Failed to build reqwest client");
         ("alex", RedisService::new(redis_pool), http_client)
     }
+
+    #[allow(dead_code)]
+    #[allow(unused)]
+    #[allow(unused_variables)]
+    async fn get_state_and_user_setting() -> (AppState, UserSetting) {
+        let config = RedisConfig {
+            url: "redis://localhost:6379/13".to_string(),
+            max_connections: 20,
+            min_connections: 1,
+            connection_timeout: 30,
+            max_lifetime: 1800,
+        };
+        let cookie_jar = Jar::default();
+        let redis_pool = create_redis_pool(&config).await.unwrap();
+        let state = AppState::new(
+            RedisService::new(redis_pool),
+            JwtConfig::new("123".to_string(), 1),
+            TaskManager::new().await,
+            EmailService::new(
+                "localhost".to_string(),
+                455,
+                "test".to_string(),
+                "test".to_string(),
+                "test".to_string(),
+                "test".to_string(),
+            ),
+        );
+        (
+            state,
+            UserSetting {
+                user_key: "alex".to_string(),
+                admin: true,
+                carelink_password: "pigMing1983!".to_string(),
+                carelink_data_refresh_interval: 160,
+                carelink_token_refresh_interval: 350,
+                cgm: CgmType::Carelink,
+                patient_id: "date13".to_string(),
+                role: "patient".to_string(),
+                sse_interval: 10,
+                username: "date13".to_string(),
+                retry:0,
+                max_retries:5
+            },
+        )
+    }
+
+    #[allow(dead_code)]
+    #[allow(unused)]
+    #[allow(unused_variables)]
+    #[tokio::test]
+    async fn test_carewlink_login() {
+        utils::init_logger("info");
+        let (state, user_setting) = get_state_and_user_setting().await;
+        match carelink_login(&state, &user_setting).await {
+            Ok(_) => {}
+            Err(e) => {
+                error!("{:?}", e);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    #[allow(unused)]
+    #[allow(unused_variables)]
     #[tokio::test]
     async fn test_json() {
         let (name, redis_service, client) = get_redis().await;
         let data_key = format!("{}:{}", name, DictKeys::DATA);
-        
+
         if let Ok(Some(mut org_data)) = redis_service.get_json::<Value>(data_key.as_str()).await {
             let mut org_sugar_data = &mut org_data["data"];
             save_history_data(&mut org_sugar_data, &redis_service, name.to_string()).await;
@@ -90,7 +167,8 @@ mod test {
                 &mut org_sugar_data,
                 &redis_service,
                 name.to_string(),
-            ).await;
+            )
+            .await;
             update_statistics(&mut org_data, &redis_service, name.to_string()).await;
         }
 
@@ -135,7 +213,7 @@ mod test {
         ]);
         let auth_key = format!("{}:{}", name, DictKeys::AUTH);
         match redis.get_json::<Value>(&auth_key).await.get_json() {
-            Ok(mut auth_data) => {
+            Ok(auth_data) => {
                 let token = auth_data.get_string("token");
                 let response = client
                     .post(CARELINK_DATA_URL)
@@ -166,6 +244,10 @@ mod test {
             _ => {}
         }
     }
+
+    #[allow(dead_code)]
+    #[allow(unused)]
+    #[allow(unused_variables)]
     #[tokio::test]
     async fn test_token() {
         let (name, redis, client) = get_redis().await;
@@ -254,10 +336,14 @@ mod test {
     }
 
     #[tokio::test]
+    #[allow(dead_code)]
+    #[allow(unused)]
+    #[allow(unused_variables)]
     async fn test_load_carelink_data() {
         let token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjhScXhuTW04dmcyR29feTFMQVZoOSJ9.eyJ0b2tlbl9kZXRhaWxzIjp7ImNvdW50cnkiOiJISyIsInByZWZlcnJlZF91c2VybmFtZSI6ImRhdGUxMyIsInJvbGVzIjpbInBhdGllbnRfb3VzIl19LCJpc3MiOiJodHRwczovL21kdC1jbC1vdXMtcHJvZDEubWVkdHJvbmljLWV1LmF1dGgwYXBwLmNvbS8iLCJzdWIiOiJhdXRoMHxkYXRlMTMiLCJhdWQiOlsicGVyc29uYWwucGF0aWVudC5vdXMiLCJodHRwczovL21kdC1jbC1vdXMtcHJvZDEubWVkdHJvbmljLWV1LmF1dGgwYXBwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3NjU2MTU4MTYsImV4cCI6MTc2NTYxODgxNiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBvZmZsaW5lX2FjY2VzcyIsImF6cCI6Ik1wc0dJdm9JZmp3R2RYN0x4cTZUSGhDVE1NeEtRTlU5In0.AD0H5UAGB0ejpGyrwAkRC4_TQPUUMp05HAzXb6MWVMtUMenv3BiSEprGNtD4fEnPgA64cvMXJHJjL-xJccVA3kjyEeCEnYqGU8OeZWoDppUllh0VDghgwqrsOMKbk6qSrNwvM3gZQEvMEweibL0qXcSnwCDo0xh_SgLGcUfxEbgTwzPqiR5cPbnQ903_EaLfEOP92mupTtsOlh7x0bgV4nxKf87vB0tEdFFkyQqy80OmHeYeEfLrNn46s1cy1lsA96Vp6Au5r5R6UlHq3u4rrWmPVUZYr-GjUruW5NUb1rGKaj0Pb65ThglJ1m1neDCCI_pJIjlkG73bypDNftHD8w";
         let user_setting = UserSetting {
             user_key: "alex".to_string(),
+            carelink_password: "".to_string(),
             cgm: CgmType::Carelink,
             patient_id: "date13".to_string(),
             username: "date13".to_string(),
@@ -266,6 +352,8 @@ mod test {
             sse_interval: 10,
             carelink_token_refresh_interval: 10,
             carelink_data_refresh_interval: 10,
+            retry: 0,
+            max_retries: 5,
         };
         // let result = load_carelink_data(token, &user_setting).await;
         // info!("{:?}", result);
@@ -339,6 +427,18 @@ mod test {
             }
             Ok(_) => {
                 println!("send mail success");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_login() {
+        match test_carelink_login().await {
+            Ok(_) => {
+                println!("login success");
+            }
+            Err(e) => {
+                println!("login error:{}", e);
             }
         }
     }

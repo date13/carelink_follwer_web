@@ -92,6 +92,12 @@ export class SugarService extends BaseService {
     })
   }
 
+  autoLogin() {
+    return HttpClient.put(`${this.apiContext}auto_login`, {
+      mask: true
+    })
+  }
+
   loadFood() {
     return HttpClient.get(`${this.apiContext}foods`, {})
   }

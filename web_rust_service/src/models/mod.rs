@@ -7,21 +7,21 @@ use anyhow::Result;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use garde::Validate;
+use reqwest::Client;
 use reqwest::cookie::Jar;
 use reqwest::redirect::Policy;
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock};
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub enum CgmType {
@@ -62,8 +62,9 @@ impl AppState {
             http_client: Arc::new(
                 Client::builder()
                     .cookie_provider(Arc::new(cookie_jar))
-                    // .cookie_store(true)
+                    .cookie_store(true)
                     .redirect(Policy::none())
+                    .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0")
                     // .use_rustls_tls()
                     .timeout(Duration::from_secs(HTTP_TIMEOUT))
                     .build()
@@ -233,6 +234,8 @@ pub struct UserSetting {
     pub sse_interval: i64,
     pub carelink_token_refresh_interval: i64,
     pub carelink_data_refresh_interval: i64,
+    pub retry: u8,
+    pub max_retries: u8,
 }
 
 impl UserSetting {
@@ -248,7 +251,21 @@ impl UserSetting {
             sse_interval: 30,
             carelink_token_refresh_interval: 3600,
             carelink_data_refresh_interval: 3600,
+            retry: 0,
+            max_retries: 5,
         }
+    }
+
+    pub fn can_login(&self) -> bool {
+        self.retry <= self.max_retries
+    }
+
+    pub fn add_retry(&mut self) {
+        self.retry += 1;
+    }
+
+    pub fn reset_retry(&mut self) {
+        self.retry = 0;
     }
 }
 

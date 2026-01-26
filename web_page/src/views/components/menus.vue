@@ -8,6 +8,7 @@
         <el-dropdown-item command="info">Info</el-dropdown-item>
         <el-dropdown-item command="dict">Dict</el-dropdown-item>
         <el-dropdown-item command="food">Food</el-dropdown-item>
+        <el-dropdown-item v-if="user.cgm.indexOf('carelink')!==-1" command="autoLogin">AutoLogin</el-dropdown-item>
         <el-dropdown-item v-if="user.cgm.indexOf('carelink')!==-1" command="login">Login</el-dropdown-item>
         <template v-if="user.cgm.indexOf('dexcom')!==-1">
           <el-dropdown-item command="loginDexcom">LoginDex</el-dropdown-item>

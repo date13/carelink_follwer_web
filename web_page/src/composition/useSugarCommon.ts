@@ -275,6 +275,11 @@ export default function (funcObj: any = {}) {
   async function handleMenu(command) {
     if (command === 'login') {
       window.open("https://carelink.minimed.eu/patient/sso/login?country=hk&lang=zh")
+    }else if (command === 'autoLogin') {
+      const result = await sugarService.autoLogin()
+      if (result) {
+        Msg.successMsg('自动登录成功')
+      }
     } else if (command === 'loginDexcom') {
       window.open(`${API_URL}public/dexcomLogin/${Tools.getUser().name}`)
     } else if (command === 'refreshDexToken') {

@@ -1,16 +1,19 @@
 use crate::models::{ApiResponse, ApiResult, AppError, User};
 use crate::routes::AppState;
-use crate::services::sugar_service::{carelink_refresh_data, DictKeys};
-use crate::utils::redis_client::RedisResult;
+use crate::services::sugar_service::{
+    DictKeys, carelink_login, carelink_refresh_data, update_carelink_data,
+};
 use crate::utils::JsonHelp;
+use crate::utils::redis_client::RedisResult;
 use axum::extract::{Path, State};
-use axum::response::sse::Event;
 use axum::response::Sse;
+use axum::response::sse::Event;
 use axum::routing::{delete, get, put};
 use axum::{Json, Router};
 use chrono::Local;
 use futures::stream::{self, Stream};
-use serde_json::{json, Value};
+use reqwest::StatusCode;
+use serde_json::{Value, json};
 use std::convert::Infallible;
 use std::time::Duration;
 use tokio_stream::StreamExt as _;
@@ -24,7 +27,30 @@ pub fn sugar_router() -> Router<AppState> {
         .route("/food", put(set_food))
         .route("/food/{key}", delete(del_food))
         .route("/refreshCarelinkData", put(refresh_carelink_data))
+        .route("/auto_login", put(auto_login))
     // .route("/get_hash_from_redis", get(get_hash_from_redis))
+}
+
+pub async fn auto_login(user: User, State(state): State<AppState>) -> ApiResponse<bool> {
+    let name = user.name.unwrap_or("".to_string());
+    let mut setting = state.get_user_settings(name.as_str()).await;
+    match carelink_login(&state, &setting).await {
+        Ok(_) => {
+            setting.reset_retry();
+            ApiResult::success(true)
+        }
+        Err(_) => {
+            setting.add_retry();
+            update_carelink_data(
+                &state.redis, // 注意：这里传递的是 &RedisService
+                &setting.user_key,
+                StatusCode::UNAUTHORIZED.as_u16() as i32,
+                None,
+            )
+            .await;
+            ApiResult::error(-401, "自动登录失败".to_string())
+        }
+    }
 }
 
 async fn load_sugar_data(name: &str, state: AppState) -> Result<(Value, Value), AppError> {
@@ -52,7 +78,7 @@ pub async fn load_data(user: User, State(state): State<AppState>) -> ApiResponse
 pub async fn load_data_sse(
     user: User,
     State(state): State<AppState>,
-) -> Sse<impl Stream<Item=Result<Event, Infallible>>> {
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let name = user.name.unwrap_or("".to_string());
     let setting = state.get_user_settings(&name).await;
 
@@ -76,10 +102,10 @@ pub async fn load_data_sse(
                 .unwrap()
         }
     })
-        // 使用 then 处理异步操作
-        .then(|f| f)
-        .map(Ok)
-        .throttle(Duration::from_secs(setting.sse_interval as u64));
+    // 使用 then 处理异步操作
+    .then(|f| f)
+    .map(Ok)
+    .throttle(Duration::from_secs(setting.sse_interval as u64));
 
     Sse::new(stream).keep_alive(
         axum::response::sse::KeepAlive::new()
