@@ -755,7 +755,7 @@ pub fn send_mail(email_service: Arc<EmailService>, text: &str) {
             .send_text_email(
                 email_service.to.as_str(),
                 "carelink_follower_web警报",
-                msg.as_str(),
+                msg,
             )
             .await
         {
