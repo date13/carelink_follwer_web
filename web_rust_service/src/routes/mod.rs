@@ -90,8 +90,9 @@ async fn init_user_state(state: AppState, is_scheduler: bool) {
                                     .get_i64_or("carelink_token_refresh_interval", 150),
                                 carelink_data_refresh_interval: config
                                     .get_i64_or("carelink_data_refresh_interval", 150),
-                                retry: 0,
+                                retry: 1,
                                 max_retries: 5,
+                                auto_login:config.get_bool("auto_login"),
                             };
                             state.save_user_settings(&name, setting.clone()).await;
                             info!("用户:{}数据初始化完成", username);
@@ -110,7 +111,7 @@ async fn init_user_state(state: AppState, is_scheduler: bool) {
             }
         }
         Err(e) => {
-            error!("数据初始画错误: {:#?}", e);
+            error!("数据初始化错误: {:#?}", e);
         }
     }
 }

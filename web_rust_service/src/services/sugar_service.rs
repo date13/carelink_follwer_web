@@ -2,12 +2,12 @@ use crate::models::{AppState, UserSetting};
 use crate::utils::ar2::forecast_ar2_sg;
 use crate::utils::mail::EmailService;
 use crate::utils::redis_client::{RedisResult, RedisService};
-use crate::utils::{parse_json, DateUtils, JsonHelp};
+use crate::utils::{DateUtils, JsonHelp, parse_json};
 use axum::http::StatusCode;
 use chrono::{Duration, Local};
 use garde::rules::pattern::regex::Regex;
 use reqwest::{Client, Response};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, error, info};
@@ -109,6 +109,9 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
         Ok(mut auth_data) => {
             let status = auth_data.get_i64("status") as u16;
             if status == StatusCode::UNAUTHORIZED.as_u16() {
+                if !user_setting.auto_login {
+                    ()
+                }
                 if mut_setting.can_login() {
                     let text = format!(
                         "用户:{} refreshCarelinkData token失效,开始第'{}'次自动刷新Token,当前状态-{}",
@@ -124,9 +127,12 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                                     "用户:{},第{}次自动登录成功!!!",
                                     user_key, mut_setting.retry
                                 )
-                                    .as_str(),
+                                .as_str(),
                             );
                             mut_setting.reset_retry();
+                            state
+                                .save_user_settings(user_key.as_str(), mut_setting)
+                                .await;
                         }
                         Err(_) => {
                             send_mail(
@@ -135,22 +141,25 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                                     "用户:{},第{}次自动登录失败!!!",
                                     user_key, mut_setting.retry
                                 )
-                                    .as_str(),
+                                .as_str(),
                             );
                             mut_setting.add_retry(); // 邮件发送函数需要另外实现
+                            state
+                                .save_user_settings(user_key.as_str(), mut_setting)
+                                .await;
                             update_carelink_data(
                                 &redis, // 注意：这里传递的是 &RedisService
                                 &user_setting.user_key,
                                 status as i32,
                                 None,
                             )
-                                .await
+                            .await
                         }
                     }
                 } else {
                     let text = format!("用户:{} 自动登录超过次数限制!!!", user_key);
                     info!(text);
-                    send_mail(state.email.clone(), text.as_str());
+                    // send_mail(state.email.clone(), text.as_str());
                 }
             } else {
                 let token = auth_data.get_string("token");
@@ -167,17 +176,20 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                         &token,
                         user_setting.clone(),
                     )
-                        .await;
+                    .await;
                     update_carelink_data(
                         &redis, // 注意：这里传递的是 &RedisService
                         &user_setting.user_key,
                         status,
                         json_data,
                     )
-                        .await;
+                    .await;
                     // 重置最大登录限制
                     if status == StatusCode::OK.as_u16() as i32 && mut_setting.retry > 1 {
                         mut_setting.reset_retry();
+                        state
+                            .save_user_settings(user_key.as_str(), mut_setting)
+                            .await;
                     }
                     // 如果读取数据401了,直接把auth_data的状态改为401,去自动登录
                     if status == StatusCode::UNAUTHORIZED.as_u16() as i32 {
@@ -752,11 +764,7 @@ pub fn send_mail(email_service: Arc<EmailService>, text: &str) {
     let msg = String::from(text);
     tokio::spawn(async move {
         match email_service
-            .send_text_email(
-                email_service.to.as_str(),
-                "carelink_follower_web警报",
-                msg,
-            )
+            .send_text_email(email_service.to.as_str(), "carelink_follower_web警报", msg)
             .await
         {
             Ok(_) => {}

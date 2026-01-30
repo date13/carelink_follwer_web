@@ -39,6 +39,8 @@ pub struct UserSettingFrom {
     pub carelink_token_refresh_interval: Option<i32>,
     #[garde(required)]
     pub sse_interval: Option<i32>,
+    #[garde(required)]
+    pub auto_login: Option<bool>,
 }
 // pub async fn load_setting(
 //     Path(name): Path<String>,
@@ -167,6 +169,7 @@ pub async fn update_user_setting(
     config["carelink_data_refresh_interval"] = payload.carelink_data_refresh_interval.into();
     config["sse_interval"] = payload.sse_interval.into();
     config["admin"] = payload.admin.into();
+    config["auto_login"] = payload.auto_login.into();
 
     match state.redis.hset_json("user", &name, &config).await {
         Ok(Some(data)) => {
@@ -178,6 +181,7 @@ pub async fn update_user_setting(
                     payload.carelink_data_refresh_interval.unwrap() as i64;
                 user_setting.sse_interval = payload.sse_interval.unwrap() as i64;
                 user_setting.admin = payload.admin.unwrap();
+                user_setting.auto_login = payload.auto_login.unwrap();
                 state.save_user_settings(&name, user_setting).await;
             }
             ApiResult::success(data)

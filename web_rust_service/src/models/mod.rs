@@ -21,7 +21,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{RwLock};
+use tokio::sync::RwLock;
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub enum CgmType {
@@ -236,6 +236,7 @@ pub struct UserSetting {
     pub carelink_data_refresh_interval: i64,
     pub retry: u8,
     pub max_retries: u8,
+    pub auto_login: bool,
 }
 
 impl UserSetting {
@@ -251,8 +252,9 @@ impl UserSetting {
             sse_interval: 30,
             carelink_token_refresh_interval: 3600,
             carelink_data_refresh_interval: 3600,
-            retry: 0,
+            retry: 1,
             max_retries: 5,
+            auto_login:false
         }
     }
 
@@ -265,7 +267,7 @@ impl UserSetting {
     }
 
     pub fn reset_retry(&mut self) {
-        self.retry = 0;
+        self.retry = 1;
     }
 }
 

@@ -122,7 +122,7 @@
         </template>
         <div class="flex flex-col calc-panel">
           <el-descriptions
-              :column="2"
+              :column="3"
               border
           >
             <el-descriptions-item>
@@ -136,6 +136,18 @@
                 管理员
               </template>
               <el-switch v-model="userSetting.admin" size="small"></el-switch>
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                自动登录
+              </template>
+              <el-switch v-model="userSetting.auto_login" size="small"></el-switch>
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                CGM
+              </template>
+              {{ userSetting.cgm }}
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -357,6 +369,7 @@ async function saveSetting() {
     sse_interval: parseInt(state.userSetting.sse_interval),
     carelink_data_refresh_interval: parseInt(state.userSetting.carelink_data_refresh_interval),
     carelink_token_refresh_interval: parseInt(state.userSetting.carelink_token_refresh_interval),
+    auto_login: state.userSetting.auto_login
   })
   if (result) {
     Msg.successMsg('用户配置保存成功')
