@@ -7,16 +7,16 @@ use anyhow::Result;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::{
-    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
+    Json,
 };
 use garde::Validate;
-use reqwest::Client;
 use reqwest::cookie::Jar;
 use reqwest::redirect::Policy;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
@@ -254,12 +254,12 @@ impl UserSetting {
             carelink_data_refresh_interval: 3600,
             retry: 1,
             max_retries: 5,
-            auto_login:false
+            auto_login: false
         }
     }
 
     pub fn can_login(&self) -> bool {
-        self.retry <= self.max_retries
+        self.auto_login && self.retry <= self.max_retries
     }
 
     pub fn add_retry(&mut self) {

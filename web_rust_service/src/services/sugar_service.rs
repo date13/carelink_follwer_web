@@ -109,9 +109,6 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
         Ok(mut auth_data) => {
             let status = auth_data.get_i64("status") as u16;
             if status == StatusCode::UNAUTHORIZED.as_u16() {
-                if !user_setting.auto_login {
-                    ()
-                }
                 if mut_setting.can_login() {
                     let text = format!(
                         "用户:{} refreshCarelinkData token失效,开始第'{}'次自动刷新Token,当前状态-{}",
@@ -157,7 +154,7 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                         }
                     }
                 } else {
-                    let text = format!("用户:{} 自动登录超过次数限制!!!", user_key);
+                    let text = format!("用户:{} 不执行自动登录或者超过次数限制!!!", user_key);
                     info!(text);
                     // send_mail(state.email.clone(), text.as_str());
                 }
