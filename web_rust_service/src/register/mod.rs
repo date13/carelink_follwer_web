@@ -134,7 +134,24 @@ pub fn cors_layer(config: &AppConfig) -> CorsLayer {
     }
 }
 
-const SKIP_PATHS: &[&str] = &["/public", "/user/login"];
+const SKIP_PATHS: &[&str] = &["/public", "/user/login", "/versions"];
+const NIGHTSCOUT_API_PREFIX: &str = "/v1";
+
+fn should_skip_auth(path: &str) -> bool {
+    // 静态路径匹配
+    if SKIP_PATHS.iter().any(|prefix| path.starts_with(prefix)) {
+        return true;
+    }
+
+    // 特殊处理：/v1/status.json 和 /v1/status
+    if path == "/v1/status.json" || path == "/v1/status" || path == "/v1/verifyauth" {
+        return true;
+    }
+
+    // 处理带查询参数的路径
+    let path_without_query = path.split('?').next().unwrap_or(path);
+    path_without_query == "/v1/status.json" || path_without_query == "/v1/status"
+}
 // 认证中间件
 pub async fn auth_middleware(
     State(jwt_config): State<Arc<JwtConfig>>,
@@ -143,31 +160,62 @@ pub async fn auth_middleware(
 ) -> Result<Response, (StatusCode, Json<Value>)> {
     // 跳过认证的路由
     let path = request.uri().path();
-    if SKIP_PATHS.iter().any(|prefix| path.starts_with(prefix)) {
+    let headers = request.headers();
+
+    // 获取 api-secret header（不区分大小写）
+    let api_secret_header = headers
+        .get("api-secret")
+        .or_else(|| headers.get("Api-Secret"))
+        .or_else(|| headers.get("API-SECRET"));
+    info!("Auth header: {:?}", api_secret_header);
+    if should_skip_auth(path) {
         return Ok(next.run(request).await);
     }
+    let ns_obj = if path.starts_with(NIGHTSCOUT_API_PREFIX) {
+        (true, "api-secret", false)
+    } else {
+        (false, "authorization", true)
+    };
 
+    // 将用户信息添加到请求扩展中
+    let mut current_user = User {
+        id: Some(-1),
+        name: Some("".to_string()),
+        password: None,
+    };
     // 提取 Token
-    let token = match JwtUtil::extract_token_from_headers(request.headers()) {
+    let token = match JwtUtil::extract_token_from_headers(request.headers(), ns_obj.1, ns_obj.2) {
         Ok(token) => token,
         Err(e) => return AppError::new_middle(StatusCode::UNAUTHORIZED, &e.to_string()),
     };
 
-    // 验证 Token
-    let claims = match JwtUtil::verify_token(&token, &jwt_config) {
-        Ok(claims) => claims,
-        Err(e) => return AppError::new_middle(StatusCode::UNAUTHORIZED, &e.to_string()),
-    };
+    if ns_obj.0 {
+        if let Some((_, username)) = jwt_config
+            .ns_api_secrets
+            .iter()
+            .find(|(secret, _)| secret == &token)
+        {
+            current_user.id = Some(1);
+            current_user.name = Some(username.clone());
+        } else {
+            return AppError::new_middle(
+                StatusCode::UNAUTHORIZED,
+                &String::from("没有找到 ns 用户"),
+            );
+        }
+    } else {
+        // 验证 Token
+        let claims = match JwtUtil::verify_token(&token, &jwt_config) {
+            Ok(claims) => claims,
+            Err(e) => return AppError::new_middle(StatusCode::UNAUTHORIZED, &e.to_string()),
+        };
 
-    // 将用户信息添加到请求扩展中
-    let current_user = User {
-        id: claims.sub.parse().ok(),
-        name: Some(claims.username),
-      password: None
-    };
+        // 将用户信息添加到请求扩展中
+        current_user.id = claims.sub.parse().ok();
+        current_user.name = Some(claims.username);
+    }
 
     request.extensions_mut().insert(current_user);
 
     Ok(next.run(request).await)
 }
-

@@ -237,6 +237,8 @@ pub struct UserSetting {
     pub retry: u8,
     pub max_retries: u8,
     pub auto_login: bool,
+    pub ns: bool,
+    pub ns_api_secret: String,
 }
 
 impl UserSetting {
@@ -254,7 +256,9 @@ impl UserSetting {
             carelink_data_refresh_interval: 3600,
             retry: 1,
             max_retries: 5,
-            auto_login: false
+            auto_login: false,
+            ns: false,
+            ns_api_secret: String::new(),
         }
     }
 

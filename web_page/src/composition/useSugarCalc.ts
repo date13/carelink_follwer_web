@@ -281,36 +281,39 @@ export default function () {
       timeRemaining: '--'
     }
     if (data.therapyAlgorithmState) {
-      const therapyAlgorithmState = data.therapyAlgorithmState
-      if (therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
-        result.mode = PUMP_STATUS.auto
-        if (!data.pumpBannerState || data.pumpBannerState.length > 0) {
-          const pumpState = data.pumpBannerState[0]
-          if (pumpState.type === 'TEMP_TARGET') {
-            result.mode = PUMP_STATUS.sport
-            result.timeRemaining = getTimeRemaining(data.pumpBannerState[0].timeRemaining)
-          }
-          if (pumpState.type === 'DELIVERY_SUSPEND') {
-            result.mode = PUMP_STATUS.stop
-          }
+      console.log(data.pumpBannerState);
+      let pumpState: any = null;
+      if (data.pumpBannerState && data.pumpBannerState.length > 0) { //直接开启了暂停输注,无论自动或者手动模式
+        pumpState = data.pumpBannerState[0]
+        if (pumpState.type === 'DELIVERY_SUSPEND') {
+          result.mode = PUMP_STATUS.stop
         }
-      } else if (therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
-        result.mode = PUMP_STATUS.safe
-        result.timeRemaining = getTimeRemaining(therapyAlgorithmState.safeBasalDuration)
-      } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') {
-        if (data.basal) {
-          result.mode = PUMP_STATUS.manuel
-          if (data.basal.tempBasalRate) {
-            result.isTemp = true
-            result.basalRate = data.basal.tempBasalRate
-            result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
-          } else {
-            result.basalRate = data.basal.basalRate
+      } else {
+        const therapyAlgorithmState = data.therapyAlgorithmState
+        if (therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
+          result.mode = PUMP_STATUS.auto
+          // 自动模式下开启运动模式
+          if (pumpState?.type === 'TEMP_TARGET') {
+            result.mode = PUMP_STATUS.sport
+            result.timeRemaining = getTimeRemaining(pumpState?.timeRemaining)
+          }
+        } else if (therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
+          result.mode = PUMP_STATUS.safe
+          result.timeRemaining = getTimeRemaining(therapyAlgorithmState.safeBasalDuration)
+        } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') { //手动模式
+          if (data.basal) {
+            result.mode = PUMP_STATUS.manuel
+            if (data.basal.tempBasalDurationRemaining) { //手动模式下开启临基
+              result.isTemp = true
+              result.basalRate = data.basal.tempBasalRate
+              result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
+            } else {
+              result.basalRate = data.basal.basalRate
+            }
           }
         }
       }
     }
-
     return result
   }
 
@@ -368,7 +371,8 @@ export default function () {
   }
 
   function showNotificationMsg(notificationItem, sg) {
-    if (sg && notificationItem) return notificationItem.text.replace(notificationItem.replace, Number(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
+    if (sg && notificationItem)
+      return notificationItem.text.replace(notificationItem.replace, Number(calcSG(sg)) > 30 ? '无法探测' : calcSG(sg))
     return notificationItem.text
   }
 
@@ -435,7 +439,7 @@ export default function () {
 
   function sensorState(data, isHumanize = true) {
     return data.sensorState === SENSOR_STATUS.NO_ERROR_MESSAGE.key && data.sensorDurationMinutes ?
-        (isHumanize ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : (data.sensorDurationMinutes / 60).toFixed(1) + '小时') :
+        (isHumanize ? dayjs.duration(data.sensorDurationMinutes, 'minutes').humanize(true) : parseFloat((data.sensorDurationMinutes / 60).toFixed(1))) :
         SENSOR_STATUS[data.sensorState] ? SENSOR_STATUS[data.sensorState].name : data.sensorState
   }
 

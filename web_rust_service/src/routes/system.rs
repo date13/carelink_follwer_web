@@ -41,6 +41,9 @@ pub struct UserSettingFrom {
     pub sse_interval: Option<i32>,
     #[garde(required)]
     pub auto_login: Option<bool>,
+    #[garde(required)]
+    pub ns: Option<bool>,
+
 }
 // pub async fn load_setting(
 //     Path(name): Path<String>,
@@ -170,6 +173,7 @@ pub async fn update_user_setting(
     config["sse_interval"] = payload.sse_interval.into();
     config["admin"] = payload.admin.into();
     config["auto_login"] = payload.auto_login.into();
+    config["ns"] = payload.ns.into();
 
     match state.redis.hset_json("user", &name, &config).await {
         Ok(Some(data)) => {
@@ -182,6 +186,7 @@ pub async fn update_user_setting(
                 user_setting.sse_interval = payload.sse_interval.unwrap() as i64;
                 user_setting.admin = payload.admin.unwrap();
                 user_setting.auto_login = payload.auto_login.unwrap();
+                user_setting.ns = payload.ns.unwrap_or(false);
                 state.save_user_settings(&name, user_setting).await;
             }
             ApiResult::success(data)

@@ -9,8 +9,10 @@ use axum::http::StatusCode;
 use chrono::Local;
 use garde::Report;
 use serde_json::{from_str, Value};
+use sha1::{Digest, Sha1};
 use tracing_subscriber::fmt::time::ChronoLocal;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+
 pub fn init_logger(log_level: &str) {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
 
@@ -20,6 +22,18 @@ pub fn init_logger(log_level: &str) {
         .init();
 }
 
+pub fn create_hash(api_secret: &str) -> String {
+    // 创建 SHA1 哈希器
+    let mut hasher = Sha1::new();
+
+    // 更新输入数据
+    hasher.update(api_secret.as_bytes());
+
+    // 获取哈希结果并转为十六进制字符串
+    let result = hasher.finalize();
+    format!("{:x}", result)
+}
+
 pub fn format_err(e: Report) -> String {
     e.to_string()
         .lines()
@@ -27,7 +41,7 @@ pub fn format_err(e: Report) -> String {
         .collect::<Vec<&str>>()
         .join(", ")
 }
-
+#[allow(dead_code)]
 pub trait JsonHelp {
     fn show(&self);
     fn get_val(&self, key: &str) -> Result<&str, AppError>;
@@ -112,12 +126,19 @@ pub struct DateUtils;
 
 impl DateUtils {
     pub const DATE_TIME: &'static str = "%Y-%m-%d %H:%M:%S";
+
+    pub const LOCAL_DATE_TIME: &'static str = "%Y-%m-%dT%H:%M:%S";
     pub const DATE: &'static str = "%Y-%m-%d";
     // pub const TIME: &'static str = "%H:%M:%S";
 
     pub fn datetime() -> String {
         Local::now().format(Self::DATE_TIME).to_string()
     }
+
+    pub fn datetime_local() -> String {
+        Local::now().format(Self::LOCAL_DATE_TIME).to_string()
+    }
+
 }
 #[cfg(test)]
 mod utils_test {

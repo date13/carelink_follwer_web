@@ -2,12 +2,12 @@ use crate::models::{AppState, UserSetting};
 use crate::utils::ar2::forecast_ar2_sg;
 use crate::utils::mail::EmailService;
 use crate::utils::redis_client::{RedisResult, RedisService};
-use crate::utils::{DateUtils, JsonHelp, parse_json};
+use crate::utils::{parse_json, DateUtils, JsonHelp};
 use axum::http::StatusCode;
-use chrono::{Duration, Local};
+use chrono::{DateTime, Duration, Local};
 use garde::rules::pattern::regex::Regex;
 use reqwest::{Client, Response};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, error, info};
@@ -34,6 +34,7 @@ impl DictKeys {
     pub const HISTORY: &'static str = "history";
     // pub const SETTING: &'static str = "setting";
     pub const FOOD: &'static str = "food";
+    pub const NS: &'static str = "nightscout";
 }
 
 pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting) {
@@ -98,13 +99,12 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
     }
 }
 
-pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting) {
+pub async fn carelink_refresh_data(state: &AppState, user_key: &str) {
     // state.redis.get_json()
     info!("Carelink refresh data");
-    let user_key = user_setting.user_key.clone();
     let auth_key = format!("{}:{}", user_key, DictKeys::AUTH);
     let redis = state.redis.clone(); // 确保 RedisService 实现了 Clone + Send
-    let mut mut_setting = state.get_user_settings(user_key.as_str()).await;
+    let mut mut_setting = state.get_user_settings(user_key).await;
     match state.redis.get_json::<Value>(&auth_key).await.get_json() {
         Ok(mut auth_data) => {
             let status = auth_data.get_i64("status") as u16;
@@ -116,7 +116,7 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                     );
                     info!(text);
                     send_mail(state.email.clone(), text.as_str());
-                    match carelink_login(&state, &user_setting).await {
+                    match carelink_login(&state, &mut_setting).await {
                         Ok(_) => {
                             send_mail(
                                 state.email.clone(),
@@ -124,12 +124,10 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                                     "用户:{},第{}次自动登录成功!!!",
                                     user_key, mut_setting.retry
                                 )
-                                .as_str(),
+                                    .as_str(),
                             );
                             mut_setting.reset_retry();
-                            state
-                                .save_user_settings(user_key.as_str(), mut_setting)
-                                .await;
+                            state.save_user_settings(user_key, mut_setting).await;
                         }
                         Err(_) => {
                             send_mail(
@@ -138,19 +136,19 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                                     "用户:{},第{}次自动登录失败!!!",
                                     user_key, mut_setting.retry
                                 )
-                                .as_str(),
+                                    .as_str(),
                             );
                             mut_setting.add_retry(); // 邮件发送函数需要另外实现
                             state
-                                .save_user_settings(user_key.as_str(), mut_setting)
+                                .save_user_settings(user_key, mut_setting.clone())
                                 .await;
                             update_carelink_data(
                                 &redis, // 注意：这里传递的是 &RedisService
-                                &user_setting.user_key,
+                                &mut_setting,
                                 status as i32,
                                 None,
                             )
-                            .await
+                                .await
                         }
                     }
                 } else {
@@ -163,7 +161,7 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                 if token.is_empty() {
                     info!(
                         "用户:{} refreshCarelinkData token为空,请手动刷新Token",
-                        user_setting.user_key
+                        user_key
                     );
                 } else {
                     // 克隆需要的部分 - 确保都是 Send 的
@@ -171,32 +169,26 @@ pub async fn carelink_refresh_data(state: &AppState, user_setting: &UserSetting)
                         &state.http_client,
                         state.email.clone(),
                         &token,
-                        user_setting.clone(),
+                        mut_setting.clone(),
                     )
-                    .await;
+                        .await;
                     update_carelink_data(
                         &redis, // 注意：这里传递的是 &RedisService
-                        &user_setting.user_key,
+                        &mut_setting,
                         status,
                         json_data,
                     )
-                    .await;
+                        .await;
                     // 重置最大登录限制
                     if status == StatusCode::OK.as_u16() as i32 && mut_setting.retry > 1 {
                         mut_setting.reset_retry();
-                        state
-                            .save_user_settings(user_key.as_str(), mut_setting)
-                            .await;
+                        state.save_user_settings(user_key, mut_setting).await;
                     }
                     // 如果读取数据401了,直接把auth_data的状态改为401,去自动登录
                     if status == StatusCode::UNAUTHORIZED.as_u16() as i32 {
                         auth_data["status"] = status.into();
-                        update_carelink_auth_data_to_redis(
-                            &mut auth_data,
-                            &state.redis,
-                            user_key.as_str(),
-                        )
-                        .await;
+                        update_carelink_auth_data_to_redis(&mut auth_data, &state.redis, user_key)
+                            .await;
                     }
                 }
             }
@@ -286,18 +278,59 @@ pub async fn load_carelink_data(
 // 更新Redis数据
 pub async fn update_carelink_data(
     redis: &RedisService,
-    user_key: &str,
+    user_setting: &UserSetting,
     status: i32,
     data: Option<Value>,
 ) {
+    let user_key = user_setting.user_key.as_str();
+    let ns = user_setting.ns;
     let data_key = format!("{}:{}", user_key, DictKeys::DATA);
     // 假设 redis 连接已经建立
     if let Ok(Some(mut org_data)) = redis.get_json::<Value>(data_key.as_str()).await {
         org_data["status"] = status.into();
 
-        if let Some(data) = data {
+        if let Some(mut data) = data {
             let system_status = data.get_string("systemStatusMessage");
             deal_warm_up(system_status, &mut org_data);
+            if ns {
+                //以下数据都是 ns_service去更新了
+                // 如果打开ns,则不更新sgs,trend,notificationHistory数据
+                let org_raw_data = org_data["data"].clone();
+                data["sgs"] = org_raw_data["sgs"].clone();
+                data["lastSG"] = org_raw_data["lastSG"].clone();
+                data["lastSGTrend"] = org_raw_data["lastSGTrend"].clone();
+                // 统计数据也不更新了，因为没有闭环就没有统计数据了
+                data["averageSG"] = org_raw_data["averageSG"].clone();
+                data["averageSGFloat"] = org_raw_data["averageSGFloat"].clone();
+                data["belowHypoLimit"] = org_raw_data["belowHypoLimit"].clone();
+                data["aboveHyperLimit"] = org_raw_data["aboveHyperLimit"].clone();
+                data["timeInRange"] = org_raw_data["timeInRange"].clone();
+
+                // 把原始数据中的有source的警告合并进notification_list
+                let notification_list = data["notificationHistory"]["clearedNotifications"]
+                    .as_array_mut()
+                    .unwrap();
+
+                // 找出非780的警告数据
+                let source_notifications =
+                    org_raw_data["notificationHistory"]["clearedNotifications"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .filter(|a| !a.get_string("source").is_empty())
+                        .cloned()
+                        .collect::<Vec<_>>();
+
+                // 合并进警告list
+                notification_list.extend(source_notifications);
+                // 时间正排序
+                notification_list.sort_by_cached_key(|v| {
+                    v.get("triggeredDateTime")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
+                });
+            }
+
             org_data["data"] = data;
             let sgs = org_data["data"]["sgs"]
                 .as_array()
@@ -313,7 +346,7 @@ pub async fn update_carelink_data(
               "ar2": forecast_ar2_sg(&sgs,FORECAST_COUNT)
             });
         }
-        update_carelink_data_to_redis(&mut org_data, redis, user_key).await;
+        update_carelink_data_to_redis(&mut org_data, redis, &user_key).await;
     } else {
         error!("Failed to get carelink data from redis: {:?}", data_key);
     }

@@ -67,6 +67,10 @@ export const SENSOR_STATUS = {
     key: 'SENSOR_DISCONNECTED',
     name: '探头断开'
   },
+  NO_SENSOR_SIGNAL: {
+    key: 'NO_SENSOR_SIGNAL',
+    name: '无探头信号'
+  },
   UNKNOWN: {
     key: 'UNKNOWN',
     name: '未知'
@@ -93,7 +97,7 @@ export const SENSOR_STATUS = {
   },
   NO_DATA_FROM_PUMP: {
     key: 'NO_DATA_FROM_PUMP',
-    name: '泵无数据'
+    name: '无数据'
   },
   CHANGE_SENSOR: {
     key: 'CHANGE_SENSOR',

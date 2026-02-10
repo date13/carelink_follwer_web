@@ -1,3 +1,4 @@
+mod api;
 mod public;
 mod sugar;
 mod system;
@@ -7,6 +8,7 @@ mod user;
 use crate::config::AppConfig;
 use crate::models::{AppState, CgmType, UserSetting};
 use crate::register::{auth_middleware, cors_layer, logging_middleware};
+use crate::routes::api::{ng_version, ns_api_router};
 use crate::routes::public::public_router;
 use crate::routes::sugar::sugar_router;
 use crate::routes::system::system_router;
@@ -16,16 +18,13 @@ use crate::utils::jwt_token::JwtConfig;
 use crate::utils::mail::EmailService;
 use crate::utils::redis_client::{create_redis_pool, RedisResult, RedisService};
 use crate::utils::task::{add_scheduler_job, TaskManager};
-use crate::utils::{parse_json, JsonHelp};
+use crate::utils::{create_hash, parse_json, JsonHelp};
 use axum::http::StatusCode;
+use axum::routing::get;
 use axum::{middleware, Router};
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 pub async fn create_routes_and_init_app_state(config: &AppConfig) -> Router {
-    let jwt_config = JwtConfig::new(
-        config.default.jwt_secret.to_string(), // 生产环境应该使用环境变量
-        config.default.jwt_exp_hours,          // 24小时过期
-    );
     // 创建 Redis 连接池
     let redis_pool = create_redis_pool(&config.redis).await.unwrap();
     let redis_service = RedisService::new(redis_pool);
@@ -38,11 +37,24 @@ pub async fn create_routes_and_init_app_state(config: &AppConfig) -> Router {
         config.mail.user.to_string(),
         config.mail.to.to_string(),
     );
+    let mut jwt_config = JwtConfig::new(
+        config.default.jwt_secret.to_string(), // 生产环境应该使用环境变量
+        config.default.jwt_exp_hours,          // 24小时过期
+    );
+
+    let settings = load_user_setting(&redis_service).await;
+    for item in settings.iter() {
+        jwt_config.ns_api_secrets.push((
+            create_hash(item.ns_api_secret.as_str()),
+            item.user_key.clone(),
+        ));
+    }
+    debug!("api secrets:{:?}", jwt_config.ns_api_secrets);
     // 应用状态
     let state = AppState::new(redis_service, jwt_config, task_manager, email);
-
     //初始化用户状态以及开启定时任务
-    init_user_state(state.clone(), config.scheduler.enabled).await;
+    init_user_state(state.clone(), settings, config.scheduler.enabled).await;
+
     Router::new().nest(
         "/api",
         api_routes(state.clone())
@@ -57,17 +69,20 @@ pub async fn create_routes_and_init_app_state(config: &AppConfig) -> Router {
 
 fn api_routes(app_state: AppState) -> Router {
     Router::new()
+        .route("/versions", get(ng_version))
         .nest("/public", public_router())
         .nest("/test", test_router())
         .nest("/user", user_router())
         .nest("/sugar", sugar_router())
         .nest("/system", system_router())
+        .nest("/v1", ns_api_router())
         .fallback(|| async { (StatusCode::NOT_FOUND, "404 Not Found") })
         .with_state(app_state)
 }
 
-async fn init_user_state(state: AppState, is_scheduler: bool) {
-    let result = state.redis.hget_all("user").await.get_json();
+async fn load_user_setting(redis_service: &RedisService) -> Vec<UserSetting> {
+    let result = redis_service.hget_all("user").await.get_json();
+    let mut settings: Vec<UserSetting> = vec![];
     match result {
         Ok(data) => {
             if let Some(obj) = data.as_object() {
@@ -92,26 +107,37 @@ async fn init_user_state(state: AppState, is_scheduler: bool) {
                                     .get_i64_or("carelink_data_refresh_interval", 150),
                                 retry: 1,
                                 max_retries: 5,
-                                auto_login:config.get_bool("auto_login"),
+                                auto_login: config.get_bool("auto_login"),
+                                ns: config.get_bool("ns"),
+                                ns_api_secret: config.get_string("ns_api_secret"),
                             };
-                            state.save_user_settings(&name, setting.clone()).await;
-                            info!("用户:{}数据初始化完成", username);
-                            if is_scheduler {
-                                match add_scheduler_job(state.clone(), setting.clone()).await {
-                                    Ok(_) => info!("用户:{}计划任务初始化完成", username),
-                                    Err(e) => error!("用户:{}任务初始化错误: {:#?}", username, e),
-                                }
-                                state.task_manager.start().await;
-                            }
+                            settings.push(setting);
                         } else {
                             error!("用户:{}缺少数据,初始化失败", name);
                         }
                     }
                 }
             }
+            settings
         }
         Err(e) => {
             error!("数据初始化错误: {:#?}", e);
+            settings
+        }
+    }
+}
+
+async fn init_user_state(state: AppState, settings: Vec<UserSetting>, is_scheduler: bool) {
+    for item in settings.iter() {
+        let name = &item.user_key;
+        state.save_user_settings(name, item.clone()).await;
+        info!("用户:{}数据初始化完成", name);
+        if is_scheduler {
+            match add_scheduler_job(state.clone(), item.clone()).await {
+                Ok(_) => info!("用户:{}计划任务初始化完成", name),
+                Err(e) => error!("用户:{}任务初始化错误: {:#?}", name, e),
+            }
+            state.task_manager.start().await;
         }
     }
 }
