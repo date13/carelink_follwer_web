@@ -1,5 +1,6 @@
 <template>
-  <div :class="isHome?'text-3xl':'text-6xl'" class="flex font-thin arrow">
+  <div :class="(small&&isHome)?'text-xs':(isHome?'text-3xl':(small?'text-base':'text-6xl'))"
+       class="flex font-thin arrow">
     <template v-if="trendObj?.direction">
       <template v-if="trendObj.direction === 1">
         <ep-Top v-for="i in trendObj.num"></ep-Top>
@@ -28,6 +29,9 @@ const props = defineProps({
   trendObj: {
     default: {},
     type: Object
+  },
+  small: {
+    default: false,
   }
 })
 </script>

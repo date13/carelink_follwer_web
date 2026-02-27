@@ -1,7 +1,7 @@
 use crate::models::AppState;
 use crate::services::sugar_service::DictKeys;
 use crate::utils::{DateUtils, JsonHelp};
-use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
+use chrono::{DateTime, FixedOffset, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
@@ -67,16 +67,20 @@ impl NOTIFICATION {
         format!("{:?}", self)
     }
 }
+
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum NSSource {
     Ottai,
 }
 
+#[allow(dead_code)]
 impl NSSource {
     pub fn get_source(&self) -> String {
         format!("{:?}", self)
     }
 }
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum NSTrend {
     Flat,
@@ -165,19 +169,19 @@ impl TrendConverter {
 
 #[allow(non_snake_case)]
 #[derive(Serialize)]
-struct SgObj {
+pub struct SgObj {
     sg: i64,
     datetime: String,
     timeChange: bool,
     sensorState: String,
     kind: String,
     version: i8,
-    direction: String,
+    pub direction: String,
     source: String,
 }
 
 impl SgObj {
-    fn new(sg: i64, date: String, direction: String, source: String) -> Self {
+    pub fn new(sg: i64, date: String, direction: String, source: String) -> Self {
         Self {
             sg,
             datetime: date,
@@ -207,13 +211,9 @@ pub async fn ns_receive_data(
         let current_array = ng_data[key].as_array_mut().unwrap();
         for item in data {
             current_array.push(item.clone());
-        }
-        // println!("{},{:?}", current_array.len(), current_array);
-        // ✅ 正确逻辑：检查 current_array 的长度，而不是 data 的长度
-        // 当 current_array 超过最大限制时，移除最旧的元素
-        while current_array.len() > MAX_ENTRIES {
-            // println!("remove");
-            current_array.remove(0); // 这会直接修改 ng_data[key]
+            if current_array.len() > MAX_ENTRIES {
+                current_array.remove(0);
+            }
         }
         current_array.sort_by(|a, b| a.get_i64("date").cmp(&b.get_i64("date")));
         let clone = current_array.clone();

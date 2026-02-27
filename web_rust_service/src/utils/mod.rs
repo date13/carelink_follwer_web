@@ -127,7 +127,7 @@ pub struct DateUtils;
 impl DateUtils {
     pub const DATE_TIME: &'static str = "%Y-%m-%d %H:%M:%S";
 
-    pub const LOCAL_DATE_TIME: &'static str = "%Y-%m-%dT%H:%M:%S";
+    // pub const LOCAL_DATE_TIME: &'static str = "%Y-%m-%dT%H:%M:%S";
     pub const DATE: &'static str = "%Y-%m-%d";
     // pub const TIME: &'static str = "%H:%M:%S";
 
@@ -135,9 +135,9 @@ impl DateUtils {
         Local::now().format(Self::DATE_TIME).to_string()
     }
 
-    pub fn datetime_local() -> String {
-        Local::now().format(Self::LOCAL_DATE_TIME).to_string()
-    }
+    // pub fn datetime_local() -> String {
+    //     Local::now().format(Self::LOCAL_DATE_TIME).to_string()
+    // }
 
 }
 #[cfg(test)]

@@ -248,6 +248,12 @@ export const INSULIN_TYPE = {
     key: 'SG_YESTERDAY',
     symbol: 'circle',
   },
+  SG_NS_DATA: {
+    name: 'NS血糖',
+    color: COLORS[2],
+    key: 'SG_NS_DATA',
+    symbol: 'circle',
+  },
   SG_FORECAST: {
     name: '血糖预测',
     color: COLORS[6],

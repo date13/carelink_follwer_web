@@ -7,6 +7,12 @@
           <div :class="{'text-red':status!==200}" class="text-base hand"
                @click="reloadPage">状态:{{ status }}
           </div>
+          <div v-if="lastNSData" class="flex items-center">
+            <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(lastNSData.sg))}" class="text-4xl font-bold">
+              {{ sugarCalc.calcSG(lastNSData.sg) }}
+            </div>
+            <Trend :is-home="false" :small="true" :trend-obj="DIRECTIONS[lastNSData.direction]"></Trend>
+          </div>
           <!--          <div v-if="playAlarmObj.playing">
                       <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
                     </div>-->
@@ -179,7 +185,7 @@ import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import {Msg} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
-import {INSULIN_TYPE, SYSTEM_STATUS_MAP,} from "@/views/const";
+import {DIRECTIONS, INSULIN_TYPE, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";
 import NotificationDialog from "@/views/components/notificationDialog.vue";
 import useSugarCommon from "@/composition/useSugarCommon";
@@ -238,6 +244,7 @@ const {
   tightTimeInRange,
   lastOffset,
   lastUpdateTime,
+  lastNSData,
   modeObj,
   trendObj,
   loadSettings
@@ -248,7 +255,12 @@ const state: any = reactive({
   statistics: {},
   showSetting: false,
   playAlarmObj: {
-    alarmAudio: new Audio('/alarm.mp3'),
+    alarmAudio: null, // 初始化为null，在initAudio中创建
+    playing: false,
+    count: 1,
+    totalPlayCount: 1,
+    content: '',
+    autoplay: true
   }
 })
 
@@ -294,17 +306,28 @@ onBeforeUnmount(() => {
 function clearSugarData() {
   sugarService.eventSourceManager.stop()
   clearStartTimeInterval();
-  // state.playAlarmObj.alarmAudio = null
-  state.playAlarmObj.alarmAudio.removeEventListener("ended", playEnd)
+  stopPlayer() // 直接调用stopPlayer来清理资源
 }
 
 function initAudio() {
-  state.playAlarmObj = {};
   const {playAlarmObj} = state
+  // 如果已经存在Audio对象，先清理
+  if (playAlarmObj.alarmAudio) {
+    try {
+      playAlarmObj.alarmAudio.pause()
+      playAlarmObj.alarmAudio.currentTime = 0
+      playAlarmObj.alarmAudio.removeEventListener("ended", playEnd)
+    } catch (e) {
+      console.log('清理旧Audio对象失败:', e)
+    }
+  }
+
+  // 创建新的Audio对象
   playAlarmObj.alarmAudio = new Audio('/alarm.mp3')
   playAlarmObj.alarmAudio.muted = false
   playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
 
+  // 重置播放状态
   playAlarmObj.playing = false
   playAlarmObj.count = 1
   playAlarmObj.totalPlayCount = 1
@@ -405,16 +428,17 @@ function testPlay() {
 function playAlarm(type = 'error') {
   if (!setting.notification.alarmEnable) return
   const {playAlarmObj} = state
-  // console.log(playAlarmObj);
-  // console.log(playAlarmObj,playAlarmObj.count <= playAlarmObj.totalPlayCount , !playAlarmObj.playing)
-  if (playAlarmObj.count <= playAlarmObj.totalPlayCount && !playAlarmObj.playing) {
-    console.log("play");
-    playAlarmObj.playing = true
-    initAudio()
-    playAlarmObj.alarmAudio.play().then(res => {
-      // playAlarmObj.alarmAudio.addEventListener("ended", playEnd)
-      // console.log(`第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`);
 
+  if (playAlarmObj.count <= playAlarmObj.totalPlayCount && !playAlarmObj.playing) {
+    console.log("play")
+    playAlarmObj.playing = true
+
+    // 确保Audio对象已创建
+    if (!playAlarmObj.alarmAudio) {
+      initAudio()
+    }
+
+    playAlarmObj.alarmAudio.play().then(res => {
       Msg.showMsg({
         center: true,
         duration: 0,
@@ -428,7 +452,7 @@ function playAlarm(type = 'error') {
       })
       setting.logs.unshift(new Log({content: `第${playAlarmObj.count}次警告播放:${playAlarmObj.content}`,}))
     }).catch(error => {
-      console.log(error);
+      console.log(error)
       playAlarmObj.playing = false
       Msg.closeMsg()
       setting.logs.unshift(new Log({content: `播放错误:${JSON.stringify(error)}`,}))
@@ -437,44 +461,47 @@ function playAlarm(type = 'error') {
           playAlarm()
         })
       }
-    });
+    })
   }
 }
 
-
 async function playEnd() {
   const {playAlarmObj} = state
-  // console.log("play end");
   playAlarmObj.count++
-  // setting.logs.push(new Log({content: `in ended event:${playAlarmObj.count}, playerCount:${playAlarmObj.totalPlayCount},lastAlarm:${JSON.stringify(setting.notification.lastAlarm)}`,}))
+
   if (playAlarmObj.count <= playAlarmObj.totalPlayCount) {
     playAlarmObj.playing = false
     Msg.closeMsg()
-    setTimeout(playAlarm, 500); // 每次播放间隔1秒
+    setTimeout(playAlarm, 500) // 每次播放间隔0.5秒
   } else {
     if (setting.logs.length > logMaxLen) {
       setting.logs.splice(logMaxLen)
     }
     stopPlayer()
-    // playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
   }
 }
 
 function stopPlayer() {
   Msg.closeMsg()
   const {playAlarmObj} = state
+
   if (playAlarmObj.alarmAudio) {
-    playAlarmObj.alarmAudio.pause();
-    playAlarmObj.alarmAudio.currentTime = 0;
-    // playAlarmObj.alarmAudio.removeEventListener('ended', playEnd)
-    // playAlarmObj.alarmAudio = null
+    try {
+      // 暂停播放并重置播放位置
+      playAlarmObj.alarmAudio.pause()
+      playAlarmObj.alarmAudio.currentTime = 0
+    } catch (e) {
+      console.log('停止播放失败:', e)
+    }
   }
+
+  // 重置所有播放状态
   playAlarmObj.playing = false
   playAlarmObj.count = 1
   playAlarmObj.totalPlayCount = 1
-  // setting.notification.lastAlarm.isClear = false
+
   setting.logs.unshift(new Log({content: `播放结束`,}))
-  console.log("播放结束");
+  console.log("播放结束")
 }
 
 function refreshChart() {

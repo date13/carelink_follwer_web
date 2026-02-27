@@ -122,6 +122,23 @@ export default function () {
     return []
   }
 
+  const loadNsSgData = (data, setting) => {
+    if (!data) return
+    if (setting.showNsData) {
+      const curDatetime = dayjs().add(getStartPercent(setting.startPercent)?.offset, 'minutes').valueOf()
+      return data.entries.filter(item => {
+        return validItem(item) && cleanTime(item.datetime)! <= curDatetime
+      }).map(item => {
+        return [
+          cleanTime(item.datetime),
+          calcSG(item.sg),
+          INSULIN_TYPE.SG_NS_DATA
+        ]
+      })
+    }
+    return []
+  }
+
   const loadCalibrationData = (list) => {
     return list.map(item => {
       //获取校准数据
@@ -274,47 +291,69 @@ export default function () {
   }
 
   const getModeObj = (data) => {
-    let result = {
+    // Initialize result object with default values
+    const result = {
       mode: PUMP_STATUS.none,
       basalRate: '',
       isTemp: false,
       timeRemaining: '--'
+    };
+
+    // Early return if no therapy algorithm state
+    if (!data.therapyAlgorithmState) {
+      return result;
     }
-    if (data.therapyAlgorithmState) {
-      console.log(data.pumpBannerState);
-      let pumpState: any = null;
-      if (data.pumpBannerState && data.pumpBannerState.length > 0) { //直接开启了暂停输注,无论自动或者手动模式
-        pumpState = data.pumpBannerState[0]
-        if (pumpState.type === 'DELIVERY_SUSPEND') {
-          result.mode = PUMP_STATUS.stop
-        }
-      } else {
-        const therapyAlgorithmState = data.therapyAlgorithmState
-        if (therapyAlgorithmState.autoModeShieldState === 'AUTO_BASAL') {
-          result.mode = PUMP_STATUS.auto
-          // 自动模式下开启运动模式
-          if (pumpState?.type === 'TEMP_TARGET') {
-            result.mode = PUMP_STATUS.sport
-            result.timeRemaining = getTimeRemaining(pumpState?.timeRemaining)
-          }
-        } else if (therapyAlgorithmState.autoModeShieldState === 'SAFE_BASAL') {
-          result.mode = PUMP_STATUS.safe
-          result.timeRemaining = getTimeRemaining(therapyAlgorithmState.safeBasalDuration)
-        } else if (therapyAlgorithmState.autoModeShieldState === 'FEATURE_OFF') { //手动模式
-          if (data.basal) {
-            result.mode = PUMP_STATUS.manuel
-            if (data.basal.tempBasalDurationRemaining) { //手动模式下开启临基
-              result.isTemp = true
-              result.basalRate = data.basal.tempBasalRate
-              result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining)
-            } else {
-              result.basalRate = data.basal.basalRate
-            }
-          }
-        }
-      }
+
+    // Determine pump state from banner state if available
+    const pumpState = data.pumpBannerState?.[0] || null;
+
+    // Check if delivery is suspended
+    if (pumpState?.type === 'DELIVERY_SUSPEND') {
+      result.mode = PUMP_STATUS.stop;
+      return result;
     }
-    return result
+
+    const {therapyAlgorithmState} = data;
+
+    // Handle different auto mode shield states
+    switch (therapyAlgorithmState.autoModeShieldState) {
+      case 'AUTO_BASAL':
+        // Default to auto mode
+        result.mode = PUMP_STATUS.auto;
+
+        // Check if sport mode is active (temporary target in auto mode)
+        if (pumpState?.type === 'TEMP_TARGET') {
+          result.mode = PUMP_STATUS.sport;
+          result.timeRemaining = getTimeRemaining(pumpState.timeRemaining);
+        }
+        break;
+
+      case 'SAFE_BASAL':
+        result.mode = PUMP_STATUS.safe;
+        result.timeRemaining = getTimeRemaining(therapyAlgorithmState.safeBasalDuration);
+        break;
+
+      case 'FEATURE_OFF': // Manual mode
+        if (data.basal) {
+          result.mode = PUMP_STATUS.manuel;
+
+          // Check if temporary basal is active in manual mode
+          if (data.basal.tempBasalDurationRemaining) {
+            result.isTemp = true;
+            result.basalRate = data.basal.tempBasalRate;
+            result.timeRemaining = getTimeRemaining(data.basal.tempBasalDurationRemaining);
+          } else {
+            result.basalRate = data.basal.basalRate;
+          }
+        }
+        break;
+
+      default:
+        // If none of the known states match, leave as PUMP_STATUS.none
+        break;
+    }
+
+    return result;
   }
 
   const getSGMarkArea = (data, setting) => {
@@ -454,6 +493,7 @@ export default function () {
     cleanTime,
     loadSgData,
     loadYesterdaySgData,
+    loadNsSgData,
     loadCalibrationData,
     loadBaselData,
     loadInsulinData,

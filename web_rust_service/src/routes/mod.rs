@@ -109,6 +109,7 @@ async fn load_user_setting(redis_service: &RedisService) -> Vec<UserSetting> {
                                 max_retries: 5,
                                 auto_login: config.get_bool("auto_login"),
                                 ns: config.get_bool("ns"),
+                                ns_sync: config.get_bool("ns_sync"),
                                 ns_api_secret: config.get_string("ns_api_secret"),
                             };
                             settings.push(setting);

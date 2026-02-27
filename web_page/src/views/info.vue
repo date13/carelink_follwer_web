@@ -137,12 +137,12 @@
               </template>
               {{ userSetting.cgm }}
             </el-descriptions-item>
-            <el-descriptions-item>
-              <template #label>
-                角色
-              </template>
-              {{ userSetting.role }}
-            </el-descriptions-item>
+            <!--            <el-descriptions-item>
+                          <template #label>
+                            角色
+                          </template>
+                          {{ userSetting.role }}
+                        </el-descriptions-item>-->
             <el-descriptions-item>
               <template #label>
                 管理员
@@ -160,6 +160,12 @@
                 ns数据源
               </template>
               <el-switch v-model="userSetting.ns" size="small"></el-switch>
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                ns_sync
+              </template>
+              <el-switch v-model="userSetting.ns_sync" size="small"></el-switch>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -388,7 +394,8 @@ async function saveSetting() {
     carelink_data_refresh_interval: parseInt(state.userSetting.carelink_data_refresh_interval),
     carelink_token_refresh_interval: parseInt(state.userSetting.carelink_token_refresh_interval),
     auto_login: state.userSetting.auto_login,
-    ns: state.userSetting.ns
+    ns: state.userSetting.ns,
+    ns_sync: state.userSetting.ns_sync,
   })
   if (result) {
     Msg.successMsg('用户配置保存成功')

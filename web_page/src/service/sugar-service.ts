@@ -30,7 +30,8 @@ export class SugarService extends BaseService {
     if (result) {
       return {
         ...result.data,
-        myData: result.myData
+        myData: result.myData,
+        nsData: result.nsData
       }
     }
   }
@@ -44,7 +45,8 @@ export class SugarService extends BaseService {
             const data = JSON.parse(event.data)
             callback({
               ...data.data,
-              myData: data.myData
+              myData: data.myData,
+              nsData: data.nsData,
             })
           }
         } catch (e) {

@@ -32,6 +32,7 @@ export default function (funcObj: any = {}) {
     nextStartTime: -1,
     data: new Carelink(),
     myData: {},
+    nsData: null,
     time: dayjs(),//当前系统时间
   })
 
@@ -70,6 +71,7 @@ export default function (funcObj: any = {}) {
     if (result) {
       state.data = result.data
       state.status = result.status
+      state.nsData = result.nsData
       state.GMI = result.GMI
       state.nextStartTime = result.nextStartTime
       // state.data.systemStatusMessage = SYSTEM_STATUS_MAP.WARM_UP.key
@@ -238,6 +240,20 @@ export default function (funcObj: any = {}) {
     return sugarCalc.calcLastOffset(state.data.sgs)
   })
 
+  const lastNSData = computed(() => {
+    if (state.nsData?.entries?.length > 0) {
+      let arr = state.nsData?.entries;
+      let last = arr[arr.length - 1];
+      if (arr.length >= 2) {
+        let last_prev = arr[arr.length - 2];
+        if (Math.abs(last.sg - last_prev.sg) <= 1) {
+          last.direction = "NONE"
+        }
+      }
+      return last
+    }
+  })
+
   const lastUpdateTime = computed(() => {
     const lastSgUpdateTime = sugarCalc.cleanTime(state.data.lastSG.datetime)
     let sumInsulin = 0
@@ -275,11 +291,13 @@ export default function (funcObj: any = {}) {
   async function handleMenu(command) {
     if (command === 'login') {
       window.open("https://carelink.minimed.eu/patient/sso/login?country=hk&lang=zh")
-    }else if (command === 'autoLogin') {
-      const result = await sugarService.autoLogin()
-      if (result) {
-        Msg.successMsg('自动登录成功')
-      }
+    } else if (command === 'autoLogin') {
+      Msg.confirm('是否自动登录Carelink', async () => {
+        const result = await sugarService.autoLogin()
+        if (result) {
+          Msg.successMsg('自动登录成功')
+        }
+      })
     } else if (command === 'loginDexcom') {
       window.open(`${API_URL}public/dexcomLogin/${Tools.getUser().name}`)
     } else if (command === 'refreshDexToken') {
@@ -328,6 +346,7 @@ export default function (funcObj: any = {}) {
     tightTimeInRange,
     lastOffset,
     lastUpdateTime,
+    lastNSData,
     modeObj,
     trendObj,
     minMaxSG,

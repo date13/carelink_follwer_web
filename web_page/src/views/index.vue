@@ -55,7 +55,7 @@
                   {{ tightTimeInRange[2] }}%
                 </span>
               </el-tag>
-              <el-tag v-if="data.notificationHistory.activeNotifications.length>0" class="mb-1 mr-1" size="small"
+              <el-tag v-if="data?.notificationHistory?.activeNotifications.length>0" class="mb-1 mr-1" size="small"
                       type="danger">
                 <div v-for="{messageId,sg} in data.notificationHistory.activeNotifications">
                   {{
@@ -67,12 +67,20 @@
           </el-card>
         </div>
         <div class="w-1/2 flex items-center justify-center flex-col">
-          <div class="flex items-center justify-between">
-            <div :style="{color:sugarCalc.sgColor(sugarCalc.getLastSg(data.lastSG))}" class="text-7xl font-bold ">{{
-                sugarCalc.getLastSg(data.lastSG)
-              }}
+          <div class="flex items-baseline">
+            <div class="flex items-center justify-between">
+              <div :style="{color:sugarCalc.sgColor(sugarCalc.getLastSg(data?.lastSG))}" class="text-7xl font-bold ">{{
+                  sugarCalc.getLastSg(data?.lastSG)
+                }}
+              </div>
+              <Trend :trend-obj="trendObj"></Trend>
             </div>
-            <Trend :trend-obj="trendObj"></Trend>
+            <div v-if="lastNSData" class="flex items-center">
+              <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(lastNSData.sg))}" class="text-sm font-bold">
+                {{ sugarCalc.calcSG(lastNSData.sg) }}
+              </div>
+              <Trend :small="true" :trend-obj="DIRECTIONS[lastNSData.direction]"></Trend>
+            </div>
           </div>
           <div class="flex text-xs items-center justify-between align-center">
             <span :class="{'text-red':lastUpdateTime.sgDiff>=15}" class="mx-2">
@@ -168,6 +176,9 @@
             <el-checkbox v-model="setting.showYesterday" label="昨日" size="small" @change="refreshChart"/>
           </div>
           <div class="float-item">
+            <el-checkbox v-model="setting.showNsData" label="NS" size="small" @change="refreshChart"/>
+          </div>
+          <div class="float-item">
             <el-checkbox v-model="setting.showPeak" label="峰值" size="small" @change="refreshChart"/>
           </div>
         </div>
@@ -206,6 +217,7 @@ import {
   CHART_LEGEND,
   COLORS,
   CONST_VAR,
+  DIRECTIONS,
   INSULIN_TYPE,
   SG_STATUS,
   SYSTEM_STATUS_MAP,
@@ -244,7 +256,7 @@ const sugarCommon = useSugarCommon({
 const state: any = reactive({
   drawer: false,
   forecast: {},
-  showSetting: false
+  showSetting: false,
 })
 const {
   reload,
@@ -261,6 +273,7 @@ const {
   timeInRange,
   tightTimeInRange,
   lastOffset,
+  lastNSData,
   lastUpdateTime,
   modeObj,
   trendObj,
@@ -373,15 +386,19 @@ const chartTimeOption: any = computed(() => {
 const nextStartTimeToNow = computed(() => {
   return time.value.to(sugarCommon.state.nextStartTime)
 })
+
+
 //画图的参数
 const charOption = computed(() => {
+  let is_nsData = !!sugarCommon.state.nsData;
   return {
     legend: {
       top: 0,
       icon: 'rect',
       itemGap: 5,
       itemWidth: 20,
-      data: CHART_LEGEND,
+      data: is_nsData ? [...CHART_LEGEND,
+        {name: 'NS血糖', itemStyle: {color: COLORS[2]}}] : CHART_LEGEND,
       selected: setting.legend.selected,
     },
     toolbox: {
@@ -440,9 +457,9 @@ const charOption = computed(() => {
       }
     },
     grid: {
-      left: '1%',
-      top: '60',
-      right: 0,
+      left: 0,
+      top: '50',
+      right: '23',
       containLabel: true
     },
     xAxis: {
@@ -790,6 +807,25 @@ const charOption = computed(() => {
         },
         data: sugarCalc.loadInsulinData(sugarCommon.state.myData.yesterday.markers, setting, INSULIN_TYPE.INSULIN_YESTERDAY)
       },
+      is_nsData ? {
+        name: 'NS血糖',
+        type: 'line',
+        data: sugarCalc.loadNsSgData(sugarCommon.state.nsData, setting),
+        smooth: true,
+        connectNulls: false,
+        symbol: 'none',
+        yAxisIndex: 0,
+        label: {
+          show: false,
+        },
+        lineStyle: {
+          opacity: 0.4,
+          color: COLORS[2],
+        },
+        labelLine: {
+          smooth: true,
+        }
+      } : null,
     ]
   }
 })

@@ -48,6 +48,7 @@ export class SugarSetting extends Base {
   startPercent = TIME_RANGE_CONFIG[1].value
   showAR2 = true
   showYesterday = true
+  showNsData = true
   logs: Log[] = []
   notification = {
     hasNew: false,

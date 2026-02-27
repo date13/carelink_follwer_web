@@ -155,6 +155,14 @@ pub async fn carelink_refresh_data(state: &AppState, user_key: &str) {
                     let text = format!("用户:{} 不执行自动登录或者超过次数限制!!!", user_key);
                     info!(text);
                     // send_mail(state.email.clone(), text.as_str());
+
+                    update_carelink_data(
+                        &redis, // 注意：这里传递的是 &RedisService
+                        &mut_setting,
+                        StatusCode::UNAUTHORIZED.as_u16().into(),
+                        None,
+                    )
+                        .await;
                 }
             } else {
                 let token = auth_data.get_string("token");
@@ -449,8 +457,10 @@ fn deal_yes_data(yes_arr: &mut Vec<Value>, yes_data: &mut Vec<Value>) {
         yes_arr.append(yes_data);
     } else if len == 2 {
         // 如果 yes_arr 长度等于2
-        // 1. 将 [1] 移动到 [0]
-        yes_arr[0] = std::mem::replace(&mut yes_arr[1], Value::Array(yes_data.clone()));
+        // 1. 将 [1] 移动到 [0
+        yes_arr.swap(0, 1);
+        yes_arr[1] = Value::Array(yes_data.clone());
+        // yes_arr[0] = std::mem::replace(&mut yes_arr[1], Value::Array(yes_data.clone()));
         // yes_arr[1] = Value::Array(yes_data.clone());
     }
 }
@@ -531,6 +541,10 @@ pub async fn update_statistics(org_data: &mut Value, redis: &RedisService, user_
                 let mut day_90 = get_sum_obj();
                 for (i, item) in history_arr.iter().enumerate() {
                     let history_data = parse_json(item.1.as_str().unwrap());
+                    //  没有数据的跳过
+                    if history_data.get_i64("timeInRange") <= 0 {
+                        continue;
+                    }
                     if i < 30 {
                         calc_day_obj_data(&mut day_30, &history_data);
                     }

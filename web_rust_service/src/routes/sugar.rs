@@ -1,5 +1,6 @@
 use crate::models::{ApiResponse, ApiResult, AppError, User};
 use crate::routes::AppState;
+use crate::services::ns_service::{utc_to_east8_string, SgObj, TrendConverter};
 use crate::services::sugar_service::{
     carelink_login, carelink_refresh_data, update_carelink_data, DictKeys,
 };
@@ -53,25 +54,47 @@ pub async fn auto_login(user: User, State(state): State<AppState>) -> ApiRespons
     }
 }
 
-async fn load_sugar_data(name: &str, state: AppState) -> Result<(Value, Value), AppError> {
+async fn load_sugar_data(name: &str, state: AppState) -> Result<(Value, Value, Value), AppError> {
     let data_key = format!("{}:carelinkData", name);
     let my_data_key = format!("{}:carelinkMyData", name);
-
+    let setting = state.get_user_settings(name).await;
     let data = state.redis.get_json::<Value>(&data_key).await.get_json()?;
     let my_data = state
         .redis
         .get_json::<Value>(&my_data_key)
         .await
         .get_json()?;
-    Ok((data, my_data))
+    let mut ns_data: Value = Value::default();
+    if !setting.ns && setting.ns_sync {
+        let ns_key = format!("{}:nightscout", name);
+        let mut ns_org_data = state.redis.get_json::<Value>(&ns_key).await.get_json()?;
+        let temp_array = ns_org_data["entries"].as_array_mut().unwrap();
+        temp_array.sort_by(|a, b| a.get_i64("date").cmp(&b.get_i64("date")));
+        let converter = TrendConverter::global();
+
+        ns_data["entries"] = Value::from_iter(temp_array.iter().map(|entry| {
+            let mut sg_obj = SgObj::new(
+                entry.get_i64("sgv"),
+                utc_to_east8_string(entry.get_string("dateString").as_str()).unwrap(),
+                entry.get_string("direction"),
+                entry.get_string("device"),
+            );
+            if let Some(carelink) = converter.convert_str(sg_obj.direction.as_str()) {
+                sg_obj.direction = format!("{:?}", carelink);
+            }
+            json!(sg_obj)
+        }));
+    }
+    Ok((data, my_data, ns_data))
 }
 
 pub async fn load_data(user: User, State(state): State<AppState>) -> ApiResponse<Value> {
     let name = user.name.unwrap_or("".to_string());
-    let (data, my_data) = load_sugar_data(&name, state).await?;
+    let (data, my_data, ns_data) = load_sugar_data(&name, state).await?;
     ApiResult::success(json!({
         "data":data,
         "myData":my_data,
+        "nsData":ns_data
     }))
 }
 
@@ -88,9 +111,9 @@ pub async fn load_data_sse(
         let name_clone = name.clone();
         async move {
             // 每次迭代都重新加载最新数据
-            let (data, my_data) = load_sugar_data(&name_clone, state_clone)
+            let (data, my_data, ns_data) = load_sugar_data(&name_clone, state_clone)
                 .await
-                .unwrap_or((Value::Null, Value::Null));
+                .unwrap_or((Value::Null, Value::Null, Value::Null));
 
             Event::default()
                 .event(format!("{}:sugar_data", &name_clone))
@@ -98,6 +121,7 @@ pub async fn load_data_sse(
                 .json_data(json!({
                     "data": data,
                     "myData": my_data,
+                    "nsData": ns_data
                 }))
                 .unwrap()
         }
@@ -121,10 +145,11 @@ pub async fn refresh_carelink_data(
     let name = user.name.unwrap_or("".to_string());
     let setting = state.get_user_settings(&name).await;
     carelink_refresh_data(&state, &setting.user_key).await;
-    let (data, my_data) = load_sugar_data(&name, state).await?;
+    let (data, my_data, ns_data) = load_sugar_data(&name, state).await?;
     ApiResult::success(json!({
         "data":data,
         "myData":my_data,
+        "nsData":ns_data
     }))
 }
 
