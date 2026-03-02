@@ -11,12 +11,11 @@ use axum::response::sse::Event;
 use axum::response::Sse;
 use axum::routing::{delete, get, put};
 use axum::{Json, Router};
-use chrono::Local;
+use chrono::{DateTime, Utc,Local, Duration};
 use futures::stream::{self, Stream};
 use reqwest::StatusCode;
 use serde_json::{json, Value};
 use std::convert::Infallible;
-use std::time::Duration;
 use tokio_stream::StreamExt as _;
 
 pub fn sugar_router() -> Router<AppState> {
@@ -71,18 +70,28 @@ async fn load_sugar_data(name: &str, state: AppState) -> Result<(Value, Value, V
         let temp_array = ns_org_data["entries"].as_array_mut().unwrap();
         temp_array.sort_by(|a, b| a.get_i64("date").cmp(&b.get_i64("date")));
         let converter = TrendConverter::global();
-
-        ns_data["entries"] = Value::from_iter(temp_array.iter().map(|entry| {
-            let mut sg_obj = SgObj::new(
-                entry.get_i64("sgv"),
-                utc_to_east8_string(entry.get_string("dateString").as_str()).unwrap(),
-                entry.get_string("direction"),
-                entry.get_string("device"),
-            );
-            if let Some(carelink) = converter.convert_str(sg_obj.direction.as_str()) {
-                sg_obj.direction = format!("{:?}", carelink);
+        // 获取当前 UTC 时间
+        let now = Utc::now();
+        ns_data["entries"] = Value::from_iter(temp_array.iter().filter_map(|entry|{
+            let date = entry.get_string("dateString");
+            let utc_dt: DateTime<Utc> = DateTime::parse_from_rfc3339(date.as_str()).expect("时间格式错误").with_timezone(&Utc);
+            // 计算时间差的绝对值
+            let duration = (now - utc_dt).abs();
+            // 判断是否在 24 小时内（24小时 = 24 * 3600 秒）
+            if duration < Duration::hours(24) {
+                let mut sg_obj = SgObj::new(
+                    entry.get_i64("sgv"),
+                    utc_to_east8_string(date.as_str()).unwrap(),
+                    entry.get_string("direction"),
+                    entry.get_string("device"),
+                );
+                if let Some(carelink) = converter.convert_str(sg_obj.direction.as_str()) {
+                    sg_obj.direction = format!("{:?}", carelink);
+                }
+                Some(json!(sg_obj))
+            } else {
+                None
             }
-            json!(sg_obj)
         }));
     }
     Ok((data, my_data, ns_data))
@@ -129,11 +138,11 @@ pub async fn load_data_sse(
         // 使用 then 处理异步操作
         .then(|f| f)
         .map(Ok)
-        .throttle(Duration::from_secs(setting.sse_interval as u64));
+        .throttle(std::time::Duration::from_secs(setting.sse_interval as u64));
 
     Sse::new(stream).keep_alive(
         axum::response::sse::KeepAlive::new()
-            .interval(Duration::from_secs(10))
+            .interval(std::time::Duration::from_secs(10))
             .text("keep-alive"),
     )
 }

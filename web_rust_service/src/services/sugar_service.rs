@@ -542,7 +542,7 @@ pub async fn update_statistics(org_data: &mut Value, redis: &RedisService, user_
                 for (i, item) in history_arr.iter().enumerate() {
                     let history_data = parse_json(item.1.as_str().unwrap());
                     //  没有数据的跳过
-                    if history_data.get_i64("timeInRange") <= 0 {
+                    if history_data.get_f64("timeInRange") <= 0.0 {
                         continue;
                     }
                     if i < 30 {
@@ -584,7 +584,6 @@ pub async fn update_statistics(org_data: &mut Value, redis: &RedisService, user_
                         "basal":fix2(day_90_sum.get_f64("basal")  / day_90_insulin_count),
                     });
                 }
-
                 update_carelink_data_to_redis(org_data, redis, &user_key).await;
             }
         }
