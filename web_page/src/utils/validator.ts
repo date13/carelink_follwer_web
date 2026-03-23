@@ -151,7 +151,7 @@ export class RegFunc {
       required, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
         try {
           if (value && required) {
-            eval('(' + value + ')')
+            window.eval('(' + value + ')')
           } else {
             callback()
           }

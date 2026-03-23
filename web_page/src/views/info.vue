@@ -151,9 +151,9 @@
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
-                自动登录
+                ns_sync
               </template>
-              <el-switch v-model="userSetting.auto_login" size="small"></el-switch>
+              <el-switch v-model="userSetting.ns_sync" size="small"></el-switch>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -163,9 +163,9 @@
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
-                ns_sync
+                自动登录
               </template>
-              <el-switch v-model="userSetting.ns_sync" size="small"></el-switch>
+              <el-switch v-model="userSetting.auto_login" size="small"></el-switch>
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -207,14 +207,14 @@
                 {{ row.next_run_time ? dayjs(row.next_run_time).format(DATE_FORMAT.datetime) : '' }}
               </template>
             </el-table-column>
-            <!--            <el-table-column align="center" label="操作" prop="status" width="100">-->
-            <!--              <template #default="{row}">-->
-            <!--                <el-button :type="row.status==='Running'?`danger`:'success'" size="small"-->
-            <!--                           @click="operateJob({id: row.id,operation:row.status==='Running'?1:2})">-->
-            <!--                  {{ row.status==='Running' ? '停止' : '启动' }}-->
-            <!--                </el-button>-->
-            <!--              </template>-->
-            <!--            </el-table-column>-->
+            <el-table-column align="center" label="操作" prop="status" width="100">
+              <template #default="{row}">
+                <el-button :type="row.status==='Running'?`danger`:'success'" size="small"
+                           @click="operateJob({id: row.id,operation:row.status==='Running'?1:2})">
+                  {{ row.status === 'Running' ? '停止' : '启动' }}
+                </el-button>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </el-card>

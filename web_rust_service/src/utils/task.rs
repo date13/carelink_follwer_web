@@ -12,7 +12,6 @@ use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio_cron_scheduler::{Job, JobScheduler};
 use tracing::log::{debug, info};
-use uuid::Uuid;
 
 // 任务状态枚举
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -36,7 +35,6 @@ pub struct TaskInfo {
 pub struct TaskManager {
     scheduler: Arc<Mutex<JobScheduler>>,
     tasks: Arc<DashMap<String, TaskInfo>>,
-    job_store: Arc<DashMap<String, Job>>,
 }
 
 #[allow(dead_code)]
@@ -48,7 +46,7 @@ impl TaskManager {
         Self {
             scheduler: Arc::new(Mutex::new(scheduler)),
             tasks: Arc::new(DashMap::new()),
-            job_store: Arc::new(DashMap::new()),
+            // job_store: Arc::new(DashMap::new()),
         }
     }
 
@@ -70,6 +68,12 @@ impl TaskManager {
             let tasks_clone = Arc::clone(&tasks);
             let id = id_arc.clone();
             Box::pin(async move {
+                // 检查任务是否处于运行状态，非运行状态则跳过
+                if let Some(task_info) = tasks_clone.get(&id.to_string()) {
+                    if task_info.status != TaskStatus::Running {
+                        return;
+                    }
+                }
                 debug!("本次任务:{},开始: {}", &id.clone(), DateUtils::datetime());
                 task_clone().await;
                 if let Ok(Some(next_tick)) = _l.next_tick_for_job(_uuid).await {
@@ -116,7 +120,7 @@ impl TaskManager {
                 job_id: job_id.to_string(),
             },
         );
-        self.job_store.insert(id.to_string(), job);
+        // self.job_store.insert(id.to_string(), job);
 
         info!("任务已添加: {}", id);
     }
@@ -131,21 +135,10 @@ impl TaskManager {
     // 停止特定任务
     pub async fn stop_task(&self, job_id: &str) -> bool {
         if let Some(mut task) = self.tasks.get_mut(job_id) {
-            let scheduler = self.scheduler.lock().await;
-            if scheduler
-                .remove(
-                    Uuid::try_parse(&task.job_id)
-                        .as_ref()
-                        .expect("parse uuid error"),
-                )
-                .await
-                .is_ok()
-            {
-                task.status = TaskStatus::Stopped;
-                task.next_run_time = "".to_string();
-                info!("任务已停止: {}", job_id);
-                return true;
-            }
+            task.status = TaskStatus::Stopped;
+            task.next_run_time = "".to_string();
+            info!("任务已停止: {}", job_id);
+            return true;
         }
         false
     }
@@ -153,10 +146,11 @@ impl TaskManager {
     #[allow(unused_variables)]
     /// 恢复任务
     pub async fn resume_task(&self, job_id: &str) -> bool {
-        if let Some(task) = self.tasks.get_mut(job_id) {
-            if let Some(job) = self.job_store.get_mut(job_id) {
-                let scheduler = self.scheduler.lock().await;
-                scheduler.add(job.clone()).await.expect("Failed to add job");
+        if let Some(mut task) = self.tasks.get_mut(job_id) {
+            if task.status == TaskStatus::Stopped {
+                task.status = TaskStatus::Running;
+                info!("任务已恢复: {}", job_id);
+                return true;
             }
         }
         false
@@ -275,8 +269,20 @@ pub async fn add_scheduler_job(state: AppState, setting: UserSetting) -> Result<
             let app_state = Arc::new(state);
             debug!("{:?}", setting);
             carelink_refresh_token(&app_state, &setting).await;
-            carelink_refresh_data(&app_state, &setting).await;
-
+            carelink_refresh_data(&app_state, &setting.user_key).await;
+            // TaskBuilder::new(
+            //     Arc::clone(&app_state),
+            //     setting.clone(),
+            //     ScheduleType::Repeated(Duration::from_secs(10 as u64)),
+            // )
+            // .build(
+            //     "test task",
+            //     format!("test schedule:{}", user_key).as_ref(),
+            //     |state, user_setting| async move {
+            //         println!("task run:{}", DateUtils::datetime());
+            //     },
+            // )
+            // .await;
             TaskBuilder::new(
                 Arc::clone(&app_state),
                 setting.clone(),
@@ -304,7 +310,7 @@ pub async fn add_scheduler_job(state: AppState, setting: UserSetting) -> Result<
                 &data_key,
                 format!("刷新carelinkData:{}", user_key).as_ref(),
                 |state, user_setting| async move {
-                    carelink_refresh_data(&state, &user_setting).await;
+                    carelink_refresh_data(&state, &user_setting.user_key).await;
                 },
             )
             .await;

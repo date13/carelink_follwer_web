@@ -30,6 +30,7 @@ pub async fn create_routes_and_init_app_state(config: &AppConfig) -> Router {
     let redis_service = RedisService::new(redis_pool);
     let task_manager = TaskManager::new().await;
     let email = EmailService::new(
+        config.mail.enabled,
         config.mail.smtp_host.to_string(),
         config.mail.smtp_port,
         config.mail.user.to_string(),

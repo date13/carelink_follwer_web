@@ -11,7 +11,7 @@ use axum::response::sse::Event;
 use axum::response::Sse;
 use axum::routing::{delete, get, put};
 use axum::{Json, Router};
-use chrono::{DateTime, Utc,Local, Duration};
+use chrono::{DateTime, Duration, Local, Utc};
 use futures::stream::{self, Stream};
 use reqwest::StatusCode;
 use serde_json::{json, Value};
@@ -72,7 +72,7 @@ async fn load_sugar_data(name: &str, state: AppState) -> Result<(Value, Value, V
         let converter = TrendConverter::global();
         // 获取当前 UTC 时间
         let now = Utc::now();
-        ns_data["entries"] = Value::from_iter(temp_array.iter().filter_map(|entry|{
+        ns_data["entries"] = Value::from_iter(temp_array.iter().filter_map(|entry| {
             let date = entry.get_string("dateString");
             let utc_dt: DateTime<Utc> = DateTime::parse_from_rfc3339(date.as_str()).expect("时间格式错误").with_timezone(&Utc);
             // 计算时间差的绝对值

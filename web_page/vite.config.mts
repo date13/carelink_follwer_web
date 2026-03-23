@@ -76,7 +76,7 @@ export default defineConfig(({mode}) => {
       reportCompressedSize: false,
       //   关闭生成map文件 可以达到缩小打包体积
       sourcemap: false,
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           /*manualChunks: {
             vue: ['vue', 'vue-router', 'pinia'],
