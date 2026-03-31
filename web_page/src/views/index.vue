@@ -76,9 +76,18 @@
               <Trend :trend-obj="trendObj"></Trend>
             </div>
             <div v-if="lastNSData" class="flex items-center">
-              <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(lastNSData.sg))}" class="text-sm font-bold">
-                {{ sugarCalc.calcSG(lastNSData.sg) }}
-              </div>
+              <el-popover
+                  :content="`${Tools.toNow(sugarCalc.cleanTime(lastNSData.datetime))} ${lastNSData.diff}`"
+                  placement="bottom"
+                  trigger="click"
+              >
+                <template #reference>
+                  <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(lastNSData.sg))}"
+                       class="text-sm font-bold hand">
+                    {{ sugarCalc.calcSG(lastNSData.sg) }}
+                  </div>
+                </template>
+              </el-popover>
               <Trend :small="true" :trend-obj="DIRECTIONS[lastNSData.direction]"></Trend>
             </div>
           </div>
@@ -211,7 +220,7 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
 import useChartResize from "@/composition/useChartResize";
-import {Msg} from '@/utils/tools'
+import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {
   CHART_LEGEND,
@@ -559,7 +568,7 @@ const charOption = computed(() => {
         smooth: true,
         connectNulls: false,
         yAxisIndex: 0,
-        symbol: (value: any, params: Object) => {
+        symbol: (value: any, params: object) => {
           return value[2].symbol
         },
         symbolSize: (rawValue, params) => {
@@ -650,7 +659,7 @@ const charOption = computed(() => {
         z: 10,
         label: {
           show: true,
-          formatter: (value: any, params: Object) => {
+          formatter: (value: any, params: object) => {
             const data = value.data
             if (data[2].key === INSULIN_TYPE.CALIBRATION.key) {
               return data[1]

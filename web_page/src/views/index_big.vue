@@ -8,10 +8,14 @@
                @click="reloadPage">状态:{{ status }}
           </div>
           <div v-if="lastNSData" class="flex items-center">
-            <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(lastNSData.sg))}" class="text-4xl font-bold">
+            <div :class="{'text-red':dayjs().diff(sugarCalc.cleanTime(lastNSData.datetime), 'minute')>=15}">
+              {{ Tools.toNow(sugarCalc.cleanTime(lastNSData.datetime)) }}
+            </div>
+            <div :style="{color:sugarCalc.sgColor(sugarCalc.calcSG(lastNSData.sg))}" class="text-4xl font-bold mx-4">
               {{ sugarCalc.calcSG(lastNSData.sg) }}
             </div>
-            <Trend :is-home="false" :small="true" :trend-obj="DIRECTIONS[lastNSData.direction]"></Trend>
+            <Trend :is-home="false" :small="true" :trend-obj="DIRECTIONS[lastNSData.direction]" class="mr-2"></Trend>
+            <div>{{lastNSData.diff}}</div>
           </div>
           <!--          <div v-if="playAlarmObj.playing">
                       <ep-AlarmClock class="h-10 w-10 hand" @click="stopPlayer"></ep-AlarmClock>
@@ -183,7 +187,7 @@ import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import echarts from "@/plugins/echart"
-import {Msg} from '@/utils/tools'
+import {Msg, Tools} from '@/utils/tools'
 import {SugarService} from "@/service/sugar-service";
 import {DIRECTIONS, INSULIN_TYPE, SYSTEM_STATUS_MAP,} from "@/views/const";
 import useSugarCalc from "@/composition/useSugarCalc";

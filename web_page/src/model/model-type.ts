@@ -15,7 +15,7 @@ export const enum LocalStorageKey {
 
 export class LastStatus {
   resGroupId: string = ''
-  pageSize: Number = import.meta.env.VITE_APP_PAGE_SIZE
+  pageSize: number = import.meta.env.VITE_APP_PAGE_SIZE
   tagAutoRefresh: boolean = true
 }
 
