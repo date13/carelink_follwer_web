@@ -57,16 +57,15 @@ async fn load_sugar_data(name: &str, state: AppState) -> Result<(Value, Value, V
     let data_key = format!("{}:carelinkData", name);
     let my_data_key = format!("{}:carelinkMyData", name);
     let setting = state.get_user_settings(name).await;
-    let data = state.redis.get_json::<Value>(&data_key).await.get_json()?;
+    let data = state.redis.get_json_value(&data_key).await?;
     let my_data = state
         .redis
-        .get_json::<Value>(&my_data_key)
-        .await
-        .get_json()?;
+        .get_json_value(&my_data_key)
+        .await?;
     let mut ns_data: Value = Value::default();
     if !setting.ns && setting.ns_sync {
         let ns_key = format!("{}:nightscout", name);
-        let mut ns_org_data = state.redis.get_json::<Value>(&ns_key).await.get_json()?;
+        let mut ns_org_data = state.redis.get_json_value(&ns_key).await?;
         let temp_array = ns_org_data["entries"].as_array_mut().unwrap();
         temp_array.sort_by(|a, b| a.get_i64("date").cmp(&b.get_i64("date")));
         let converter = TrendConverter::global();

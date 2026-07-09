@@ -10,6 +10,7 @@ use chrono::Local;
 use garde::Report;
 use serde_json::{from_str, Value};
 use sha1::{Digest, Sha1};
+use tracing::error;
 use tracing_subscriber::fmt::time::ChronoLocal;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
@@ -119,7 +120,13 @@ impl JsonHelp for Value {
 // }
 
 pub fn parse_json(str: &str) -> Value {
-    from_str(str).unwrap_or(Value::Null)
+    match from_str(str) {
+        Ok(v) => v,
+        Err(e) => {
+            error!("parse_json 失败: {}, 输入: {}", e, str);
+            Value::Null
+        }
+    }
 }
 
 pub struct DateUtils;

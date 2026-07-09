@@ -28,7 +28,11 @@ export default {
   },
   methods: {
     backPage() {
-      this.$router.back();
+      if (this.$router.options.history.state.back) {
+        this.$router.back();
+      } else {
+        location.href = '/'
+      }
     }
   }
 }

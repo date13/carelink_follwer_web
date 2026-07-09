@@ -16,7 +16,7 @@ use crate::routes::test::test_router;
 use crate::routes::user::user_router;
 use crate::utils::jwt_token::JwtConfig;
 use crate::utils::mail::EmailService;
-use crate::utils::redis_client::{create_redis_pool, RedisResult, RedisService};
+use crate::utils::redis_client::{create_redis_pool, RedisService};
 use crate::utils::task::{add_scheduler_job, TaskManager};
 use crate::utils::{create_hash, parse_json, JsonHelp};
 use axum::http::StatusCode;
@@ -82,10 +82,10 @@ fn api_routes(app_state: AppState) -> Router {
 }
 
 async fn load_user_setting(redis_service: &RedisService) -> Vec<UserSetting> {
-    let result = redis_service.hget_all("user").await.get_json();
+    let result = redis_service.hget_all("user").await;
     let mut settings: Vec<UserSetting> = vec![];
     match result {
-        Ok(data) => {
+        Ok(Some(data)) => {
             if let Some(obj) = data.as_object() {
                 for (name, value) in obj {
                     if let Some(json_str) = value.as_str() {
@@ -103,13 +103,14 @@ async fn load_user_setting(redis_service: &RedisService) -> Vec<UserSetting> {
                                 admin: config.get_bool("admin"),
                                 sse_interval: config.get_i64_or("sse_interval", 30),
                                 carelink_token_refresh_interval: config
-                                    .get_i64_or("carelink_token_refresh_interval", 150),
+                                    .get_i64_or("carelink_token_refresh_interval", 360),
                                 carelink_data_refresh_interval: config
                                     .get_i64_or("carelink_data_refresh_interval", 150),
                                 retry: 1,
                                 max_retries: 5,
                                 auto_login: config.get_bool("auto_login"),
                                 ns: config.get_bool("ns"),
+                                manual_basal: config.get_f64_or("manual_basal", 0.0) as f32,
                                 ns_sync: config.get_bool("ns_sync"),
                                 ns_api_secret: config.get_string("ns_api_secret"),
                             };
@@ -122,6 +123,7 @@ async fn load_user_setting(redis_service: &RedisService) -> Vec<UserSetting> {
             }
             settings
         }
+        Ok(None) => settings,
         Err(e) => {
             error!("数据初始化错误: {:#?}", e);
             settings
@@ -139,7 +141,10 @@ async fn init_user_state(state: AppState, settings: Vec<UserSetting>, is_schedul
                 Ok(_) => info!("用户:{}计划任务初始化完成", name),
                 Err(e) => error!("用户:{}任务初始化错误: {:#?}", name, e),
             }
-            state.task_manager.start().await;
         }
+    }
+    // 所有任务添加完成后再统一启动调度器，避免每个用户都启动一个调度循环导致任务被重复触发
+    if is_scheduler {
+        state.task_manager.start().await;
     }
 }

@@ -7,6 +7,7 @@ use anyhow::Error;
 use chrono::{DateTime, Local};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -31,10 +32,21 @@ pub struct TaskInfo {
     pub job_id: String,
 }
 
+/// 任务执行中的守护结构：离开作用域（正常结束或被取消/panic 卸载）时自动清除“执行中”标记，
+/// 避免某次运行异常导致该任务永远被重入保护卡住。
+struct RunningGuard(Arc<AtomicBool>);
+impl Drop for RunningGuard {
+    fn drop(&mut self) {
+        self.0.store(false, Ordering::SeqCst);
+    }
+}
+
 // 任务管理器
 pub struct TaskManager {
     scheduler: Arc<Mutex<JobScheduler>>,
     tasks: Arc<DashMap<String, TaskInfo>>,
+    // 记录每个任务是否正在执行，用于防止重复触发（重入保护）
+    running: Arc<DashMap<String, Arc<AtomicBool>>>,
 }
 
 #[allow(dead_code)]
@@ -46,6 +58,7 @@ impl TaskManager {
         Self {
             scheduler: Arc::new(Mutex::new(scheduler)),
             tasks: Arc::new(DashMap::new()),
+            running: Arc::new(DashMap::new()),
             // job_store: Arc::new(DashMap::new()),
         }
     }
@@ -63,9 +76,13 @@ impl TaskManager {
         let task = Arc::new(task);
         let id_arc = Arc::new(id.to_string());
         let tasks = Arc::clone(&self.tasks);
+        // 重入保护标记：同一任务上一次未结束时跳过本次触发
+        let running = Arc::new(AtomicBool::new(false));
+        let running_for_map = Arc::clone(&running);
         let closure_fn = move |_uuid, mut _l: JobScheduler| {
             let task_clone = Arc::clone(&task);
             let tasks_clone = Arc::clone(&tasks);
+            let running_flag = Arc::clone(&running);
             let id = id_arc.clone();
             Box::pin(async move {
                 // 检查任务是否处于运行状态，非运行状态则跳过
@@ -74,6 +91,16 @@ impl TaskManager {
                         return;
                     }
                 }
+                // 重入保护：若上一次仍在执行，则跳过本次触发，避免重叠运行
+                if running_flag
+                    .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+                    .is_err()
+                {
+                    debug!("本次任务:{} 仍在执行中,跳过重叠触发", &id);
+                    return;
+                }
+                // 守护对象：无论任务正常结束还是被取消/panic，都会自动清除“执行中”标记
+                let _guard = RunningGuard(Arc::clone(&running_flag));
                 debug!("本次任务:{},开始: {}", &id.clone(), DateUtils::datetime());
                 task_clone().await;
                 if let Ok(Some(next_tick)) = _l.next_tick_for_job(_uuid).await {
@@ -120,6 +147,8 @@ impl TaskManager {
                 job_id: job_id.to_string(),
             },
         );
+        // 记录重入保护标记
+        self.running.insert(id.to_string(), running_for_map);
         // self.job_store.insert(id.to_string(), job);
 
         info!("任务已添加: {}", id);
@@ -132,13 +161,23 @@ impl TaskManager {
         info!("任务调度器已启动");
     }
 
-    // 停止特定任务
+    // 按任务 id 或 job_id 查找真实的 map key（TaskInfo.id）
+    fn find_task_key(&self, task_id: &str) -> Option<String> {
+        self.tasks
+            .iter()
+            .find(|t| t.id == task_id || t.job_id == task_id)
+            .map(|t| t.id.clone())
+    }
+
+    // 停止特定任务（task_id 既可以是任务 id，也可以是调度器返回的 job_id）
     pub async fn stop_task(&self, job_id: &str) -> bool {
-        if let Some(mut task) = self.tasks.get_mut(job_id) {
-            task.status = TaskStatus::Stopped;
-            task.next_run_time = "".to_string();
-            info!("任务已停止: {}", job_id);
-            return true;
+        if let Some(key) = self.find_task_key(job_id) {
+            if let Some(mut task) = self.tasks.get_mut(&key) {
+                task.status = TaskStatus::Stopped;
+                task.next_run_time = "".to_string();
+                info!("任务已停止: {}", key);
+                return true;
+            }
         }
         false
     }
@@ -146,44 +185,17 @@ impl TaskManager {
     #[allow(unused_variables)]
     /// 恢复任务
     pub async fn resume_task(&self, job_id: &str) -> bool {
-        if let Some(mut task) = self.tasks.get_mut(job_id) {
-            if task.status == TaskStatus::Stopped {
-                task.status = TaskStatus::Running;
-                info!("任务已恢复: {}", job_id);
-                return true;
+        if let Some(key) = self.find_task_key(job_id) {
+            if let Some(mut task) = self.tasks.get_mut(&key) {
+                if task.status == TaskStatus::Stopped {
+                    task.status = TaskStatus::Running;
+                    info!("任务已恢复: {}", key);
+                    return true;
+                }
             }
         }
         false
     }
-
-    // 暂停所有任务
-    // pub async fn pause_all(&self) {
-    //     let mut scheduler = self.scheduler.lock().await;
-    //     scheduler
-    //         .shutdown()
-    //         .await
-    //         .expect("Failed to pause scheduler");
-    //
-    //     for mut task in self.tasks.iter_mut() {
-    //         if task.status == TaskStatus::Running {
-    //             task.status = TaskStatus::Paused;
-    //         }
-    //     }
-    //     info!("所有任务已暂停");
-    // }
-
-    // 恢复所有任务
-    // pub async fn resume_all(&self) {
-    //     let scheduler = self.scheduler.lock().await;
-    //     scheduler.start().await.expect("Failed to resume scheduler");
-    //
-    //     for mut task in self.tasks.iter_mut() {
-    //         if task.status == TaskStatus::Paused {
-    //             task.status = TaskStatus::Running;
-    //         }
-    //     }
-    //     info!("所有任务已恢复");
-    // }
 
     // 获取任务列表
     pub async fn list_tasks(&self) -> Vec<TaskInfo> {
@@ -268,8 +280,13 @@ pub async fn add_scheduler_job(state: AppState, setting: UserSetting) -> Result<
             let history_key = format!("CarelinkHistoryTask:{}", user_key);
             let app_state = Arc::new(state);
             debug!("{:?}", setting);
-            carelink_refresh_token(&app_state, &setting).await;
-            carelink_refresh_data(&app_state, &setting.user_key).await;
+            // 首次刷新放到后台执行，避免阻塞启动；失败不影响调度器注册
+            let boot_state = Arc::clone(&app_state);
+            let boot_setting = setting.clone();
+            tokio::spawn(async move {
+                carelink_refresh_token(&boot_state, &boot_setting).await;
+                carelink_refresh_data(&boot_state, &boot_setting.user_key).await;
+            });
             // TaskBuilder::new(
             //     Arc::clone(&app_state),
             //     setting.clone(),

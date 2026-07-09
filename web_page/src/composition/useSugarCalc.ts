@@ -47,26 +47,25 @@ export default function () {
   };
 
   const calcTimeInRange = (list, isTight = false) => {
-    const validSgs = list.filter((item) => validItem(item));
-    if (validSgs.length > 0) {
+    if (list.length > 0) {
       const lt = (
-        (validSgs.filter(
+        (list.filter(
           (item) =>
             item.sg <
             (isTight ? CONST_VAR.minTightWarnSg : CONST_VAR.minWarnSg) *
               CONST_VAR.exchangeUnit,
         ).length /
-          validSgs.length) *
+          list.length) *
         100
       ).toFixed(1);
       const gt = (
-        (validSgs.filter(
+        (list.filter(
           (item) =>
             item.sg >
             (isTight ? CONST_VAR.maxTightWarnSg : CONST_VAR.maxWarnSg) *
               CONST_VAR.exchangeUnit,
         ).length /
-          validSgs.length) *
+          list.length) *
         100
       ).toFixed(1);
       return [(100 - (Number(lt) + Number(gt))).toFixed(1), lt, gt];
@@ -74,10 +73,13 @@ export default function () {
     return [0, 0, 0];
   };
 
+  const getValidSgs = (list) => {
+    return list.filter((item) => validItem(item));
+  };
+
   const calcLastOffset = (list): number | string => {
-    const listDeal = list.filter((item) => validItem(item));
-    const len = listDeal.length;
-    return len > 2 ? calcSG(listDeal[len - 1].sg - listDeal[len - 2].sg, 2) : 0;
+    const len = list.length;
+    return len > 2 ? calcSG(list[len - 1].sg - list[len - 2].sg, 2) : 0;
   };
 
   const calcSG = (sg: number, defaultDecision = 1) => {
@@ -109,8 +111,9 @@ export default function () {
 
   const shouldHaveAR2 = (data) => {
     return (
+      !!data?.systemStatusMessage &&
       data.systemStatusMessage === SYSTEM_STATUS_MAP.NO_ERROR_MESSAGE.key &&
-      data.lastSG.sensorState === SENSOR_STATUS.NO_ERROR_MESSAGE.key
+      data?.lastSG?.sensorState === SENSOR_STATUS.NO_ERROR_MESSAGE.key
     );
   };
 
@@ -239,7 +242,7 @@ export default function () {
     });
     return {
       max,
-      list: result,
+      list: result.filter(Boolean),
     };
   };
 
@@ -252,7 +255,7 @@ export default function () {
           item.activationType === INSULIN_TYPE.AUTOCORRECTION.key
         );
       });
-      newList = newList.splice(
+      newList = newList.slice(
         newList.length > CONST_VAR.peakPoint ? -CONST_VAR.peakPoint : 0,
       );
       newList.forEach((item, i) => {
@@ -297,26 +300,28 @@ export default function () {
         });
       }
     }
-    return list.map((item) => {
-      if (
-        item.type === "INSULIN" &&
-        (item.activationType === "RECOMMENDED" ||
-          item.activationType === "MANUAL")
-      ) {
-        const plan = item.programmedFastAmount.toFixed(2);
-        const delivered = item.deliveredFastAmount.toFixed(2);
-        const meal = list.find(
-          (mark) => mark.type === "MEAL" && item.index === mark.index,
-        );
-        return [
-          cleanTime(item.dateTime),
-          plan,
-          type,
-          delivered,
-          meal ? meal.amount : 0,
-        ];
-      }
-    });
+    return list
+      .map((item) => {
+        if (
+          item.type === "INSULIN" &&
+          (item.activationType === "RECOMMENDED" ||
+            item.activationType === "MANUAL")
+        ) {
+          const plan = item.programmedFastAmount.toFixed(2);
+          const delivered = item.deliveredFastAmount.toFixed(2);
+          const meal = list.find(
+            (mark) => mark.type === "MEAL" && item.index === mark.index,
+          );
+          return [
+            cleanTime(item.dateTime),
+            plan,
+            type,
+            delivered,
+            meal ? meal.amount : 0,
+          ];
+        }
+      })
+      .filter(Boolean);
   };
 
   function showInsulinPeak(list, setting) {
@@ -329,7 +334,7 @@ export default function () {
             item.activationType === "MANUAL")
         );
       });
-      newList = newList.splice(
+      newList = newList.slice(
         newList.length > CONST_VAR.peakPoint ? -CONST_VAR.peakPoint : 0,
       );
       newList.forEach((item, i) => {
@@ -590,6 +595,7 @@ export default function () {
     getLastSg,
     calcSgYValueLimit,
     calcTimeInRange,
+    getValidSgs,
     calcLastOffset,
     calcSG,
     calcCV,

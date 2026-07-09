@@ -3,6 +3,8 @@ use config::{Config, File, FileFormat};
 use serde::Deserialize;
 use std::env;
 
+#[allow(unused_variables)]
+
 #[derive(Parser)]
 pub struct Cli {
     #[clap(long, default_value = "development")]
@@ -29,7 +31,6 @@ pub struct DefaultConfig {
 #[warn(unused_variables)]
 pub struct CorsConfig {
     pub allowed_origins: Vec<String>,
-    // pub allow_credentials: bool,
     pub max_age_seconds: u64,
 }
 
@@ -57,7 +58,7 @@ pub struct LogConfig {
 pub struct SchedulerConfig {
     pub enabled: bool,
 }
-
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Clone)]
 pub struct MailConfig {
     pub enabled: bool,

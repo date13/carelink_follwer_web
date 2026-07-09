@@ -1,12 +1,12 @@
 use crate::models::AppState;
 use crate::services::sugar_service::DictKeys;
 use crate::utils::{DateUtils, JsonHelp};
-use chrono::{DateTime, FixedOffset, TimeZone, Utc};
+use chrono::{DateTime, Duration, FixedOffset, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 use std::sync::OnceLock;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 const MAX_ENTRIES: usize = 288;
@@ -209,7 +209,17 @@ pub async fn ns_receive_data(
             ng_data[key] = Value::Array(Vec::new());
         }
         let current_array = ng_data[key].as_array_mut().unwrap();
+        let cutoff = Utc::now() - Duration::hours(48);
         for item in data {
+            // 过滤超过48小时的旧数据，避免过期数据入库
+            if let Some(date_str) = item.get("dateString").and_then(|v| v.as_str()) {
+                if let Ok(item_time) = DateTime::parse_from_rfc3339(date_str) {
+                    if item_time < cutoff {
+                        info!("用户:{} 丢弃超过48小时的旧数据: {}", user_key, date_str);
+                        continue;
+                    }
+                }
+            }
             current_array.push(item.clone());
             if current_array.len() > MAX_ENTRIES {
                 current_array.remove(0);
@@ -258,11 +268,13 @@ pub async fn ns_refresh_entries_data(state: &AppState, entries: &mut Vec<Value>,
             return;
         }
         if let Ok(Some(mut org_data)) = state.redis.get_json::<Value>(data_key.as_str()).await {
-            let current_data = org_data["data"].as_object_mut().unwrap();
-            // 处理血糖数据
-            deal_sgs_data(current_data, &origin_entries);
-            // 处理警告信息
-            deal_notification_data(current_data);
+            // data 字段必须是对象；缺失时跳过 sg/通知处理，仅更新时间
+            if let Some(current_data) = org_data["data"].as_object_mut() {
+                if !origin_entries.is_empty() {
+                    deal_sgs_data(current_data, &origin_entries);
+                    deal_notification_data(current_data);
+                }
+            }
             org_data["update_time"] = DateUtils::datetime().into();
             match state.redis.set_json(&data_key, &org_data, None).await {
                 Ok(_) => {
@@ -286,8 +298,17 @@ fn deal_sgs_data(current_data: &mut Map<String, Value>, origin_entries: &Vec<Val
         last_sgs.get_string("device"),
     ));
 
-    let sgs_array = current_data["sgs"].as_array_mut().unwrap();
-    let last_org_sg = sgs_array[sgs_array.len() - 1].get_i64("sg");
+    let sgs_array = current_data
+        .entry("sgs")
+        .or_insert_with(|| Value::Array(Vec::new()))
+        .as_array_mut()
+        .unwrap();
+    // 取上一次最后一条 sg 用于趋势对比；为空时用当前最新值，避免越界
+    let last_org_sg = if sgs_array.is_empty() {
+        last_sgs.get_i64("sgv")
+    } else {
+        sgs_array[sgs_array.len() - 1].get_i64("sg")
+    };
     sgs_array.clear();
 
     let mut sum_sg: f32 = 0.0;
@@ -332,12 +353,26 @@ fn deal_sgs_data(current_data: &mut Map<String, Value>, origin_entries: &Vec<Val
 
 fn deal_notification_data(current_data: &mut Map<String, Value>) {
     //取出处理完的sgs数据
-    let cur_sgs_data = current_data["sgs"].as_array().unwrap().clone();
-    let last_sgs = cur_sgs_data[cur_sgs_data.len() - 1].clone();
+    let cur_sgs_data = current_data
+        .get("sgs")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+    // 无 sg 数据时直接返回，避免越界
+    if cur_sgs_data.is_empty() {
+        return;
+    }
+    let last_sgs = &cur_sgs_data[cur_sgs_data.len() - 1];
 
     let source = last_sgs.get_string("source");
-    //取出警告数据
-    let notification_data = current_data["notificationHistory"]["clearedNotifications"]
+    //取出警告数据（确保 notificationHistory.clearedNotifications 存在）
+    let notification_data = current_data
+        .entry("notificationHistory")
+        .or_insert_with(|| Value::Object(Default::default()))
+        .as_object_mut()
+        .unwrap()
+        .entry("clearedNotifications")
+        .or_insert_with(|| Value::Array(Vec::new()))
         .as_array_mut()
         .unwrap();
 
@@ -458,7 +493,7 @@ fn has_recent_notification(
             })
             .map(|triggered_time| {
                 let duration = last_alert_time.signed_duration_since(triggered_time);
-                info!("duration: {:?}", duration.num_minutes());
+                debug!("duration: {:?}", duration.num_minutes());
                 duration.num_minutes() <= minutes as i64
             })
             .unwrap_or(false)

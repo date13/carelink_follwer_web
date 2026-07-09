@@ -193,7 +193,7 @@ onMounted(async () => {
 
 const foodList = computed(() => {
     return state.list.filter(
-        (item) => item.key.indexOf(state.searchText) !== -1,
+        (item) => String(item.key ?? "").indexOf(state.searchText) !== -1,
     );
 });
 

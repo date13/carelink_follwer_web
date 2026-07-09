@@ -1,3 +1,6 @@
+#[allow(dead_code)]
+
+
 #[derive(Debug, Clone)]
 pub struct AR2Model {
   pub phi1: f64,      // AR(1) 系数

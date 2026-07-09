@@ -160,6 +160,10 @@ impl RedisService {
     }
 
     pub async fn hget_all(&self, key: &str) -> Result<Option<Value>, Error> {
+        // key 不存在时返回 None，便于调用方区分“不存在”与“空哈希”
+        if !self.exists(key).await? {
+            return Ok(None);
+        }
         let mut conn = self.get_conn().await?;
         let value = conn.hgetall(key).await?;
         Ok(Some(json!(value)))
@@ -188,6 +192,15 @@ impl RedisService {
         let mut conn = self.get_conn().await?;
         let result = conn.incr(key, increment).await?;
         Ok(result)
+    }
+
+    /// 获取并反序列化为 Value，不做二次解析；key 不存在时返回 AppError
+    pub async fn get_json_value(&self, key: &str) -> Result<Value, AppError> {
+        match self.get_json::<Value>(key).await {
+            Ok(Some(v)) => Ok(v),
+            Ok(None) => AppError::new(StatusCode::NOT_FOUND, "not data found".to_string()),
+            Err(e) => AppError::new(StatusCode::UNPROCESSABLE_ENTITY, e.to_string()),
+        }
     }
 }
 // 定义一个 trait 来扩展 RedisClient
@@ -244,7 +257,11 @@ where
     // }
 
     fn get_json_result(&self) -> ApiResponse<Value> {
-        self.result_extract(|data| parse_json(data.to_string().as_str()))
+        // 直接把已解析的数据转为 Value，避免“序列化→再解析”的二次往返
+        self.result_extract(|data| match serde_json::to_value(data) {
+            Ok(v) => v,
+            Err(_) => Value::Null,
+        })
     }
 
     // fn get_message_result(&self, msg: &str) -> ApiResponse<String> {

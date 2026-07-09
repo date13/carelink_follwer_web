@@ -8,30 +8,36 @@ mod test {
     #[allow(unused_imports)]
     use crate::config::RedisConfig;
     use crate::models::{AppState, CgmType, UserSetting};
+    use crate::services::ns_service::{utc_to_east8_string, NSSource, TrendConverter};
     use crate::services::sugar_service::{
-        CARELINK_DATA_URL, CARELINK_REFRESH_TOKEN_URL, DictKeys, HTTP_TIMEOUT, UA, carelink_login,
-        save_history_data, update_carelink_my_data_yesterday_data, update_statistics,
+        carelink_login, update_statistics, DictKeys, CARELINK_DATA_URL,
+        CARELINK_REFRESH_TOKEN_URL, HTTP_TIMEOUT, UA,
     };
     use crate::test::test_login::test_carelink_login;
     use crate::utils;
-    use crate::utils::JsonHelp;
     use crate::utils::ar2::forecast_ar2_sg;
     use crate::utils::jwt_token::JwtConfig;
     use crate::utils::mail::EmailService;
-    use crate::utils::redis_client::{RedisResult, RedisService, create_redis_pool};
+    use crate::utils::redis_client::{create_redis_pool, RedisResult, RedisService};
     use crate::utils::task::{ScheduleType, TaskManager};
+    use crate::utils::{DateUtils, JsonHelp};
     use axum::http::StatusCode;
     use chrono::{DateTime, Local, NaiveDateTime, Utc};
-    use reqwest::Client;
     use reqwest::cookie::Jar;
     use reqwest::redirect::Policy;
-    use serde_json::{Value, json};
+    use reqwest::Client;
+    use serde_json::{json, Value};
     use std::collections::HashMap;
     use std::sync::Arc;
     use std::time::Duration;
     use tokio::time::sleep;
     use tracing::{error, info};
 
+    #[test]
+    fn common_test() {
+        let t = Value::from(96.0);
+        println!("{}", t.as_f64().unwrap());
+    }
     #[test]
     fn test_time() {
         let utc_now = Utc::now();
@@ -61,6 +67,19 @@ mod test {
         // 获取当前时间字符串
         let formatted = Utc::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string();
         println!("格式化时间: {}", formatted);
+
+        // 创建指定时间的 UTC 时间
+        let naive_time =
+            NaiveDateTime::parse_from_str(DateUtils::datetime().as_str(), "%Y-%m-%d %H:%M:%S")
+                .unwrap();
+
+        let date_time_utc = DateTime::<Utc>::from_naive_utc_and_offset(naive_time, Utc);
+        let time_str = date_time_utc.to_rfc3339();
+        println!("指定时间 (UTC): {}", time_str);
+        println!(
+            "{:?}",
+            DateTime::parse_from_rfc3339("2024-10-09T10:03:01.000-00:00")
+        );
     }
     #[test]
     fn test_default() {
@@ -109,6 +128,7 @@ mod test {
             JwtConfig::new("123".to_string(), 1),
             TaskManager::new().await,
             EmailService::new(
+                false,
                 "localhost".to_string(),
                 455,
                 "test".to_string(),
@@ -128,10 +148,7 @@ mod test {
                 cgm: CgmType::Carelink,
                 patient_id: "date13".to_string(),
                 role: "patient".to_string(),
-                sse_interval: 10,
-                username: "date13".to_string(),
-                retry:0,
-                max_retries:5
+                ..UserSetting::null()
             },
         )
     }
@@ -161,14 +178,14 @@ mod test {
 
         if let Ok(Some(mut org_data)) = redis_service.get_json::<Value>(data_key.as_str()).await {
             let mut org_sugar_data = &mut org_data["data"];
-            save_history_data(&mut org_sugar_data, &redis_service, name.to_string()).await;
+            // save_history_data(&mut org_sugar_data, &redis_service, name.to_string()).await;
             // update_luck_data(&mut org_sugar_data, &redis_service, name.to_string()).await;
-            update_carelink_my_data_yesterday_data(
-                &mut org_sugar_data,
-                &redis_service,
-                name.to_string(),
-            )
-            .await;
+            // update_carelink_my_data_yesterday_data(
+            //     &mut org_sugar_data,
+            //     &redis_service,
+            //     name.to_string(),
+            // )
+            //     .await;
             update_statistics(&mut org_data, &redis_service, name.to_string()).await;
         }
 
@@ -335,31 +352,6 @@ mod test {
         tm_clone.shutdown().await;
     }
 
-    #[tokio::test]
-    #[allow(dead_code)]
-    #[allow(unused)]
-    #[allow(unused_variables)]
-    async fn test_load_carelink_data() {
-        let token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjhScXhuTW04dmcyR29feTFMQVZoOSJ9.eyJ0b2tlbl9kZXRhaWxzIjp7ImNvdW50cnkiOiJISyIsInByZWZlcnJlZF91c2VybmFtZSI6ImRhdGUxMyIsInJvbGVzIjpbInBhdGllbnRfb3VzIl19LCJpc3MiOiJodHRwczovL21kdC1jbC1vdXMtcHJvZDEubWVkdHJvbmljLWV1LmF1dGgwYXBwLmNvbS8iLCJzdWIiOiJhdXRoMHxkYXRlMTMiLCJhdWQiOlsicGVyc29uYWwucGF0aWVudC5vdXMiLCJodHRwczovL21kdC1jbC1vdXMtcHJvZDEubWVkdHJvbmljLWV1LmF1dGgwYXBwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3NjU2MTU4MTYsImV4cCI6MTc2NTYxODgxNiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBvZmZsaW5lX2FjY2VzcyIsImF6cCI6Ik1wc0dJdm9JZmp3R2RYN0x4cTZUSGhDVE1NeEtRTlU5In0.AD0H5UAGB0ejpGyrwAkRC4_TQPUUMp05HAzXb6MWVMtUMenv3BiSEprGNtD4fEnPgA64cvMXJHJjL-xJccVA3kjyEeCEnYqGU8OeZWoDppUllh0VDghgwqrsOMKbk6qSrNwvM3gZQEvMEweibL0qXcSnwCDo0xh_SgLGcUfxEbgTwzPqiR5cPbnQ903_EaLfEOP92mupTtsOlh7x0bgV4nxKf87vB0tEdFFkyQqy80OmHeYeEfLrNn46s1cy1lsA96Vp6Au5r5R6UlHq3u4rrWmPVUZYr-GjUruW5NUb1rGKaj0Pb65ThglJ1m1neDCCI_pJIjlkG73bypDNftHD8w";
-        let user_setting = UserSetting {
-            user_key: "alex".to_string(),
-            carelink_password: "".to_string(),
-            cgm: CgmType::Carelink,
-            patient_id: "date13".to_string(),
-            username: "date13".to_string(),
-            role: "patient".to_string(),
-            admin: true,
-            sse_interval: 10,
-            carelink_token_refresh_interval: 10,
-            carelink_data_refresh_interval: 10,
-            retry: 0,
-            max_retries: 5,
-        };
-        // let result = load_carelink_data(token, &user_setting).await;
-        // info!("{:?}", result);
-        // assert!(result.is_ok());
-    }
-
     #[test]
     fn test_ar2_forecast() {
         // 测试数据：模拟血糖值
@@ -408,9 +400,26 @@ mod test {
         println!("包含零值的预测: {:?}", forecast);
     }
 
+    #[test]
+    fn test_datetime_change() {
+        let new_time = utc_to_east8_string("2026-02-06T11:56:55Z");
+
+        println!("新时间: {:?}", new_time);
+    }
+
+    #[test]
+    fn test_trend() {
+        let converter = TrendConverter::new();
+        if let Some(carelink) = converter.convert_str("FortyFiveDown") {
+            println!("trend -> {:?}", carelink);
+        }
+        println!("source:{}", NSSource::Ottai.get_source());
+    }
+
     #[tokio::test]
     async fn test_mail() {
         let email = EmailService::new(
+            true,
             "smtp.exmail.qq.com".to_string(),
             465,
             "shanghaiyiyiba2012nan@sweetie-online.com".to_string(),
@@ -419,7 +428,7 @@ mod test {
             "date13@qq.com".to_string(),
         );
         match email
-            .send_text_email("date13@qq.com", "test", "test body")
+            .send_text_email("test", "中文测试".to_string())
             .await
         {
             Err(e) => {
@@ -431,6 +440,32 @@ mod test {
         }
     }
 
+    #[tokio::test]
+    async fn test_interval() {
+        // let current_time = Local::now();
+        // println!("{}", current_time);
+        // println!("{:?}", DateTime::parse_from_rfc3339("2026-02-10T09:12:02.000Z").ok());
+
+        let now_local = DateTime::parse_from_rfc3339("2026-02-10T09:14:02.000+08:00")
+            .ok()
+            .unwrap();
+
+        // 解析目标时间（注意时区是 -00:00，即 UTC）
+        let target_time = DateTime::parse_from_rfc3339("2026-02-10T09:11:49.000+08:00")
+            .expect("Failed to parse datetime");
+
+        // 将本地时间转换为 UTC 以便比较
+        // let now_utc = now_local.with_timezone(&chrono::Utc);
+        // let target_utc = target_time.with_timezone(&chrono::Utc);
+        // println!("{}", now_utc);
+        // 计算时间差
+        let duration = now_local.signed_duration_since(target_time);
+
+        // 转换为分钟
+        println!("{}", duration.num_minutes());
+
+        // println!("{}", DateUtils::datetime_local());
+    }
     #[tokio::test]
     async fn test_login() {
         match test_carelink_login().await {

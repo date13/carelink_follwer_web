@@ -44,6 +44,8 @@ pub struct UserSettingFrom {
     #[garde(required)]
     pub ns: Option<bool>,
     #[garde(required)]
+    pub manual_basal: Option<f32>,
+    #[garde(required)]
     pub ns_sync: Option<bool>,
 
 }
@@ -176,6 +178,7 @@ pub async fn update_user_setting(
     config["admin"] = payload.admin.into();
     config["auto_login"] = payload.auto_login.into();
     config["ns"] = payload.ns.into();
+    config["manual_basal"] = payload.manual_basal.into();
     config["ns_sync"] = payload.ns_sync.into();
 
     match state.redis.hset_json("user", &name, &config).await {
@@ -189,6 +192,7 @@ pub async fn update_user_setting(
                 user_setting.sse_interval = payload.sse_interval.unwrap() as i64;
                 user_setting.admin = payload.admin.unwrap();
                 user_setting.auto_login = payload.auto_login.unwrap();
+                user_setting.manual_basal = payload.manual_basal.unwrap();
                 user_setting.ns = payload.ns.unwrap_or(false);
                 user_setting.ns_sync = payload.ns_sync.unwrap_or(false);
                 state.save_user_settings(&name, user_setting).await;

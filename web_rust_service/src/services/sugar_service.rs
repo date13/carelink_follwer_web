@@ -1,7 +1,7 @@
 use crate::models::{AppState, UserSetting};
 use crate::utils::ar2::forecast_ar2_sg;
 use crate::utils::mail::EmailService;
-use crate::utils::redis_client::{RedisResult, RedisService};
+use crate::utils::redis_client::RedisService;
 use crate::utils::{parse_json, DateUtils, JsonHelp};
 use axum::http::StatusCode;
 use chrono::{DateTime, Duration, Local};
@@ -10,6 +10,7 @@ use reqwest::{Client, Response};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration as StdDuration;
 use tracing::{debug, error, info};
 use url::Url;
 
@@ -38,12 +39,15 @@ impl DictKeys {
 }
 
 pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting) {
-    // state.redis.get_json()
     info!("Carelink refresh token");
     let user_key = user_setting.user_key.as_str();
     let auth_key = format!("{}:{}", user_key, DictKeys::AUTH);
-    match state.redis.get_json::<Value>(&auth_key).await.get_json() {
-        Ok(mut auth_data) => {
+
+    const MAX_RETRIES: u32 = 5;
+    const RETRY_DELAY_SECS: u64 = 30;
+
+    match state.redis.get_json::<Value>(&auth_key).await {
+        Ok(Some(mut auth_data)) => {
             let token = auth_data.get_string("token");
             let status = auth_data.get_i64("status");
             if status != 200 {
@@ -52,46 +56,113 @@ pub async fn carelink_refresh_token(state: &AppState, user_setting: &UserSetting
                     user_key, status
                 );
             } else {
-                let response = state
-                    .http_client
-                    .post(format!(
-                        "{}{}",
-                        CARELINK_BASE_URL, CARELINK_REFRESH_TOKEN_URL
-                    ))
-                    // .json(&params)
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", format!("Bearer {}", token))
-                    .header("User-Agent", UA)
-                    .send()
-                    .await
-                    .inspect_err(|e| {
-                        send_mail(
-                            state.email.clone(),
-                            format!("刷新token错误,{:#?}", e).as_str(),
-                        );
-                    })
-                    .expect("Failed to send token request");
+                let mut success = false;
+                for attempt in 0..MAX_RETRIES {
+                    info!("用户:{} 开始第{}次刷新token尝试", user_key, attempt + 1);
 
-                let status = response.status();
-                let user = &user_setting.user_key;
-                auth_data["status"] = status.as_u16().into();
-                if status == StatusCode::OK {
-                    // 获取所有 cookies
-                    let cookies: Vec<reqwest::cookie::Cookie> = response.cookies().collect();
-                    let auth_tmp_token = cookies
-                        .iter()
-                        .find(|cookie| cookie.name() == "auth_tmp_token")
-                        .map(|cookie| cookie.value().to_string());
-                    auth_data["token"] = Value::from(auth_tmp_token.unwrap().to_string());
-                    debug!("用户:{} 获取 carelinkToken 数据成功!!!", user);
-                    // result
-                } else {
-                    let text = format!("用户:{} 获取 carelinkToken 数据失败!!!:{}", user, status);
-                    send_mail(state.email.clone(), text.as_str());
-                    error!("{}", text)
+                    // 发送 refresh token 请求
+                    let response = match state
+                        .http_client
+                        .post(format!(
+                            "{}{}",
+                            CARELINK_BASE_URL, CARELINK_REFRESH_TOKEN_URL
+                        ))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", format!("Bearer {}", token))
+                        .header("User-Agent", UA)
+                        .send()
+                        .await
+                    {
+                        Ok(resp) => resp,
+                        Err(e) => {
+                            error!(
+                                "用户:{} 第{}次刷新token请求发送失败: {:#?}",
+                                user_key,
+                                attempt + 1,
+                                e
+                            );
+                            if attempt < MAX_RETRIES - 1 {
+                                info!(
+                                    "用户:{} 将在{}秒后进行第{}次重试",
+                                    user_key,
+                                    RETRY_DELAY_SECS,
+                                    attempt + 2
+                                );
+                                tokio::time::sleep(StdDuration::from_secs(RETRY_DELAY_SECS)).await;
+                            }
+                            continue;
+                        }
+                    };
+
+                    let resp_status = response.status();
+                    let user = &user_setting.user_key;
+                    auth_data["status"] = resp_status.as_u16().into();
+
+                    if resp_status == StatusCode::OK {
+                        // 获取所有 cookies
+                        let cookies: Vec<reqwest::cookie::Cookie> = response.cookies().collect();
+                        let auth_tmp_token = cookies
+                            .iter()
+                            .find(|cookie| cookie.name() == "auth_tmp_token")
+                            .map(|cookie| cookie.value().to_string());
+                        match auth_tmp_token {
+                            Some(token) => {
+                                auth_data["token"] = Value::from(token);
+                                debug!("用户:{} 获取 carelinkToken 数据成功!!!", user);
+                                success = true;
+                                break;
+                            }
+                            None => {
+                                error!(
+                                    "用户:{} 第{}次刷新token成功但未获取到auth_tmp_token",
+                                    user_key,
+                                    attempt + 1
+                                );
+                                if attempt < MAX_RETRIES - 1 {
+                                    info!(
+                                        "用户:{} 将在{}秒后进行第{}次重试",
+                                        user_key,
+                                        RETRY_DELAY_SECS,
+                                        attempt + 2
+                                    );
+                                    tokio::time::sleep(StdDuration::from_secs(RETRY_DELAY_SECS))
+                                        .await;
+                                }
+                            }
+                        }
+                    } else {
+                        error!(
+                            "用户:{} 第{}次获取 carelinkToken 数据失败!!! HTTP状态:{}",
+                            user_key,
+                            attempt + 1,
+                            resp_status
+                        );
+                        if attempt < MAX_RETRIES - 1 {
+                            info!(
+                                "用户:{} 将在{}秒后进行第{}次重试",
+                                user_key,
+                                RETRY_DELAY_SECS,
+                                attempt + 2
+                            );
+                            tokio::time::sleep(StdDuration::from_secs(RETRY_DELAY_SECS)).await;
+                        }
+                    }
                 }
+
+                if !success {
+                    let text = format!(
+                        "用户:{} 获取 carelinkToken 数据最终失败!!! (已重试{}次)",
+                        user_key, MAX_RETRIES
+                    );
+                    send_mail(state.email.clone(), text.as_str());
+                    error!("{}", text);
+                }
+
                 update_carelink_auth_data_to_redis(&mut auth_data, &state.redis, user_key).await;
             }
+        }
+        Ok(None) => {
+            error!("Carelink refresh token: auth data not found in redis for {}", user_key);
         }
         Err(e) => {
             error!("Carelink refresh token failed: {}", e);
@@ -105,8 +176,8 @@ pub async fn carelink_refresh_data(state: &AppState, user_key: &str) {
     let auth_key = format!("{}:{}", user_key, DictKeys::AUTH);
     let redis = state.redis.clone(); // 确保 RedisService 实现了 Clone + Send
     let mut mut_setting = state.get_user_settings(user_key).await;
-    match state.redis.get_json::<Value>(&auth_key).await.get_json() {
-        Ok(mut auth_data) => {
+    match state.redis.get_json::<Value>(&auth_key).await {
+        Ok(Some(mut auth_data)) => {
             let status = auth_data.get_i64("status") as u16;
             if status == StatusCode::UNAUTHORIZED.as_u16() {
                 if mut_setting.can_login() {
@@ -187,8 +258,8 @@ pub async fn carelink_refresh_data(state: &AppState, user_key: &str) {
                         json_data,
                     )
                         .await;
-                    // 重置最大登录限制
-                    if status == StatusCode::OK.as_u16() as i32 && mut_setting.retry > 1 {
+                    // 重置最大登录限制（成功读取数据即清零，retry 为 0/1 也应重置）
+                    if status == StatusCode::OK.as_u16() as i32 && mut_setting.retry > 0 {
                         mut_setting.reset_retry();
                         state.save_user_settings(user_key, mut_setting).await;
                     }
@@ -200,6 +271,9 @@ pub async fn carelink_refresh_data(state: &AppState, user_key: &str) {
                     }
                 }
             }
+        }
+        Ok(None) => {
+            error!("Carelink refresh data: auth data not found in redis for {}", user_key);
         }
         Err(e) => {
             error!("Carelink refresh data failed: {}", e);
@@ -217,7 +291,7 @@ pub async fn carelink_refresh_history(state: &AppState, user_setting: &UserSetti
         let mut org_sugar_data = &mut org_data["data"];
         update_carelink_my_data_yesterday_data(&mut org_sugar_data, &state.redis, user_key.clone())
             .await;
-        save_history_data(&mut org_sugar_data, &state.redis, user_key.clone()).await;
+        save_history_data(&mut org_sugar_data, &state.redis, user_key.clone(),user_setting).await;
         update_luck_data(&mut org_sugar_data, &state.redis, user_key.clone()).await;
         update_statistics(&mut org_data, &state.redis, user_key.clone()).await;
     } else {
@@ -239,7 +313,7 @@ pub async fn load_carelink_data(
         ("role", &user_setting.role),
     ]);
 
-    let response = client
+    let response = match client
         .post(CARELINK_DATA_URL)
         .json(&params)
         .header("Content-Type", "application/json")
@@ -247,13 +321,19 @@ pub async fn load_carelink_data(
         .header("User-Agent", UA)
         .send()
         .await
-        .inspect_err(|e| {
-            send_mail(
-                email.clone(),
-                format!("刷新CarelinkDate错误,{:#?}", e).as_str(),
+    {
+        Ok(resp) => resp,
+        Err(e) => {
+            // 网络错误直接返回，避免 .expect() 导致整个刷新任务 panic
+            let text = format!(
+                "用户:{} 刷新CarelinkData请求发送失败!!!:{}",
+                user_setting.user_key, e
             );
-        })
-        .expect("Failed to send data request");
+            error!("{}", text);
+            // send_mail(email.clone(), text.as_str());
+            return (0, None);
+        }
+    };
 
     let status = response.status();
     let user = &user_setting.user_key;
@@ -263,11 +343,11 @@ pub async fn load_carelink_data(
                 info!("用户:{:?} 远程读取 carelinkData 数据成功!!!", user);
                 (StatusCode::OK.as_u16() as i32, Some(value))
             }
-            Err(e) => {
-                send_mail(
-                    email.clone(),
-                    format!("解析CarelinkDate JSON错误,{:#?}", e).as_str(),
-                );
+            Err(_) => {
+                // send_mail(
+                //     email.clone(),
+                //     format!("解析CarelinkDate JSON错误,{:#?}", e).as_str(),
+                // );
                 // 返回错误状态码和 None
                 (StatusCode::UNPROCESSABLE_ENTITY.as_u16() as i32, None)
             }
@@ -303,40 +383,57 @@ pub async fn update_carelink_data(
             if ns {
                 //以下数据都是 ns_service去更新了
                 // 如果打开ns,则不更新sgs,trend,notificationHistory数据
-                let org_raw_data = org_data["data"].clone();
-                data["sgs"] = org_raw_data["sgs"].clone();
-                data["lastSG"] = org_raw_data["lastSG"].clone();
-                data["lastSGTrend"] = org_raw_data["lastSGTrend"].clone();
-                // 统计数据也不更新了，因为没有闭环就没有统计数据了
-                data["averageSG"] = org_raw_data["averageSG"].clone();
-                data["averageSGFloat"] = org_raw_data["averageSGFloat"].clone();
-                data["belowHypoLimit"] = org_raw_data["belowHypoLimit"].clone();
-                data["aboveHyperLimit"] = org_raw_data["aboveHyperLimit"].clone();
-                data["timeInRange"] = org_raw_data["timeInRange"].clone();
+                // 直接从已存储的 data 中“搬移”本地管理的字段,避免整棵子树深拷贝
+                if let Some(org_data_obj) = org_data["data"].as_object_mut() {
+                    for key in [
+                        "sgs",
+                        "lastSG",
+                        "lastSGTrend",
+                        "averageSG",
+                        "averageSGFloat",
+                        "belowHypoLimit",
+                        "aboveHyperLimit",
+                        "timeInRange",
+                    ] {
+                        if org_data_obj.contains_key(key) {
+                            data[key] = std::mem::take(&mut org_data_obj[key]);
+                        }
+                    }
 
-                // 把原始数据中的有source的警告合并进notification_list
-                let notification_list = data["notificationHistory"]["clearedNotifications"]
-                    .as_array_mut()
-                    .unwrap();
+                    // 找出非780的警告数据
+                    let source_notifications = org_data_obj
+                        .get("notificationHistory")
+                        .and_then(|v| v.get("clearedNotifications"))
+                        .and_then(|v| v.as_array())
+                        .map(|arr| {
+                            arr.iter()
+                                .filter(|a| !a.get_string("source").is_empty())
+                                .cloned()
+                                .collect::<Vec<_>>()
+                        })
+                        .unwrap_or_default();
 
-                // 找出非780的警告数据
-                let source_notifications =
-                    org_raw_data["notificationHistory"]["clearedNotifications"]
-                        .as_array()
-                        .unwrap()
-                        .iter()
-                        .filter(|a| !a.get_string("source").is_empty())
-                        .cloned()
-                        .collect::<Vec<_>>();
-
-                // 合并进警告list
-                notification_list.extend(source_notifications);
-                // 时间正排序
-                notification_list.sort_by_cached_key(|v| {
-                    v.get("triggeredDateTime")
-                        .and_then(|v| v.as_str())
-                        .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
-                });
+                    // 结束对 org_data 的借用后再处理 data 的可变借用
+                    if let Some(notification_list) =
+                        data["notificationHistory"]["clearedNotifications"].as_array_mut()
+                    {
+                        // 合并进警告list
+                        notification_list.extend(source_notifications);
+                        // 时间正排序
+                        notification_list.sort_by_cached_key(|v| {
+                            v.get("triggeredDateTime")
+                                .and_then(|v| v.as_str())
+                                .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
+                        });
+                    } else {
+                        error!(
+                            "用户:{} notificationHistory.clearedNotifications 缺失或非数组",
+                            user_key
+                        );
+                    }
+                } else {
+                    error!("用户:{} 存储的 data 非对象,无法保留本地数据", user_key);
+                }
             }
 
             org_data["data"] = data;
@@ -411,16 +508,47 @@ pub async fn update_carelink_my_data_yesterday_data(
 ) {
     let my_data_key = format!("{}:{}", user_key, DictKeys::MY_DATA);
     if let Ok(Some(mut org_my_data)) = redis.get_json::<Value>(&my_data_key).await {
-        let sgs_data = org_yesterday_data["sgs"].as_array_mut().unwrap();
-        let yes_sgs_arr = org_my_data[YESTERDAY_KEY]["sgs"].as_array_mut().unwrap();
+        // 确保 yesterday 下的 sgs / markers 是数组，缺失或非数组时初始化为空数组，避免 unwrap panic
+        let yes_obj = match org_my_data.get_mut(YESTERDAY_KEY) {
+            Some(v) => match v.as_object_mut() {
+                Some(m) => m,
+                None => {
+                    *v = json!({});
+                    v.as_object_mut().unwrap()
+                }
+            },
+            None => {
+                org_my_data[YESTERDAY_KEY] = json!({});
+                org_my_data[YESTERDAY_KEY].as_object_mut().unwrap()
+            }
+        };
+        if yes_obj.get("sgs").map_or(true, |v| !v.is_array()) {
+            yes_obj.insert("sgs".to_string(), Value::Array(vec![]));
+        }
+        if yes_obj.get("markers").map_or(true, |v| !v.is_array()) {
+            yes_obj.insert("markers".to_string(), Value::Array(vec![]));
+        }
+
+        let sgs_data = match org_yesterday_data["sgs"].as_array_mut() {
+            Some(arr) => arr,
+            None => {
+                error!("用户:{} 昨日 sgs 数据缺失或非数组,跳过昨日数据更新", user_key);
+                return;
+            }
+        };
+        let yes_sgs_arr = yes_obj.get_mut("sgs").unwrap().as_array_mut().unwrap();
         let yes_sgs_arr_len = yes_sgs_arr.len();
         deal_yes_data(yes_sgs_arr, sgs_data);
 
         //这里一定要先处理完上面的sgs_data的借用,才能再次处理marker的值
-        let markers_data = org_yesterday_data["markers"].as_array_mut().unwrap();
-        let yes_markers_arr = org_my_data[YESTERDAY_KEY]["markers"]
-            .as_array_mut()
-            .unwrap();
+        let markers_data = match org_yesterday_data["markers"].as_array_mut() {
+            Some(arr) => arr,
+            None => {
+                error!("用户:{} 昨日 markers 数据缺失或非数组,跳过昨日数据更新", user_key);
+                return;
+            }
+        };
+        let yes_markers_arr = yes_obj.get_mut("markers").unwrap().as_array_mut().unwrap();
         let yes_markers_arr_len = yes_markers_arr.len();
         deal_yes_data(yes_markers_arr, markers_data);
 
@@ -469,35 +597,46 @@ pub async fn save_history_data(
     org_yesterday_data: &mut Value,
     redis: &RedisService,
     user_key: String,
+    user_setting: &UserSetting
 ) {
     let mut sum_recommended: f64 = 0.0;
     let mut sum_auto_correction: f64 = 0.0;
     let mut sum_basal: f64 = 0.0;
-    for item in org_yesterday_data["markers"].as_array().unwrap().iter() {
-        let item_type = item["type"].as_str().unwrap();
+    if let Some(markers) = org_yesterday_data["markers"].as_array() {
+        for item in markers.iter() {
+            let item_type = match item["type"].as_str() {
+                Some(t) => t,
+                None => continue,
+            };
 
-        if item_type == "INSULIN" {
-            let item_activation_type = item["activationType"].as_str().unwrap();
-            if item_activation_type == "RECOMMENDED" {
-                sum_recommended += item.get_f64("deliveredFastAmount");
-            } else if item_activation_type == "AUTOCORRECTION" {
-                sum_auto_correction += item.get_f64("deliveredFastAmount");
+            if item_type == "INSULIN" {
+                let item_activation_type = match item["activationType"].as_str() {
+                    Some(a) => a,
+                    None => continue,
+                };
+                if item_activation_type == "RECOMMENDED" {
+                    sum_recommended += item.get_f64("deliveredFastAmount");
+                } else if item_activation_type == "AUTOCORRECTION" {
+                    sum_auto_correction += item.get_f64("deliveredFastAmount");
+                }
+            } else if item_type == "AUTO_BASAL_DELIVERY" {
+                sum_basal += item.get_f64("bolusAmount");
             }
-        } else if item_type == "AUTO_BASAL_DELIVERY" {
-            sum_basal += item.get_f64("bolusAmount");
         }
+    } else {
+        error!("用户:{} markers 数据缺失或非数组,跳过胰岛素统计", user_key);
     }
 
     let history_data = json!({
-        "averageSG": org_yesterday_data["averageSG"].as_f64().unwrap(),
-        "belowHypoLimit": org_yesterday_data["belowHypoLimit"].as_f64().unwrap(),
-        "aboveHyperLimit": org_yesterday_data["aboveHyperLimit"].as_f64().unwrap(),
-        "timeInRange": org_yesterday_data["timeInRange"].as_f64().unwrap(),
-        "averageSGFloat": org_yesterday_data["averageSGFloat"].as_f64().unwrap(),
+        "averageSG": org_yesterday_data["averageSG"].as_f64().unwrap_or(0.0),
+        "belowHypoLimit": org_yesterday_data["belowHypoLimit"].as_f64().unwrap_or(0.0),
+        "aboveHyperLimit": org_yesterday_data["aboveHyperLimit"].as_f64().unwrap_or(0.0),
+        "timeInRange": org_yesterday_data["timeInRange"].as_f64().unwrap_or(0.0),
+        "averageSGFloat": org_yesterday_data["averageSGFloat"].as_f64().unwrap_or(0.0),
         "insulin": {
             "recommended": sum_recommended,
             "autoCorrection": sum_auto_correction,
-            "basal": sum_basal
+            "basal": if user_setting.ns { user_setting.manual_basal } else { sum_basal as f32 }
         }
     });
     let history_key = format!("{}:{}", user_key, DictKeys::HISTORY);
@@ -531,57 +670,68 @@ pub async fn update_statistics(org_data: &mut Value, redis: &RedisService, user_
     {
         Ok(Some(data)) => {
             if let Some(obj) = data.as_object() {
-                let mut history_arr: Vec<(String, Value)> =
-                    obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-                history_arr.sort_by(|a, b| b.0.cmp(&a.0));
+                // 收集日期键并按降序排序（最新在前），避免克隆整份 Value
+                let mut keys: Vec<&String> = obj.keys().collect();
+                keys.sort_by(|a, b| b.cmp(a));
                 let mut sum_avg: f64 = 0.0;
+                let mut valid_count: usize = 0;
                 // let mut sum_below: f64 = 0.0;
                 // let mut sum_above: f64 = 0.0;
                 let mut day_30 = get_sum_obj();
                 let mut day_90 = get_sum_obj();
-                for (i, item) in history_arr.iter().enumerate() {
-                    let history_data = parse_json(item.1.as_str().unwrap());
+                for (i, key) in keys.iter().enumerate() {
+                    // 仅在窗口内（前90天）或需要累计均值时才解析对应记录，避免无效记录也被解析
+                    let history_data = match obj.get(*key).and_then(|v| v.as_str()) {
+                        Some(s) => parse_json(s),
+                        None => continue,
+                    };
                     //  没有数据的跳过
                     if history_data.get_f64("timeInRange") <= 0.0 {
                         continue;
                     }
-                    if i < 30 {
-                        calc_day_obj_data(&mut day_30, &history_data);
-                    }
                     if i < 90 {
+                        if i < 30 {
+                            calc_day_obj_data(&mut day_30, &history_data);
+                        }
                         calc_day_obj_data(&mut day_90, &history_data);
                     }
                     sum_avg += history_data.get_f64("averageSGFloat");
-                    // sum_below += history_data.get_f64("belowHypoLimit");
-                    // sum_above += history_data.get_f64("aboveHyperLimit");
+                    valid_count += 1;
                 }
-                let total_avg_sg = sum_avg / history_arr.len() as f64;
+                // 用有效天数作为分母，避免被无效(空)记录稀释；无数据时为 0
+                let total_avg_sg = if valid_count > 0 {
+                    sum_avg / valid_count as f64
+                } else {
+                    0.0
+                };
 
-                org_data["GMI"] = fix2(3.31 + 0.02392 * total_avg_sg);
+                org_data["GMI"] = if valid_count > 0 {
+                    fix2(3.31 + 0.02392 * total_avg_sg)
+                } else {
+                    Value::from("0.00")
+                };
                 if let Some(statistics) = org_data.get_mut("statistics") {
-                    let day_30_sum = &day_30["sum"];
                     let day_30_count = day_30.get_f64("count");
                     let day_30_insulin_count = day_30.get_f64("insulinCount");
-                    let day_90_sum = &day_90["sum"];
                     let day_90_count = day_90.get_f64("count");
                     let day_90_insulin_count = day_90.get_f64("insulinCount");
 
                     statistics["day30"] = json!({
-                        "avg": fix2(day_30_sum.get_f64("avg")  / day_30_count),
-                        "below":fix2(day_30_sum.get_f64("below")  / day_30_count),
-                        "above":fix2(day_30_sum.get_f64("above")  / day_30_count),
-                        "recommended":fix2(day_30_sum.get_f64("recommended")  / day_30_insulin_count),
-                        "autoCorrection":fix2(day_30_sum.get_f64("autoCorrection")  / day_30_insulin_count),
-                        "basal":fix2(day_30_sum.get_f64("basal")  / day_30_insulin_count),
+                        "avg": fix2(safe_div(day_30["sum"].get_f64("avg"), day_30_count)),
+                        "below": fix2(safe_div(day_30["sum"].get_f64("below"), day_30_count)),
+                        "above": fix2(safe_div(day_30["sum"].get_f64("above"), day_30_count)),
+                        "recommended": fix2(safe_div(day_30["sum"].get_f64("recommended"), day_30_insulin_count)),
+                        "autoCorrection": fix2(safe_div(day_30["sum"].get_f64("autoCorrection"), day_30_insulin_count)),
+                        "basal": fix2(safe_div(day_30["sum"].get_f64("basal"), day_30_insulin_count)),
                     });
 
                     statistics["day90"] = json!({
-                        "avg": fix2(day_90_sum.get_f64("avg")  / day_90_count),
-                        "below":fix2(day_90_sum.get_f64("below")  / day_90_count),
-                        "above":fix2(day_90_sum.get_f64("above")  / day_90_count),
-                        "recommended":fix2(day_90_sum.get_f64("recommended")  / day_90_insulin_count),
-                        "autoCorrection":fix2(day_90_sum.get_f64("autoCorrection")  / day_90_insulin_count),
-                        "basal":fix2(day_90_sum.get_f64("basal")  / day_90_insulin_count),
+                        "avg": fix2(safe_div(day_90["sum"].get_f64("avg"), day_90_count)),
+                        "below": fix2(safe_div(day_90["sum"].get_f64("below"), day_90_count)),
+                        "above": fix2(safe_div(day_90["sum"].get_f64("above"), day_90_count)),
+                        "recommended": fix2(safe_div(day_90["sum"].get_f64("recommended"), day_90_insulin_count)),
+                        "autoCorrection": fix2(safe_div(day_90["sum"].get_f64("autoCorrection"), day_90_insulin_count)),
+                        "basal": fix2(safe_div(day_90["sum"].get_f64("basal"), day_90_insulin_count)),
                     });
                 }
                 update_carelink_data_to_redis(org_data, redis, &user_key).await;
@@ -745,6 +895,14 @@ fn calculate_statistics(values: &[f64]) -> (f64, f64, f64) {
 fn fix2(v: f64) -> Value {
     Value::from(format!("{:.2}", v))
 }
+/// 安全除法：分母为 0 时返回 0.0，避免产生 inf / NaN 写入 Redis
+fn safe_div(numer: f64, denom: f64) -> f64 {
+    if denom > 0.0 {
+        numer / denom
+    } else {
+        0.0
+    }
+}
 fn get_sum_obj() -> Value {
     json!({
         "count": 0,
@@ -807,7 +965,7 @@ pub fn send_mail(email_service: Arc<EmailService>, text: &str) {
     let msg = String::from(text);
     tokio::spawn(async move {
         match email_service
-            .send_text_email(email_service.to.as_str(), "carelink_follower_web警报", msg)
+            .send_text_email("carelink_follower_web警报", msg)
             .await
         {
             Ok(_) => {}
@@ -833,8 +991,8 @@ pub async fn carelink_login(
             info!("Carelink auto login successful: {}", token);
             let user_key = user_setting.user_key.as_str();
             let auth_key = format!("{}:{}", user_key, DictKeys::AUTH);
-            match state.redis.get_json::<Value>(&auth_key).await.get_json() {
-                Ok(mut auth_data) => {
+            match state.redis.get_json::<Value>(&auth_key).await {
+                Ok(Some(mut auth_data)) => {
                     auth_data["status"] = Value::from(200);
                     auth_data["token"] = Value::from(token.to_string());
                     update_carelink_auth_data_to_redis(&mut auth_data, &state.redis, user_key)
@@ -846,6 +1004,9 @@ pub async fn carelink_login(
                     );
                     Ok(true)
                 }
+                Ok(None) => Err(LoginError::LoginFailed(
+                    "Carelink auth data not found in redis".to_string(),
+                )),
                 Err(e) => Err(LoginError::LoginFailed(format!(
                     "Carelink get user auth data error: {:?}",
                     e

@@ -1,6 +1,6 @@
 /* eslint-disable no-useless-escape */
 
-import { isArray } from "radashi";
+import {isArray} from "radashi";
 
 export const Reg = {
   digits: /^\d+$/,
@@ -24,17 +24,17 @@ export const Reg = {
   password: /^[a-zA-Z]\w{5,17}$/,
   email: /^(\w)+(\.\w+)*@(\w)+((\.\w{2,3}){1,3})$/,
   // email2: /^(?!\.)[0-9A-Za-z\-_]+(\.[0-9A-Za-z\-_]+)?@(?!_)([^/,*?&.@\s])+(\.([^/,*?&.@\s])+)+(?<!_)$/,
-  phone:
-    /^(0?(13[0-9]|15[012356789]|17[013678]|18[0-9]|14[57])[0-9]{8})|(400|800)([0-9\\-]{7,10})|(([0-9]{4}|[0-9]{3})(-| )?)?([0-9]{7,8})((-| |转)*([0-9]{1,4}))?$/,
+  phone: /^(0?(13[0-9]|15[012356789]|17[013678]|18[0-9]|14[57])[0-9]{8})|(400|800)([0-9\\-]{7,10})|(([0-9]{4}|[0-9]{3})(-| )?)?([0-9]{7,8})((-| |转)*([0-9]{1,4}))?$/,
   phone2: /(\(\d{3,4}\)|\d{3,4}-|\s)?\d{7,14}/,
   shortName: /^[A-Z]{4}$/,
-  bankId: /^([1-9]{1})(\d{11}|\d{15}|\d{16}|\d{17}|\d{18})$/,
-};
+  bankId: /^([1-9]{1})(\d{11}|\d{15}|\d{16}|\d{17}|\d{18})$/
+
+}
 
 const AcceptFileType = {
-  file: "application/msword,application/pdf,application/vnd.ms-excel,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  img: "image/gif,image/jpg,image/jpeg,image/png",
-};
+  file: 'application/msword,application/pdf,application/vnd.ms-excel,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  img: 'image/gif,image/jpg,image/jpeg,image/png'
+}
 
 export class RegFunc {
   /**
@@ -42,192 +42,149 @@ export class RegFunc {
    * @returns {Boolean}
    */
   static isExternal(path: string) {
-    const isExternal = /^(https?:|http?:|mailto:|tel:)/.test(path);
-    return isExternal;
+    const isExternal = /^(https?:|http?:|mailto:|tel:)/.test(path)
+    return isExternal
   }
 
   static number(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!Reg.number.test(value)) {
-            callback(new Error(`${key}请输入正数`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!Reg.number.test(value)) {
+          callback(new Error(`${key}请输入正数`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static numberNE(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!Reg.number.test(value)) {
-            callback(new Error(`${key}请输入数字`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!Reg.number.test(value)) {
+          callback(new Error(`${key}请输入数字`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static integer(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!Reg.digits.test(value)) {
-            callback(new Error(`${key}请输入正整数`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!Reg.digits.test(value)) {
+          callback(new Error(`${key}请输入正整数`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static integerNE(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!Reg.digitsNE.test(value)) {
-            callback(new Error(`${key}请输入整数`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!Reg.digitsNE.test(value)) {
+          callback(new Error(`${key}请输入整数`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static require(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!value || (isArray(value) && value.length === 0)) {
-            callback(new Error(`${key}不得为空`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!value || (isArray(value) && value.length === 0)) {
+          callback(new Error(`${key}不得为空`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static mobile(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!/^1\d{10}$/.test(value)) {
-            callback(new Error(`请输入正确的${key}`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!/^1\d{10}$/.test(value)) {
+          callback(new Error(`请输入正确的${key}`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static mobileOrEmail(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!/^1\d{10}$/.test(value) && !Reg.email.test(value)) {
-            callback(new Error(`请输入正确的${key}`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!/^1\d{10}$/.test(value) && !Reg.email.test(value)) {
+          callback(new Error(`请输入正确的${key}`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static reg(key: string, reg: any) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!reg.test(value)) {
-            callback(new Error(`请输入正确的${key}`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!reg.test(value)) {
+          callback(new Error(`请输入正确的${key}`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static validator(func: any) {
-    return [{ required: true, trigger: "blur", validator: func }];
+    return [{required: true, trigger: "blur", validator: func}]
   }
 
   static json(key: string, required = true) {
-    return [
-      {
-        required,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          try {
-            if (value && required) {
-              window.eval("(" + value + ")");
-            } else {
-              callback();
-            }
-          } catch (e) {
-            callback(new Error(`${key}不是合法JSON字符串`));
+    return [{
+      required, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        try {
+          if (value && required) {
+            window.eval('(' + value + ')')
+          } else {
+            callback()
           }
-          callback();
-        },
-      },
-    ];
+        } catch (e) {
+          callback(new Error(`${key}不是合法JSON字符串`));
+        }
+        callback();
+      }
+    }]
   }
 
+
   static email(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!Reg.email.test(value)) {
-            callback(new Error(`请输入正确的${key}`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!Reg.email.test(value)) {
+          callback(new Error(`请输入正确的${key}`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 
   static url(key: string) {
-    return [
-      {
-        required: true,
-        trigger: "blur",
-        validator: (rule: any, value: any, callback: any) => {
-          if (!Reg.url.test(value)) {
-            callback(new Error(`请输入正确的${key}`));
-          } else {
-            callback();
-          }
-        },
-      },
-    ];
+    return [{
+      required: true, trigger: "blur", validator: (rule: any, value: any, callback: any) => {
+        if (!Reg.url.test(value)) {
+          callback(new Error(`请输入正确的${key}`));
+        } else {
+          callback();
+        }
+      }
+    }]
   }
 }

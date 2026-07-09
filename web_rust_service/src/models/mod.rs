@@ -238,6 +238,7 @@ pub struct UserSetting {
     pub max_retries: u8,
     pub auto_login: bool,
     pub ns: bool,
+    pub manual_basal: f32,
     pub ns_sync: bool,
     pub ns_api_secret: String,
 }
@@ -260,6 +261,7 @@ impl UserSetting {
             auto_login: false,
             ns: false,
             ns_sync: false,
+            manual_basal: 0.0,
             ns_api_secret: String::new(),
         }
     }

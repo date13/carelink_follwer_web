@@ -38,14 +38,14 @@ impl EmailService {
   /// 发送纯文本邮件
   pub async fn send_text_email(
     &self,
-    to: &str,
     subject: &str,
     body: String,
   ) -> Result<(), Error> {
     if self.enable {
+      let to = self.to.parse()?;
       let email = Message::builder()
           .from(self.from.parse()?)
-          .to(to.parse()?)
+          .to(to)
           .subject(subject)
           .singlepart(
             SinglePart::builder()
@@ -61,9 +61,11 @@ impl EmailService {
           .credentials(creds)
           .build();
 
-      // 发送邮件（异步）
-      mailer.send(&email)?;
-      info!("HTML email sent successfully to: {}", to);
+      // 阻塞式 SMTP 发送放到 spawn_blocking，避免占用 tokio 工作线程
+      tokio::task::spawn_blocking(move || mailer.send(&email))
+          .await
+          .map_err(|e| anyhow::anyhow!("邮件发送任务被取消: {}", e))??;
+      info!("text email sent successfully to: {}", self.to);
     }
     Ok(())
   }

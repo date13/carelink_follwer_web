@@ -72,8 +72,6 @@ export default function (funcObj: any = {}) {
     }
   }
 
-  let i = 0;
-
   function dealCarelinkData(result) {
     if (result) {
       state.data = result.data;
@@ -94,7 +92,6 @@ export default function (funcObj: any = {}) {
       // console.log(result);
       state.prepare = true;
       document.title = `${defaultSettings.title} ${sugarCalc.calcSG(state.data.lastSG.sg)}, ${Number(lastOffset.value) > 0 ? "+" + lastOffset.value : lastOffset.value}`;
-      i++;
     } else {
       state.prepare = false;
     }
@@ -133,7 +130,7 @@ export default function (funcObj: any = {}) {
     timeKey = "datetime",
     suffixFunc = () => {},
   ) {
-    state.myData.yesterday[key] = state.myData.yesterday[key].flat();
+    state.myData.yesterday[key] = [...state.myData.yesterday[key]].flat();
     state.myData.yesterday[key].forEach((item) => {
       item[timeKey] = dayjs(sugarCalc.cleanTime(item[timeKey]))
         .add(1, "day")
@@ -151,15 +148,14 @@ export default function (funcObj: any = {}) {
         state.data.notificationHistory.activeNotifications[0].instanceId;
       notificationData = state.data.notificationHistory.activeNotifications[0];
     } else if (state.data.notificationHistory.clearedNotifications.length > 0) {
-      const clearedNotifications =
-        state.data.notificationHistory.clearedNotifications.sort(
-          (a: any, b: any) => {
-            return (
-              sugarCalc.cleanTime(b.triggeredDateTime)! -
-              sugarCalc.cleanTime(a.triggeredDateTime)!
-            );
-          },
+      const clearedNotifications = [
+        ...state.data.notificationHistory.clearedNotifications,
+      ].sort((a: any, b: any) => {
+        return (
+          sugarCalc.cleanTime(b.triggeredDateTime)! -
+          sugarCalc.cleanTime(a.triggeredDateTime)!
         );
+      });
       notificationKey = clearedNotifications[0].instanceId;
       notificationData = clearedNotifications[0];
     }
@@ -265,18 +261,22 @@ export default function (funcObj: any = {}) {
     );
   }
 
+  //有效血糖数据（只计算一次，供下方多个 computed 复用）
+  const validSgs = computed(() => {
+    return sugarCalc.getValidSgs(state.data.sgs);
+  });
   //计算入框率
   const timeInRange = computed(() => {
-    return sugarCalc.calcTimeInRange(state.data.sgs);
+    return sugarCalc.calcTimeInRange(validSgs.value);
   });
 
   //计算入框率
   const tightTimeInRange = computed(() => {
-    return sugarCalc.calcTimeInRange(state.data.sgs, true);
+    return sugarCalc.calcTimeInRange(validSgs.value, true);
   });
   //计算最后的数据升降幅度
   const lastOffset = computed(() => {
-    return sugarCalc.calcLastOffset(state.data.sgs);
+    return sugarCalc.calcLastOffset(validSgs.value);
   });
 
   const lastNSData = computed(() => {
@@ -361,7 +361,7 @@ export default function (funcObj: any = {}) {
 
   //计算最大和最小值
   const minMaxSG = computed(() => {
-    return sugarCalc.minMaxSG(state.data.sgs, setting);
+    return sugarCalc.minMaxSG(validSgs.value, setting);
   });
 
   async function loadSettings() {

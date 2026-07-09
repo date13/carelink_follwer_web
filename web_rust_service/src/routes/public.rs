@@ -8,6 +8,7 @@ use crate::utils::JsonHelp;
 use axum::extract::State;
 use axum::routing::post;
 use axum::{response::Json, routing::get, Router};
+use chrono::Local;
 use serde_json::{json, Value};
 
 pub fn public_router() -> Router<AppState> {
@@ -25,10 +26,11 @@ pub async fn update_user_token(
     Json(payload): Json<Value>,
 ) -> ApiResponse<Value> {
     let params_val = payload.get_string("val");
+    let user_key = payload.get_string("user_key");
     state
         .redis
         .set(
-            format!("{}:{}", "alex", DictKeys::AUTH).as_str(),
+            format!("{}:{}", user_key, DictKeys::AUTH).as_str(),
             params_val.as_str(),
             None,
         )
@@ -101,6 +103,7 @@ async fn test_service() -> Json<serde_json::Value> {
     Json(json!({
         "code":0,
         "data":{
+            "time":Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
             "car": {
                 "name": "new car",
                 "color": "blue",

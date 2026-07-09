@@ -7,7 +7,7 @@ mod utils;
 mod test;
 
 use crate::config::AppConfig;
-use tracing::{debug, info};
+use tracing::info;
 
 #[tokio::main]
 async fn main() {
@@ -18,7 +18,7 @@ async fn main() {
     // build our application with a single route
     // let app = Router::new().route("/", get(|| async { "Hello, World!" }));
     let app = routes::create_routes_and_init_app_state(&config).await;
-    debug!("{:?}", config);
+    info!("{:?}", config);
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind(config.server_addr())
         .await

@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized, RouteRecordRaw} from "vue-router";
+import {createRouter, createWebHistory, RouteLocationNormalized, RouteRecordRaw} from "vue-router";
 import {App} from "@vue/runtime-core";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
@@ -55,9 +55,9 @@ const router = createRouter({
 });
 
 
-router.beforeEach(async (to: RouteLocationNormalized, form: RouteLocationNormalized, next: NavigationGuardNext) => {
+router.beforeEach(async (_to: RouteLocationNormalized, _from: RouteLocationNormalized) => {
   NProgress.start();
-  next();
+  // 不返回任何值等同于允许导航（Vue Router 4.x 已弃用 next() 回调）
 });
 
 

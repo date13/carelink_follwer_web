@@ -15,11 +15,11 @@
 
       <div class="ml-3 mb-1">历史警报:</div>
       <div class="w-full h-full flex-1 notification-panel">
-        <el-alert v-for="{messageId,sg,triggeredDateTime} in notificationHistory.clearedNotifications.sort((a:any,b:any)=>{
+        <el-alert v-for="{messageId,sg,triggeredDateTime,source} in notificationHistory.clearedNotifications.sort((a:any,b:any)=>{
           return sugarCalc.cleanTime(b.triggeredDateTime) - sugarCalc.cleanTime(a.triggeredDateTime)
         })" :closable="false"
                   :description="dayjs(sugarCalc.cleanTime(triggeredDateTime)).format(DATE_FORMAT.datetime2)"
-                  :title="NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(NOTIFICATION_MAP[messageId],sg):messageId"
+                  :title="`${NOTIFICATION_MAP[messageId]?sugarCalc.showNotificationMsg(NOTIFICATION_MAP[messageId],sg):messageId}${source?'('+source+')':''}`"
                   :type="NOTIFICATION_MAP[messageId]?NOTIFICATION_MAP[messageId].type:'warning'"
                   class="item" show-icon/>
       </div>
